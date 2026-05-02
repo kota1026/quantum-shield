@@ -668,8 +668,9 @@ mod seq4_challenge {
             .expect("Pending unlocks request failed");
 
         let status = resp.status().as_u16();
-        let body: Value = resp.json().await.unwrap_or_default();
-        println!("SEQ#4-03 Pending Unlocks: status={}", status);
+        let body: Value = resp.json().await
+            .expect("SEQ#4-03 response must be valid JSON");
+        println!("SEQ#4-03 Pending Unlocks: status={}, body={}", status, body);
 
         assert!(
             status == 200,
@@ -1214,10 +1215,12 @@ mod seq8_emergency_pause {
             .expect("Fees request failed");
 
         let status = resp.status().as_u16();
-        let body: Value = resp.json().await.unwrap_or_default();
-        println!("SEQ#8-04 Fees: status={}", status);
+        let body: Value = resp.json().await
+            .expect("SEQ#8-04 response must be valid JSON");
+        println!("SEQ#8-04 Fees: status={}, body={}", status, body);
 
         assert_eq!(status, 200, "Fees distribution endpoint should return 200");
+        assert!(body.is_object(), "fees response must be a JSON object, got: {}", body);
     }
 
     /// SEQ#8-05: Treasury dashboard（Insurance Fund含む）
@@ -1232,10 +1235,12 @@ mod seq8_emergency_pause {
             .expect("Treasury request failed");
 
         let status = resp.status().as_u16();
-        let body: Value = resp.json().await.unwrap_or_default();
-        println!("SEQ#8-05 Treasury: status={}", status);
+        let body: Value = resp.json().await
+            .expect("SEQ#8-05 response must be valid JSON");
+        println!("SEQ#8-05 Treasury: status={}, body={}", status, body);
 
         assert_eq!(status, 200, "Treasury dashboard should return 200");
+        assert!(body.is_object(), "treasury response must be a JSON object, got: {}", body);
     }
 }
 
@@ -1476,10 +1481,12 @@ mod seq9_token_hub {
             .expect("QS Hub dashboard failed");
 
         let status = resp.status().as_u16();
-        let body: Value = resp.json().await.unwrap_or_default();
-        println!("SEQ#9-06 QS Hub Dashboard: status={}", status);
+        let body: Value = resp.json().await
+            .expect("SEQ#9-06 response must be valid JSON");
+        println!("SEQ#9-06 QS Hub Dashboard: status={}, body={}", status, body);
 
         assert_eq!(status, 200, "QS Hub dashboard should return 200");
+        assert!(body.is_object(), "QS Hub dashboard must be a JSON object, got: {}", body);
     }
 
     /// SEQ#9-07: Consumer Dashboard取得 (correct path: /v1/user/dashboard)
@@ -1496,10 +1503,12 @@ mod seq9_token_hub {
             .expect("Consumer dashboard failed");
 
         let status = resp.status().as_u16();
-        let body: Value = resp.json().await.unwrap_or_default();
-        println!("SEQ#9-07 Consumer Dashboard: status={}", status);
+        let body: Value = resp.json().await
+            .expect("SEQ#9-07 response must be valid JSON");
+        println!("SEQ#9-07 Consumer Dashboard: status={}, body={}", status, body);
 
         assert_eq!(status, 200, "Consumer dashboard should return 200");
+        assert!(body.is_object(), "Consumer dashboard must be a JSON object, got: {}", body);
     }
 
     /// SEQ#9-08: Explorer Overview取得
@@ -1514,10 +1523,12 @@ mod seq9_token_hub {
             .expect("Explorer overview failed");
 
         let status = resp.status().as_u16();
-        let body: Value = resp.json().await.unwrap_or_default();
-        println!("SEQ#9-08 Explorer Overview: status={}", status);
+        let body: Value = resp.json().await
+            .expect("SEQ#9-08 response must be valid JSON");
+        println!("SEQ#9-08 Explorer Overview: status={}, body={}", status, body);
 
         assert_eq!(status, 200, "Explorer overview should return 200");
+        assert!(body.is_object(), "Explorer overview must be a JSON object, got: {}", body);
     }
 
     /// SEQ#9-09: Enterprise Dashboard取得 (correct path: /v1/enterprise/dashboard/overview)
