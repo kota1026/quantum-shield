@@ -1,0 +1,21 @@
+{
+  "route_id": "home-ja",
+  "route_label": "Home (JA)",
+  "path": "/ja",
+  "viewports": [
+    "desktop",
+    "mobile"
+  ],
+  "locales": [
+    "ja",
+    "en"
+  ],
+  "acceptance_criteria": [
+    "All text content is rendered in Japanese without encoding errors or placeholder text",
+    "Hero section image loads and displays correctly on both desktop and mobile viewports",
+    "Navigation links are functional and point to correct locale-specific paths",
+    "Call-to-action buttons are clickable and properly styled across all viewports",
+    "Layout maintains proper spacing and alignment on mobile viewport (no horizontal overflow)",
+    "Page title and meta description are in Japanese"
+  ]
+}
