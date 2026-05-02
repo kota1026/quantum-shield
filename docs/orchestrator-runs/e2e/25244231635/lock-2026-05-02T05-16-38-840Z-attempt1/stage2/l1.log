@@ -1,0 +1,9 @@
+# l1 step
+# command: cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL"
+# exit: 0
+
+# STDOUT
+120000000000000000 [1.2e17]
+
+
+# STDERR

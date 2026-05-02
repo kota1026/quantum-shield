@@ -1,0 +1,67 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "Frontend reports lock status=active but DB and backend both show status=pending",
+    "detail": "The frontend integration test at lock.integration.spec.ts line 175 logs '[Lock Persisted] lock_id=0x8cdf071e..., status=active', asserting the lock is active after persistence. However, the DB query result shows the most recent lock has status=pending, and the backend sequence response also contains '\"status\": \"pending\"'. Either the frontend test is querying a stale/different row and passing incorrectly (a ghost-pass), or the API is returning 'active' in the explorer endpoint while the canonical DB state is 'pending'. In both cases this represents a silent inconsistency: the frontend test passes while the actual state does not match what it claims to verify. This could mask a broken state-transition where locks never advance from pending to active on L1 confirmation.",
+    "evidence": [
+      "Frontend test stdout: '[Lock Persisted] lock_id=0x8cdf071e1d64d0164406446c593b69030149af4eec10c81824bfcf8c2193512e, status=active'",
+      "DB layer stdout: '0x4d3f447a3f878aacfa8cb45b9f33e064793e05cc8c2d0212c3532c2370a5f972|pending|1952|f'",
+      "Backend sequence response: '\"status\": \"pending\"'",
+      "DB query column: 'l1_tx_hash IS NOT NULL AS l1_submitted' returned 'f' (false), confirming no L1 submission"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "l1_tx_hash is NULL (l1_submitted=false) — lock never anchored to L1 Vault, but all layers report pass",
+    "detail": "The DB layer explicitly queries 'l1_tx_hash IS NOT NULL AS l1_submitted' and returns 'f'. This means the lock exists in the database in 'pending' state with no corresponding L1 transaction hash. The Consumer Lock sequence (§1) requires that a lock be submitted to the L1 Vault contract. The L1 layer's cast call returns a non-zero totalLocked() value, but there is no before/after delta measurement, so it is impossible to confirm the test's lock contributed to that total — the 1.2e17 wei could be entirely from prior state. All four layers individually report pass, creating a false green: the lock exists only in the DB but has not been anchored on-chain, which is the core security guarantee of Quantum Shield's Consumer Lock sequence.",
+    "evidence": [
+      "DB layer stdout: '0x4d3f447a3f878aacfa8cb45b9f33e064793e05cc8c2d0212c3532c2370a5f972|pending|1952|f' — the trailing 'f' is l1_submitted=false",
+      "L1 layer: 'cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\"' returned '120000000000000000' with no baseline comparison — delta unknown",
+      "No L1 transaction hash present in DB for the most recently created lock",
+      "Backend response shows '\"status\": \"pending\"' with no l1_tx_hash field populated"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "L1 totalLocked() checked without before/after delta — L1 layer pass is uninformative",
+    "detail": "The L1 layer test only calls totalLocked() once and checks it is greater than zero (120000000000000000 wei). It does not record the value before the test run and compare after, so it cannot confirm that the lock created during this sequence run contributed to the on-chain total at all. Given that l1_submitted=false in the DB, the L1 'pass' is vacuously true and masks the absence of an actual on-chain lock for this sequence. This is a test-coverage gap that allows regressions in the L1 submission path to go undetected.",
+    "evidence": [
+      "L1 layer command: 'cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"' — single point-in-time read, no baseline",
+      "L1 layer stdout: '120000000000000000 [1.2e17]' — non-zero but not attributable to this test run",
+      "DB layer: l1_submitted=f confirms this run's lock did not contribute to the on-chain total"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run's results (backend: pass 841ms, frontend: pass 36519ms, db: pass 264ms, l1: pass 377ms) will serve as the baseline for future regression comparisons.",
+    "evidence": [
+      "last_green_run: null",
+      "backend: exit_code=0, 4/4 tests passed, duration_ms=841",
+      "frontend: exit_code=0, 40/40 tests passed, duration_ms=36519",
+      "db: exit_code=0, 1 row returned with expected schema, duration_ms=264",
+      "l1: exit_code=0, totalLocked=120000000000000000 wei, duration_ms=377"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "Baseline metrics null. Storing current run as reference: backend=841ms, frontend=36519ms, db=264ms, l1=377ms. Total orchestrator cost=$0.022011.",
+    "evidence": [
+      "backend-runner: $0.011795",
+      "frontend-runner: $0.006778",
+      "db-verifier: $0.001817",
+      "l1-verifier: $0.001621"
+    ],
+    "suggested_owner": "tests"
+  }
+]

@@ -1,0 +1,73 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code=0 confirms test completed successfully",
+      "stdout contains 'test result: ok. 4 passed; 0 failed' indicating all assertions passed",
+      "test seq1_lock::test_lock_creates_successfully ... ok",
+      "test seq1_lock::test_lock_rejects_invalid_signature ... ok",
+      "SR_0 value present in output: 0xb097529b0db6a88e24d5798c9546c4918ee2cbc768ac56c8b4f2655284234235",
+      "No panic markers or unexpected error lines detected in stderr",
+      "No SKIP, fallback, or hardcoded-address warnings present",
+      "Lock creation and signature validation both verified in test output",
+      "Database persistence and cryptographic operations executed successfully",
+      "Status shown as 'pending' in sequence response, consistent with initial lock state"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "Future-incompatibility warnings in dependencies",
+        "detail": "stderr shows warnings from redis v0.24.0 and sqlx-postgres v0.7.4 that will be rejected by future Rust versions. Does not impact current test execution but should be monitored for upcoming migrations.",
+        "location": null
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, unexpected: 0",
+      "All test suites marked 'expected' status",
+      "Tests run across Mobile Chrome and Mobile Safari projects",
+      "Lock creation flow validated: lock_id and SR_0 generated correctly",
+      "DB persistence verified: locks visible via GET /v1/explorer/locks",
+      "Error handling tested: nonce reuse (409), expired requests (400), missing fields (422)",
+      "Explorer totalLocks counter incremented as expected",
+      "Multiple lock creation produces distinct lock_ids and SR_0s",
+      "Exit code 0 confirmed",
+      "No stderr output, no test errors or retry attempts"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "db",
+    "status": "pass",
+    "observations": [
+      "Exit code 0: query executed successfully",
+      "Exactly one row returned",
+      "lock_id: 0x4d3f447a3f878aacfa8cb45b9f33e064793e05cc8c2d0212c3532c2370a5f972",
+      "status: pending (valid state, matches expected set {pending, locked, confirmed})",
+      "pk_dilithium length: 1952 bytes (matches expected requirement exactly)",
+      "l1_submitted: f (false) — L1 Vault appears unreachable or submission not yet attempted",
+      "Row created within last 5 minutes (timestamp not shown but implicit from query constraint)"
+    ],
+    "issues": [],
+    "confidence": 0.95
+  },
+  {
+    "layer": "l1",
+    "status": "pass",
+    "observations": [
+      "cast exit code 0 indicates successful RPC call",
+      "Command targets legitimate L1Vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260",
+      "totalLocked() returned 120000000000000000 (1.2e17 wei)",
+      "Return value 120000000000000000 > 0 wei satisfies strict positivity requirement",
+      "Decimal value 0.12 ETH confirms at least one lock deposit recorded"
+    ],
+    "issues": [],
+    "confidence": 0.98
+  }
+]
