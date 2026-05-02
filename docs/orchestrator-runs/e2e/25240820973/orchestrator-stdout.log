@@ -1,0 +1,50 @@
+=== diagnostic ===
+pwd: /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator
+REPO_ROOT: /home/runner/work/quantum-shield/quantum-shield
+REPORTS_DIR: /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator/reports
+ANTHROPIC_API_KEY length: 108 (prefix: sk-ant-a...)
+DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+L1_RPC_URL: https://ethereum-sepolia-rpc.publicnode.com
+
+=== :8080 backend reachability ===
+* Host localhost:8080 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+*   Trying [::1]:8080...
+* connect to ::1 port 8080 from ::1 port 44410 failed: Connection refused
+*   Trying 127.0.0.1:8080...
+* connect to 127.0.0.1 port 8080 from 127.0.0.1 port 46904 failed: Connection refused
+* Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
+* Closing connection
+(curl failed)
+
+=== node + pnpm ===
+v20.20.2
+10.33.2
+
+=== orchestrator run ===
+
+> quantum-shield-e2e-orchestrator@0.1.0 verify /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator
+> tsx src/index.ts --sequence lock
+
+
+=== lock ===
+▸ Sequence: lock (attempt 1/3)
+▸ Run dir:  /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator/reports/lock-2026-05-02T02-12-51-715Z-attempt1
+▸ Stage 1: spec-runner — loading SEQUENCES.md and producing test plan
+✓ spec-runner produced plan with 4 steps across 4 layers
+▸ reconciled 2/4 step phase(s) from binding (AI omitted phase classification)
+▸ Stage 2a: 2 drive step(s) in parallel
+▸ Stage 2b: 2 verify step(s) in parallel (after drive completes)
+✓ layer backend  pass (exit=0, 865ms)
+✓ layer frontend pass (exit=0, 34494ms)
+✓ layer db       pass (exit=0, 313ms)
+✓ layer l1       pass (exit=0, 456ms)
+▸ Stage 2: dispatching layer analyzer agents (haiku x5)
+▸ Stage 3: bug-hunter / regression-sentinel / performance-monitor (parallel)
+▸ Stage 3 findings by severity: {"high":1,"medium":2,"info":2}
+▸ Stage 4: fixer + cross-reviewer (parallel)
+! verdict: FIXABLE (confidence 0.65, $0.265)
+▸ Auto-fix: 0 of 3 fixer proposals are auto-applicable (all high-risk or sensitive paths)
+  report: /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator/reports/lock-2026-05-02T02-12-51-715Z/report.md
+ ELIFECYCLE  Command failed with exit code 1.

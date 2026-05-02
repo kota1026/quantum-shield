@@ -1,0 +1,77 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code == 0",
+      "stdout contains 'test result: ok. 4 passed; 0 failed'",
+      "All 4 test cases passed: test_lock_creates_successfully, test_lock_rejects_expired, test_lock_status_retrievable, and one more",
+      "lock_id successfully generated and returned in response: 0xe485d15855e8790708ade4836952b901e493dd683ec02b193525ee9d38f53e22",
+      "SR_0 value present in stdout: 0x91b3f3ad06fe95ffca26586af1ca6e46b0829bfba694465b9e7cc6f42ce5fee1",
+      "Status field shows 'pending' which is expected for a newly created lock",
+      "Response includes all expected lock metadata: amount, asset, created_at, owner, release_time, time_lock_remaining",
+      "No panic markers or error exceptions in stdout/stderr",
+      "Test execution time: 0.15s (fast, no hangs)",
+      "SQLX_OFFLINE=true environment variable set correctly for offline mode"
+    ],
+    "issues": [
+      {
+        "severity": "low",
+        "title": "Unused variable in test code",
+        "detail": "Multiple instances of unused variable 'body' in sequence_e2e_test.rs (lines 671, 1217, 1235, 1479, 1499, 1517). Variables are assigned via .json().await.unwrap_or_default() but never used. These should be prefixed with underscore (_body) to silence warnings.",
+        "location": "src/api/api/tests/sequence_e2e_test.rs:671, 1217, 1235, 1479, 1499, 1517"
+      },
+      {
+        "severity": "info",
+        "title": "Future incompatibility warnings from dependencies",
+        "detail": "Build reports future-incompat warnings from redis v0.24.0 and sqlx-postgres v0.7.4. These are advisory but not blocking. Recommend upgrading dependencies when available.",
+        "location": null
+      }
+    ],
+    "confidence": 0.98
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, unexpected: 0",
+      "Exit code: 0",
+      "Playwright JSON reporter parsed successfully",
+      "All 40 test cases across Mobile Chrome and Mobile Safari projects completed with 'expected' status",
+      "Health check confirms backend readiness (334ms duration)",
+      "Lock creation tests verify SR_0 and lock_id generation with cryptographic outputs",
+      "Database persistence confirmed: locks visible via GET /v1/explorer/locks",
+      "Explorer totalLocks counter incremented correctly (32 → 33)",
+      "Validation tests passed: nonce reuse (409), expired requests (400), missing fields (422)",
+      "Multi-lock scenario validates distinct lock_ids and SR_0s across 3 sequential creates",
+      "Test output contains expected assertion markers: [Lock], [Lock Persisted], [Explorer], [Nonce Reuse], [Expired], [Missing Field], [Multi-Lock]"
+    ],
+    "issues": [],
+    "confidence": 0.98
+  },
+  {
+    "layer": "db",
+    "status": "pass",
+    "observations": [
+      "psql exit code 0 indicates successful query execution",
+      "Exactly one row returned matching the 5-minute window filter",
+      "lock_id is a valid hex string (0x3a4865b321bf178c7f57dd0cd8c6e7dfa264d0156704e00348ce3a0f7ea9ae44)",
+      "status field is 'pending', which matches expected constraint (pending OR locked)",
+      "pk_dilithium length is exactly 1952 bytes, matching the expected cryptographic key size for Dilithium"
+    ],
+    "issues": [],
+    "confidence": 0.99
+  },
+  {
+    "layer": "l1",
+    "status": "pass",
+    "observations": [
+      "cast exit code 0 — call succeeded",
+      "L1Vault contract address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is official and legitimate",
+      "totalLocked() returned 120000000000000000 wei (1.2e17)",
+      "Expected predicate: value > 0 wei — satisfied (120000000000000000 > 0)"
+    ],
+    "issues": [],
+    "confidence": 0.99
+  }
+]

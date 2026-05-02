@@ -1,0 +1,66 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "unwrap_or_default() on response JSON silently masks body parse failures in E2E tests",
+    "detail": "Six test locations in sequence_e2e_test.rs call `resp.json().await.unwrap_or_default()` and assign the result to `body`, which is then never read (compiler warns it is unused). This is a direct instance of silent-failure pattern #3: if the server returns a non-JSON body, a malformed response, or an unexpected error payload, `unwrap_or_default()` substitutes `Value::Null` and the test continues without any assertion. The tests pass a green result while having verified nothing about the response content. This pattern has caused missed regressions before and is listed as a known silent-failure vector.",
+    "evidence": [
+      "stderr: `let body: Value = resp.json().await.unwrap_or_default();` at sequence_e2e_test.rs:671 — compiler warns 'unused variable: body'",
+      "stderr: same pattern at lines 1217, 1235, 1479, 1499, 1517 — 6 instances total",
+      "compiler note: 'help: if this is intentional, prefix it with an underscore: `_body`' — confirms value is never consumed",
+      "All 4 backend tests report 'ok' despite body content being unverified in at least 6 call sites"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "Lock remains 'pending' in DB with no evidence of L1 submission within the test window",
+    "detail": "The DB layer confirms the most recently created lock (0x3a4865b321bf...) has status='pending'. The L1 layer shows totalLocked()=120000000000000000 wei, but this value is not confirmed to have increased as a result of this specific lock — there is no before/after L1 snapshot in the test harness. If the background task responsible for submitting pending locks to L1 and updating status is silently failing (pattern #5: Ok(()) swallowing errors), locks would accumulate in 'pending' state indefinitely while tests still pass. No test asserts that status transitions from 'pending' to 'locked', and no L1 event log is checked to confirm the specific lock_id was anchored on-chain.",
+    "evidence": [
+      "DB output: `0x3a4865b321bf178c7f57dd0cd8c6e7dfa264d0156704e00348ce3a0f7ea9ae44|pending|1952` — status is 'pending' after lock creation",
+      "L1 output: `totalLocked()` returns `120000000000000000` — no before/after delta captured to attribute to this lock",
+      "Backend test log: `\"status\": \"pending\"` in SEQ#1-04 status response — no follow-up assertion that status ever becomes 'locked'",
+      "No test in seq1_lock suite is named 'test_lock_confirms_on_l1' or equivalent — L1 finalization path is untested"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "Lock 'owner' field contains raw public key bytes, not a wallet address — potential spec violation",
+    "detail": "The GET /v1/lock/{id} status response logged in the backend test (SEQ#1-04) shows the 'owner' field as a 1000+ character hex string, which is clearly a serialized Dilithium or SPHINCS+ public key, not an Ethereum wallet address. SEQUENCES.md §1 Consumer Lock likely specifies that the owner field should be a wallet address (20-byte Ethereum address) used for authorization checks. If downstream components (frontend, Token Hub claim path, or L1 slashing logic) parse 'owner' expecting a wallet address and receive a raw public key instead, they may silently fall back to a zero address or the literal string 'caller' — both of which are known silent-failure patterns (#7 and #4). The db layer shows pk_dilithium stored separately at 1952 bytes, suggesting the public key is leaking into the owner field erroneously.",
+    "evidence": [
+      "Backend stdout SEQ#1-04: `\"owner\": \"0x55d9218ac5af7d10afaf46917334f778fc4bb33f6900aa7b96814c78e16c39909cf01bb...\"` — value is 1000+ hex chars, far exceeding a 20-byte Ethereum address (42 chars with 0x prefix)",
+      "DB output: `pk_dilithium length=1952` stored as a separate column — yet owner field in API response mirrors a key-sized blob",
+      "Known silent-failure pattern #7: `wallet_address = \"caller\"` literal can appear when owner parsing fails in Token Hub claim path"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run (all 4 layers pass: backend 865ms, frontend 34494ms, db 313ms, l1 456ms) will serve as the baseline for future regression comparisons.",
+    "evidence": [
+      "last_green_run is null",
+      "backend: pass, 4/4 tests ok, 865ms",
+      "frontend: pass, 40/40 tests ok, 34494ms",
+      "db: pass, lock_id and pk_dilithium (1952 bytes) verified, 313ms",
+      "l1: pass, totalLocked=120000000000000000 wei, 456ms"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "seq-1: backend=865ms, frontend=34494ms, db=313ms, l1=456ms. Total wall-clock: 35.9s. Orchestrator cost: $0.0248.",
+    "evidence": [
+      "No prior baseline exists for seq-1",
+      "frontend-runner dominates at 34.5s (96% of total)",
+      "Combined agent cost $0.0248 is well under $1.00 threshold"
+    ],
+    "suggested_owner": "tests"
+  }
+]

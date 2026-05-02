@@ -1,0 +1,294 @@
+{
+  "sequence": "seq-1",
+  "started_at": "2026-05-02T02:12:51.715Z",
+  "finished_at": "2026-05-02T02:14:45.280Z",
+  "duration_ms": 113565,
+  "plan": {
+    "sequence_id": "seq-1",
+    "sequence_name": "Consumer Lock",
+    "layers": [
+      "backend",
+      "frontend",
+      "db",
+      "l1"
+    ],
+    "steps": [
+      {
+        "layer": "backend",
+        "description": "Rust integration test for Lock flow",
+        "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq1_lock -- --nocapture",
+        "expected": "Test exits with code 0; stdout confirms lock_id issued, SR_0 computed via SHA3-256(\"QS_LOCK_V1\" || fields), and L1 lockWithSR0 transaction submitted without error",
+        "phase": "drive"
+      },
+      {
+        "layer": "frontend",
+        "description": "Playwright integration spec for Consumer Lock",
+        "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+        "expected": "All Playwright tests pass (status: passed); JSON reporter output shows zero failed tests; UI lock creation reaches success state and a corresponding DB row is confirmed in the test assertions",
+        "phase": "drive"
+      },
+      {
+        "layer": "db",
+        "description": "Verify lock row was created during this run window and pk_dilithium populated",
+        "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;\"",
+        "expected": "Exactly one row is returned; status is exactly 'pending' or exactly 'locked'; length(pk_dilithium) is exactly 1952 bytes",
+        "phase": "verify"
+      },
+      {
+        "layer": "l1",
+        "description": "Verify totalLocked increased on Sepolia Vault",
+        "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+        "expected": "Returned uint256 value is strictly greater than 0 wei",
+        "phase": "verify"
+      }
+    ],
+    "acceptance_criteria": [
+      "Backend integration test exits with code 0 and stdout confirms SR_0 computation and L1 submission",
+      "Playwright lock.integration.spec.ts reports zero failed tests and UI reaches success state",
+      "A locks row exists with created_at within the last 5 minutes, status = 'locked', and pk_dilithium byte length = 1952",
+      "Sepolia Vault totalLocked() returns a value strictly greater than 0 wei",
+      "No silent fallback or hardcoded address appears in the backend or frontend test trace"
+    ],
+    "spec_section": "SEQUENCES.md §1 Consumer Lock"
+  },
+  "plan_source": "ai",
+  "layer_results": [
+    {
+      "layer": "backend",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 865,
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq1_lock -- --nocapture",
+      "stdout_excerpt": "[truncated 5923 bytes]\n125754e8198b70112c72dd6f5e5ee7b84fcbf80a3eb2df7c1bee0303a18369d6ed944e9572007d1004b4b79d3843a7b3fe5a070d84d5d45ead09150c947d55c18db6268ef8d65ad5a00b723387ac055a8450f67f7078ab4e21066a374c1a1e595df1c19d6f0fe13ae100090c929bf017d693fd998010323d08afd14fb3d5826bb06b100d59a982dae928f01528ffdf2938bb2888f7e49a2ac814f5342a1369b1c4ad9c026cb69045fd22c1f01cab2ce07bec1dd7cfa2effc32e90371aaa5a9ff9968358c43297de0c9962752800b53c429940ad87ae3b6d8d7d90d430669b57a4d5d9ffeb90949ff4316469639900b4f1d5d6799a7c630f9a96471002bac35a81610877c6b5084ea781b1a22428c20018f36c446c234adbd0be1cb6024587801c29678c161f5a8015aa93b636f97da2000b11f97fd88e25ee3b48f59b37d24e966f71ff57e092bb621f7a2754ededcf3a005da45d77152686e3a2999bc11349c403644fbbb2453d097eea988d6d9f8bbb1601d82e1d2ed48c37352d3634b5276cae6ec17c4eadcaf52ec572f3eb76d565bbcd01183d18e51f0833d111ef87804a18bbb6b6824768434688db097a73f73fc7af3b00a765fff4b19766120dcf5b8119583152d62c72f0e6ff686c723e2bc25154edc10021d1b3f4bc365373c95b95f6126f5d3d21070ee37be4ed81d93f1d68ed1a3816019e738c8c2e83d1c5200b53cae650948450eded09f3a80bd1737666a660a8ea7801eba203c5be500faabbca53634e991f648139a2473566953dcd836202da84a7fa002a668372e04c2dd23989c6cbb0cf953415edee9667c89466205ec553be0c017b0095e3c0e5e007536b3365b64bc198708ef2523959378d5de9d3e004d83ed34f5001201942391886635512f469d5346cf3a43307352e03461808136fc3edd95141ab0082b904138e158e16aecd236f98f005977f3b098343a4260e91b90913bd64b07200aef1af57f882909107b733dbdd1a2a25d3b5df5b89819269ba504610bc280e2900cd9dd9eb9e32c428350c4b10d3a0cc69602799857f0d2c03dfb9a1a7517d382c01b3a6755fd0c068d3fe100fb0ac52e6bfb6d8b4438bacc1d9b57aa1b61ada12170023f4025d83830f053babf8e6043c7fa4a09451dc3858c47cd9b523554b0e0d51010b96af3df5e3818811153d574d888745742938122ab1d4b48261e620d80d0b8c0134ecba11a97140ccbcca5fa820722c0eeb48a7a09f6c190da886fe1d76aa145a011c7fe010b875200960ee2dd5e615875cede3cde0f95a5f562981fc36f65f8f8500133c7d1616247c721b7b780e6baa8cf68526ba22ec03e2ead7d22392b3efbeeb0106f071fece29d980ca9d4c8cecc9e14743c1b59c0024b81edd5f87c8ebbe99410182acb02cb8fb48c5ae76c3556ee1c1765781783e8a20c2b7003f6fe6aaa30ff200e205d80923f122b0acf5cc0987e8c4b6ffdc2727e75f47dac6fd996c8028f98100f27d1bb3f822f678949d7912ed95ff4963a351249c8861c9505395c61bd20c14008eac82e8a8fd3b225fbaeb276869bc6eaf329e9e9aeb9c5b91d1d72c4432e51900a6104ab177bee98d2e33ec15e5c11fb3affb9778ee74b0f9ced42d0e45d1a5a70022351442d646a9b409103678ebed4e81f8cc1ccfa5fb266722c5b80f796d6207007314e60e0e3857efcf86256e7e78e558cc060c695ec4661378adc2b3ac45c876000c1bd4b4ae3831463a49615235b5540054aad1dcf1fcbc0355191509a1feb266008376482869aee74a58b83760950d96287fea26befd4d7497c5df9e3e14c759d60004806738bbd8896aef6d875cc06a0098f8cbdf477cd33dcb2465082fca98238701c5059aab9a41687f0aeb2a85980b4c9abd4c75d38fbb5859132e81ad09e7bd2a00ac9daec76a969ecb2205749d51ec9fffc8117c42513cd0c06c72172ba7f53553019bf8e22694864369f23963f7561e4b9d04bb080b5dfa45b1de86d7d1445fe25f0039835f093355f5953016ef2a93451dfc9da89294634fc0727c20c0ff9a28251200dda6efc21e9685639691e4fb9faa7faac6724ff2e4abc6c2f52719137071cd47016ee90a9f1f5417fd06c02dcc6427566b3fb6e455e689d87c153fd32074dabfa30110f55edf787751b0c8543e84ee94f3e53e5ead9e20f6b75b1039e61ed5e2becc011996dde97dd20f51ba89a58940fa06044f826af03814f3dee04cf55ee7e7359b00f537ed05579045eded9ed56b3c6079e4dee717f84ee04723efc9453f04e68e7f016c4cf5665a6c01c8d1481f757177984b799bcf759a95e0368e4b24307303d3ec018c316045268f970d6d6eaaae8070a4b3cb44341199a6f31c95dcb14d6ec454ca00f4cd351b5fc464e560be3e06b330dee3101248e73902cfdc1237e912081aefa3011532c1a00f3df36bbb51ee784b63111465c296917e761110382bee8c220a3ba400b5482c7f6607bc358e9f33c1da487151cebfc780f7353f7f6bb74e5ca1eed6bd013210a437465d69036291ffd3133db8ea1d5ac69f84f8054b909aebebf2488e6600dcb4f3a0ca9bef39fe36cb54c31e096694000610bd811430662327e2b8dbd1e600d07f78c18bda0dc5a3ec9ed8a72bce4f0fcc3d9db1edfa88cbf839b0ee303d9f01866a78cf1225f53a90ee0834263936f836d83f5921f422a3c323af8ff07daaa4016b5d10705ae7efd06882a6f192c2c02ae56b2952bb801322d28761aecedd11f2018f25e2a09fc98c3768f407ee5da30474a5fa571cfffc52e67c0768cbd5cc3e5000ec60fc6a24542c2914b6e15e57127e798992514acefdaab16efcaf00ac0d515e00a9e392dada906d591dfa8e2eef5541e8185ffe136b5a38255c652453f0eb23f10158793e48f4f6e1d4dcee1bd7b1d2e3e25c4a188e5a6ca3a3dbb831ec0134612101022bf423c1d17f1cf6977712b5ea77e5bf337e77da32f4ac3e99c9d07e067f8201e8d67b77f55babddaf8ef378d6eb537d88ca835f6cdbe233db4f1af8da4d0e2c012c8c8013d13222a09fd64cb3f6610b6279a1c27c8cfca769205bd26034b51d5300d5f98a468b15646bd5849b1225a882759ffaf9b66715f1dbf8a989fd733fb8220043e51cf4f4e117b99546f059d35fba178d22d8c1c73cc2d09b85d93d32cb9d570039a573f52edc5cfa8db12aea31d861419343aefaf204aed9971c49fb7ef0f33e0034805f72bc9cd5690b83464deb488a6e6c46b7f9fe8d73a36747257649f3a9f800c0e3e999b5488f1d68eb27f2e8d77432af32ffaebfb1c9a532be076e3d18ac4b00ef0bf76d6edb033ba8b917a72668a1f2a4f14122cad431ad25cd655a6180cc050003880a3fee900da099e34980fc7978e56771f618c7446796baf4d6f6b7fbb2f70005e0c504d88b53769160608eeaf2ca040fbb5df4355d9386d34ed226415692c600a063618a8cc31fc654221fee05c9306096b0261febc79c778abe75044e5ae50a00fd0071ce00e462aa680f696d348e9e1bb799d071495cf185bcf240918f7c842f009bb142e5eff765c37c0f08a487c5fd80c320edef3483112b509c7af16adfebac01d8ceb015c46b2c41b1ac77beb74fc43a7fc3d04df3deefa979948f134a0c3e07003a26242bc32f2a3b1b553e90e40d1c0ab25d61a3016c2bb9f00b3eb696c5916801e28b54d578f8ae695af088c75a6f5d93c5d6d4a13af4066dee102df9bde186d000541acf376011216fbe98d035380e5148c62e310ddbf41091b7a2970ccfdd2a6e01ec2292c3e0facf431a6acc29169cc64138500b2b1b94c0edd6a2904acbd7e92b01439dd120c8f54f337f629b237cba9c31eef7fcb2dc51408a64d955813fd7010c017f9aa5c6eabba74eed3bf4e437fb5d4e07807a831c01ce8e0f1a7a6ad82118380116790a16dc3aa34f18708b614940dda81546bbf3cfb0c59c51b77f341330a4b30121f665202d04fd07fa8733d0ddaea871151507402850b294065c7bb79ff7d6f701c2bfbf432e693338fe457188716435ef19b48a90860c1cb856debf9f3de0f45101421a7f1a262b6ec6caa8b28197facf33311bf5031ef501f2e7c6f0b82eaaf123004ad9b05085b5c7273c604a93138324eb40961722f8af7d23de39844117e1cfe900e6144b43354c3afc5505d9a87e8ab1cdba67a010655d815de8835867321cb60701207c642668b30dc34cf5a4254d8314b02fc2664a218c9cc7a02c48fad95da3ed00023d26e0b65f89967b2556a616192e83438227d6ee93d36aa5a1aea144ef7f3300af7dfa0728048ba93ef4771ab5cc88cfbc9894040be8cf22c9bce7452c0029b2011a82bcc739a7532968a60a3d4f2496c3563b6e7044ea32a5e427a2305387b2e001277d0d5a2f7cb4097c8490a0f71fe2e5867eeba33c2383de3886bb1a1f87c7e10119d7d2919065bd01a74165278aa9031a8b4a1b7f37ea611567d7e4310e46002f01b0459ff395f70fa6ba430757d3ddb6a42d77fffe5e67cc647c8660838096cfff019140cd9661e5dcd80a2610521f2771c0da73b9a0ced99b8ec4a9cae4314022de002720e8e90cfc37285a335ba41c42bce071f159788baa3e66adf8f8895564ffce00390b7e5915184b1384a9f62983241e174506c239267615afa45c6f392d0d7d94019eaf33c63c9a21091c1142b439f96f270362eb848435cbe325f65580cd40e4450104fe1c40090bcebb1d9db0f5bc8ce4dfd62deb10e2bd5d25b9918a86188768f900ab1422d2f352a13311f7b19fa3f6aac1fbab2cdd8662d5bbcb4c4afb1622c3cb00e91e59018f691c0d42b4a65de028e25fd2ee9557985a5b59a68b2734e668d5140006589dc0b6969c7737f4cc2b93bd6fd31f4798d45b6aa7c988568890f0dbe16200e12974a5a2f86d70d4b657c7e0d4539628198917d467b0e068c5ce43bd7e3e1c001b9063bec7ec0ff9c2fdca4ecaf1da01a667968479ede5c3a3610966b9e8c4db007cebee6155a490820ce0fcc6b2253832a27a45075c06c04ed2a602fe0d3252c900a03fb977970e462f883219254fb3419fed3c8a8d4b0881018bae2f77f0291a20007b9f99e480dd0abe82075e0b1991e2f95a92bacd030d5647fda5a5e1f0cbe98a007694e0b7a3a07c742a1542533edc3473bc0ab8ccb820867473f7294028d0a2d000e652eaace8469bc9688fdfceb840c0c74d89ce3c23718cc7d974c4cb8ed393f7002e483f2d531000df09478acddec85099df64e6fbfbefbe9f1006f680c2cd0e05006e2b90d6af7ba92ac685cceb6d5148f9d3bf2e3ba158c219c16ee0e51195f94a00f9ecb586c653aa41610a960821bd5bd744f3ee52c88f03ab4a1f67431cd58137002f846ff87523d0c168139dacd5ddffa9b78ee860da07d29ad66c6fd969802f2e0025944cc069ac9f41fb96196b8defe7f4655ad0252424e5813570e3f23b9cc34e0012a45c1f3fe415082d77eafc41778353f75038bbdf7f033d639f460f7e11d46900716feae6e2e55fcdefaf70e10ebf9f5af6973f30f91f584c995a9f2acb88335301601217dabded550992928adb4a7b0a92878de7e4cb041a62c877c98d2e853e44011d60a5ec242abd3e500f1fbb0d283953998deefe59116a681afb73c5490c815700cfb0edb5ac914de3f74cbe2c5912efca53a339edec6a81cfad27340acb6393fd0148ef58e631af77311d380fe410ea6550720f1274c3ec00667384ab28c525da8f01a47a1c55b67bd9e1f25864c5105249fd5d1bf6e80334021df1466911c67c676301bc0a9c11518f466fe418626fee169e2ff71af590607da495e07c1af88b618fa101469a0bf2640af086af9633175b3e6926f3f4f4ace3abe536f96aadbb6ea75b5f01e03871cc5a9bb1bd53a15f2263213effbf37c1f5b9ba6a23e717bc27cf3e147a018c2e1a1e69ac0f365bacc786597bd1447e502be515989709f6d4dcfd2083f55f004c177487e977e6cb8f5a2072153d9a60bf920ea8abb33cd1afaa38e0f23477bf01abe89a5decced9a4a3b77b894448c5137c0a5ea0e2fc784314992efb14eae01f0171beb79d69f38feb7deeaeae5d53d4b7a463cf20ffd63b746c5b32f91ac3f27800875a1ded851962ee78f919b76655873e9a58100d8eb0d290870d0d865743bffc0056ac0c3d7768a879bb26990d7af41f143e587842509f2488e04203094964e9fd001d25852be49516e01d2ddd7c5fc04ad7b33e2bd40017757a5ed22a13d947a6a300113909563156480cc7ff14e3f96d48ee8ff0eda25746c110473c8e9e9e2603e30085249ff9a0eda72b5e867324a5ade1dcbcb0334f126475a400d932d5f834ecd800fd81b5b44cf50002e637981414cb938a46af766e2a6915fab246692b11869c3a003f1feca76c4cfa591eefb970213df5ef67be0d8b7d347dd4ddfa3e3b4f8b8755008fa411867b3a588b28ed16ec326593cf1cc244848b5df13ca5165af17eb0282f018ad46cfc343800dc5e48282381db36af4c1396f085109cb0f0f9ebfa6017de7b017020ff853cfd9f5a978b2682ade4c06ed32717ffcaed0b908318a1d5e438f4d40127bc15ded40509b08ebc6030881fde57a664912ca4971a641647c6112fa1020800566838a4d651b93e8e7edf1274f0cf49386018e267df1397c375d6b694396fa500178edd9424db6d279dd6f6bea88b493676de6d119f168b40640df9436cc9411d00da9e0390d8da5374dc891a0dc8958e1535274e05a8f39bd11fc94ac247e0de370046edca65ae9be0916158a3689edec4b2756956250bb071e3341d589e1aabb45800188174100000c763217746bbfb5f1bd75bf411ba7b05f78bd5463678fd27d72800be96b3031148ea95107a2786b4c322ba163517684abc108d4fbbdf02c37d551200474604cee9547018bc2620e09c26cf7a138dec3cda2e0c2f210578a3931ca27100469f9b4cf273b84a90cec27dc0896ed17adeca5e6e602ec3f8a5e724cfef3ca300dcb7cc1cf720598006494d7d78fad66475b7ec702f5902afcd13a8ac3c0cd7000020eca1c7bec3dcd68ed1281fcd14795f5d31b9d4391ace1bdd958a7cf4188d490170d905456a930e3e405cb972fc9ca57ee0aaf505d8007a2b8956342ac4f07ac5006bb491a961ff0ac140ad0db1dd2bbd3db9c3cb8f47516b374e3294474d21fd5a015ed755180b7f31aab4e7997bd4f09b12e65193f8336c1f0e7bacb44d0594617a019c0faccefac6a1f4a916d67000052dd0b74d3279ea4fca7a7df92ef677816f820120a19ed160f6f745649facd2b0eabe25c64c3dbcc2a66c6cd86a68c0c832125300bc55ab3881e67819a7198dd7a4105ff64cbdeb5298018ba86e9adef428b4800c00ad638d800faeed64fd5337a8edb1bd857e183435a8de1d988db86dd322faffa401ca041e2eba5a6e044941300a9f9858c30ba73da88607cc2fed9d132e51fb4f9300ff4a349949fdd6504b395560ba54c0193996cfe0ffc5de478a469e8e6ca5499e00b7405b9fa05eeb6dcfe0324ca945b574607c903c07417de65fe40edaf5ad0d860068cf2ed10db2075679d652bfae165a61025beaf3a7d5fa2a29c067f6f5a118bc01f08a0a920444cb5fbd6c2355322c62dfa4e9de1bad990250f24b8ae8eeeee2a3015651246a61ad381a546f011f63e7edac6db902c392edaba8752a85c8995121f800d8c0430f5a2565e8298ced635a584876673766ebf66a4dfd97a7bb39a1e3ea890075a0ab67e191bb9183b260944052ace34f3b8c34c457e3323657edf317bb710f008569d66627cc9e2c09baedf926959ef7e9c861dc1d4cd6395d5a0f636d61aa97003998987035c0dd5be5ebc0f8b74b96fc417858ba0ae3bed65e9b1681e869726e01cbdb493abbe84d576de58fbb941baa4caa9d4c4a5633964be5f388fcc1180ddd007b02b51bb3e5847fe6c2c87bc7af1803503842f35066c9f51f2d1db0085267120073743092875d4569c46fc83fea4a70182ae54d3f61cef3e58d763525e2c87e6b00\",\n  \"sr_0\": \"0x91b3f3ad06fe95ffca26586af1ca6e46b0829bfba694465b9e7cc6f42ce5fee1\",\n  \"status\": \"pending\"\n}\ntest seq1_lock::test_lock_creates_successfully ... ok\nSEQ#1-02 Expired lock response: status=400\ntest seq1_lock::test_lock_rejects_expired ... ok\nSEQ#1-04 Status response: code=200, body={\n  \"amount\": \"500000000000000000\",\n  \"asset\": \"ETH\",\n  \"created_at\": 1777687982,\n  \"is_emergency\": false,\n  \"lock_id\": \"0xe485d15855e8790708ade4836952b901e493dd683ec02b193525ee9d38f53e22\",\n  \"owner\": \"0x55d9218ac5af7d10afaf46917334f778fc4bb33f6900aa7b96814c78e16c39909cf01bb0775fb5596555750ed2f6b66dd2dcdda678464283e8f9da2952cd02f9e77b195b1d36f992a7753f1a8a01dac8e36a5fa6b8ef22a302a4ee0e528312f829ebac0cd18bb75d3fb556de82c49aa26b676deddb996b9dd22b0306aa10bd03aaf51bdd760dffe5d48d300869314c7c2477c2bd65b842fca6bb24903d4959e8b3029ddde432295b38853faefc7658fe4715c18a2dd21091d57c459890bec904e9300ed3f02aca56e381b448fee987481ddb948b0980f192b8c902ab1a04f53819bd8c5d3509464b87134e316d20ba83bfb45a3813c3d70f3a4d448555615fb20f9bc79059154ce947d9416d40c0beb50c0b43791b41794e2c61a38a856148848958443b2b241ff9c6fac0da2e453f80a3fbec1c64919a28e41f7baad0153745570aeffd3fb42d7b5a11580de27f6d66430b7f42f1230032a1f84c333774139da98fba0764bbde33656bc4f4cd2d56bfa714ac5ff062579b82ee47c9e865a67c2d09b8832aebe028ae3fdf37b7d0c91d9798a22d51bb2590327144f39b9d45da564030b616dab9d868b6e0b2e8c5fb8023b3afd2e2a59c8b09819e7ff60409b99b31642931c634edf680042bebca273c39d29a526ed8975ed2d806881cf48d6c555772efc031d5b69d3ce37a8bb55e0254b79ef3d82fc8bd6d89a3b5079d4e3dcf6e882036287373062655b60258a0303102cf66a4a79f6f208e837af85683e63213275fcb2559f8bed43a20e173a4e7cdc0d6421301a8c746fedafc30be86527e21432d2ac5805f2c861535c40bbb760bcaeda25637d116f56c68866c11ccaa31f501ee7038ad529ae2e2370e7af0b5c5f84d063b4460d11b2d360bd6b71faa77ab36a5b5a7c2766d3b11924464599df9d138afd28a9f955a15b40ee25b1e589f032740ec5559365ec80631e06fca69a6928124f29e4282a68f67a574d1f15b6d540406672e51906a6fa5149c4f39bb601fb5e55ad2ad37f90af5fed71a77bc04502c260853d4d167b3822b40b8455555fb19a78ed922169981cb64ef82a94ec2fe1639d13537d579c44e91350920179b18c2314e1dd56f07b9760ff96cd3159488ca8c61a0e66a4085be484ee8bb1103499bf08ed23fdad0b165f6724921c301bdb51256e2593a953417843f550556b7816311bb9e77d4e7ccc021b0d660edbc2ae1f1a18793533991c33d26c28c93bf2e6ae534ef76a4b15a646da8edf897c500ad6375df6840ec624adff941947ccb352264a33c657c82973bd2385c2e1ba09887ccf013a4077df5cf0c87db0118098afa517b857c3ed04d54d9ef0327a783799be5e1fe28d7c96359adbf0670298ad855026100f7c5502a0b4c6b72f1b3943fded370d0cc79dce86434467980b4cfa174a5218844e4288e72a5227d47378baac0d324068cf11edd838629987d051b1b01926472834f31de62bacf181d9fd619f0bbf52972018de6a1dcf3a840aaaa3e624f2d03abc1cf9a499bbaabf75e40248dc5cb274b65244aba152621c46a3606380564425df1924c5c335fde3f101075e2692019a7fcc5462eb77955fe19f0838266b20ee0303f3470c6ea9c9ba1fe5191949ab2a4ac144b3b1379a177f74350e1666f51f9f977d094967a54b9b74c0a99efe7f7dd9aae2b0c97801d02a1c25b7ba9ccd512ef71249c692daf84be6865f98ef395bf924ae27f618b4d5a57cc2b644f6c117fd100497463f2838b45cd976e94630dc23a7eb96e3f5e062232b9ddb7f8def36f7fc481f67577572bf07ef60b80cd04f71c069f5a53df3cad3e45b928ea1cc2c2f43ca058abf6b3e81f64a1d0b399bcc1855a27f5cb966a4e32c983ca08e6166992b2a23365017de0c99221ab3e49e4427b4bd29f9f8355f2b776eafe284a9b5cfe84f65ef1139bf55a09905c5d88f5608cf77a6c066c59d308f6d5b7836a4b17d553dbc72e4f803c03df1b780c34d78a62de3929ccc4fb5dcdb69c35e2fd7e3d9831e356286129b60bd83898af5f5bdcd804ff710144e00615b71c48d9ef71905a6be20273f9e1ecd60f400428796ceb969044bc159b14ec7976fcc36727e1b8af4549c1843c47934c8c3c16dd0b743a1b2b61367844220936b910c85ef77e93aeb3dadc8c8d3e39efd5f63bf0a1b07274fd8ce4905796bc91df7527dcb869d06b5804acd09d92e1878a97748ad56a91fb87daf8dbd8511cbefa10f57af35ca6c9b7ef20b4c2c81031eaacaeb83174f0e3d086e35c4c9beb52808a6ff7778696505d970c8ec513108d0809c4f46815b81ad8c651af6fb624f91f07bc87479400b89a66e92cfb2dd19ff777f902f2827736ae656488eb6fa0b66b6f257a19183073113eee4de5680534e63ad3398bd8b034352d0a87050f5ef4d3d260723f6d31fa37062a51b4b2e85fa52c2a58b05a8eb35370ff2dc49e71fc4b6748d717fd44d927d74a907fe3244d5b187e950bad3fae5319007c6fd08f3db5496f3949e9d2b53bc2470ec25e099a88906d7370a044ca8d87995692dcde8d9c736882183834d1b6b0e65876fe1f4106fd204e6e3d1cc8f9dbabfa96fae1b8566863f759c732d59788416c8ac7d616566406be80295d2f974409bc4aa5c8074e1fa62c586ae7c2d83ad8054f1910ff9586b4874573013c4fc2544670f81c280cdc4f34e9107088f1272eaa03bcbf7014761fa577174ad618b3cbc22a7a829d6022afe05cbad1422741731708e91415\",\n  \"release_time\": null,\n  \"status\": \"pending\",\n  \"time_lock_remaining\": null\n}\ntest seq1_lock::test_lock_status_retrievable ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 33 filtered out; finished in 0.15s\n\n",
+      "stderr_excerpt": "\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `body`\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc/api/api/tests/sequence_e2e_test.rs:671:13\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m671\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         let body: Value = resp.json().await.unwrap_or_default();\n    \u001b[1m\u001b[94m|\u001b[0m             \u001b[1m\u001b[33m^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_body`\u001b[0m\n    \u001b[1m\u001b[94m|\u001b[0m\n    \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `body`\u001b[0m\n    \u001b[1m\u001b[94m--> \u001b[0msrc/api/api/tests/sequence_e2e_test.rs:1217:13\n     \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m1217\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         let body: Value = resp.json().await.unwrap_or_default();\n     \u001b[1m\u001b[94m|\u001b[0m             \u001b[1m\u001b[33m^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_body`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `body`\u001b[0m\n    \u001b[1m\u001b[94m--> \u001b[0msrc/api/api/tests/sequence_e2e_test.rs:1235:13\n     \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m1235\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         let body: Value = resp.json().await.unwrap_or_default();\n     \u001b[1m\u001b[94m|\u001b[0m             \u001b[1m\u001b[33m^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_body`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `body`\u001b[0m\n    \u001b[1m\u001b[94m--> \u001b[0msrc/api/api/tests/sequence_e2e_test.rs:1479:13\n     \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m1479\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         let body: Value = resp.json().await.unwrap_or_default();\n     \u001b[1m\u001b[94m|\u001b[0m             \u001b[1m\u001b[33m^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_body`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `body`\u001b[0m\n    \u001b[1m\u001b[94m--> \u001b[0msrc/api/api/tests/sequence_e2e_test.rs:1499:13\n     \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m1499\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         let body: Value = resp.json().await.unwrap_or_default();\n     \u001b[1m\u001b[94m|\u001b[0m             \u001b[1m\u001b[33m^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_body`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `body`\u001b[0m\n    \u001b[1m\u001b[94m--> \u001b[0msrc/api/api/tests/sequence_e2e_test.rs:1517:13\n     \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m1517\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         let body: Value = resp.json().await.unwrap_or_default();\n     \u001b[1m\u001b[94m|\u001b[0m             \u001b[1m\u001b[33m^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_body`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m: `quantum-shield-api` (test \"sequence_e2e_test\") generated 6 warnings (run `cargo fix --test \"sequence_e2e_test\" -p quantum-shield-api` to apply 6 suggestions)\n\u001b[1m\u001b[92m    Finished\u001b[0m `test` profile [optimized + debuginfo] target(s) in 0.46s\n\u001b[1m\u001b[33mwarning\u001b[0m: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0, sqlx-postgres v0.7.4\n\u001b[1m\u001b[92mnote\u001b[0m: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n\u001b[1m\u001b[92m     Running\u001b[0m tests/sequence_e2e_test.rs (/home/runner/work/quantum-shield/quantum-shield/target/debug/deps/sequence_e2e_test-40391b077d3850ab)\n"
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 34494,
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "stdout_excerpt": "[truncated 52714 bytes]\ne\": \"integration/lock.integration.spec.ts\",\n              \"line\": 229,\n              \"column\": 7\n            },\n            {\n              \"title\": \"expired lock request is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 13,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Expired] Correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:34.414Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-75a7ca2fc571cf8dbc70\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 248,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock with missing required fields is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 5,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Missing Field] Correctly rejected with status 422\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:34.437Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-f0736da9f90650f32f2a\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 263,\n              \"column\": 7\n            },\n            {\n              \"title\": \"multiple locks create distinct lock_ids and SR_0s\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 84,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Multi-Lock] 3 distinct locks created: 0x71238431925edd0d4a39307d0413f532fd7ac797b602dc98af01bb91776b2166, 0x7a2bfba54dae4ca2481dc8ede0d39fbe361afb22222ecd6b2e0508d552537172, 0xd9b18d4f1a951b2e238c3afd31b0befdaa85280122fc8d1cc0f436053d2052a2\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:34.450Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-6599e110834aab03fdeb\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 285,\n              \"column\": 7\n            },\n            {\n              \"title\": \"health check confirms backend is ready\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 334,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.157Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-65af1f13c125590b1046\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 133,\n              \"column\": 7\n            },\n            {\n              \"title\": \"POST /v1/lock creates lock with valid SR_0 and lock_id\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 73,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Lock] lock_id=0x9d193603c2e0cd797b2328d734b36daab0d653ce08a5407841e02fc6ce9b40fc\\n\"\n                        },\n                        {\n                          \"text\": \"[Lock] sr_0=0x94e42dca5871293e8acecfea0d3e739381f7c17fc5de41b2bc1169019a1e11f8\\n\"\n                        },\n                        {\n                          \"text\": \"[Lock] smt_proof length=17030 chars\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.518Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-1ae72b95dcbf3a3278f8\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 140,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock is persisted in DB and visible via GET /v1/explorer/locks\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 41,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Lock Persisted] lock_id=0xf62aaa9403d2aa42cebfd99124522d6ae28f99e2f2277b33bdf615bbc3424000, status=active\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.608Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-133621605b726ca98e46\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 175,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock increases Explorer totalLocks count\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 46,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Explorer] totalLocks: 32 -> 33\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.661Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-e89eae9ab958115b5c67\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 203,\n              \"column\": 7\n            },\n            {\n              \"title\": \"nonce reuse is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 36,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Nonce Reuse] Correctly rejected with status 409\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.717Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-df1c51ed389e9be9b8fb\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 229,\n              \"column\": 7\n            },\n            {\n              \"title\": \"expired lock request is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 29,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Expired] Correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.760Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-83923d00673896deee40\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 248,\n              \"column\": 7\n            },\n            {\n              \"title\": \"lock with missing required fields is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 5,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Missing Field] Correctly rejected with status 422\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.798Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-653011916c07f7a1a202\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 263,\n              \"column\": 7\n            },\n            {\n              \"title\": \"multiple locks create distinct lock_ids and SR_0s\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 91,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Multi-Lock] 3 distinct locks created: 0x60192c070eda33d90706091f31fa667e6e2f63a9f0b5c4770d0b5a5226f22c90, 0x7ce4b699719ebef022157655a532c2d36bda265a9fe8e9b0d292fc034e2b3d76, 0x3a4865b321bf178c7f57dd0cd8c6e7dfa264d0156704e00348ce3a0f7ea9ae44\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-02T02:13:35.812Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"a755efc4348f41492de8-1056a23b7a8093b3e8ff\",\n              \"file\": \"integration/lock.integration.spec.ts\",\n              \"line\": 285,\n              \"column\": 7\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"errors\": [],\n  \"stats\": {\n    \"startTime\": \"2026-05-02T02:13:03.227Z\",\n    \"duration\": 32755.814,\n    \"expected\": 40,\n    \"skipped\": 0,\n    \"unexpected\": 0,\n    \"flaky\": 0\n  }\n}\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 313,
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium) FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;\"",
+      "stdout_excerpt": "0x3a4865b321bf178c7f57dd0cd8c6e7dfa264d0156704e00348ce3a0f7ea9ae44|pending|1952\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "l1",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 456,
+      "command": "cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\"",
+      "stdout_excerpt": "120000000000000000 [1.2e17]\n",
+      "stderr_excerpt": ""
+    }
+  ],
+  "layer_analyses": [
+    {
+      "layer": "backend",
+      "status": "pass",
+      "observations": [
+        "exit_code == 0",
+        "stdout contains 'test result: ok. 4 passed; 0 failed'",
+        "All 4 test cases passed: test_lock_creates_successfully, test_lock_rejects_expired, test_lock_status_retrievable, and one more",
+        "lock_id successfully generated and returned in response: 0xe485d15855e8790708ade4836952b901e493dd683ec02b193525ee9d38f53e22",
+        "SR_0 value present in stdout: 0x91b3f3ad06fe95ffca26586af1ca6e46b0829bfba694465b9e7cc6f42ce5fee1",
+        "Status field shows 'pending' which is expected for a newly created lock",
+        "Response includes all expected lock metadata: amount, asset, created_at, owner, release_time, time_lock_remaining",
+        "No panic markers or error exceptions in stdout/stderr",
+        "Test execution time: 0.15s (fast, no hangs)",
+        "SQLX_OFFLINE=true environment variable set correctly for offline mode"
+      ],
+      "issues": [
+        {
+          "severity": "low",
+          "title": "Unused variable in test code",
+          "detail": "Multiple instances of unused variable 'body' in sequence_e2e_test.rs (lines 671, 1217, 1235, 1479, 1499, 1517). Variables are assigned via .json().await.unwrap_or_default() but never used. These should be prefixed with underscore (_body) to silence warnings.",
+          "location": "src/api/api/tests/sequence_e2e_test.rs:671, 1217, 1235, 1479, 1499, 1517"
+        },
+        {
+          "severity": "info",
+          "title": "Future incompatibility warnings from dependencies",
+          "detail": "Build reports future-incompat warnings from redis v0.24.0 and sqlx-postgres v0.7.4. These are advisory but not blocking. Recommend upgrading dependencies when available.",
+          "location": null
+        }
+      ],
+      "confidence": 0.98
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "observations": [
+        "Total tests: 40, passed: 40, failed: 0, skipped: 0, unexpected: 0",
+        "Exit code: 0",
+        "Playwright JSON reporter parsed successfully",
+        "All 40 test cases across Mobile Chrome and Mobile Safari projects completed with 'expected' status",
+        "Health check confirms backend readiness (334ms duration)",
+        "Lock creation tests verify SR_0 and lock_id generation with cryptographic outputs",
+        "Database persistence confirmed: locks visible via GET /v1/explorer/locks",
+        "Explorer totalLocks counter incremented correctly (32 → 33)",
+        "Validation tests passed: nonce reuse (409), expired requests (400), missing fields (422)",
+        "Multi-lock scenario validates distinct lock_ids and SR_0s across 3 sequential creates",
+        "Test output contains expected assertion markers: [Lock], [Lock Persisted], [Explorer], [Nonce Reuse], [Expired], [Missing Field], [Multi-Lock]"
+      ],
+      "issues": [],
+      "confidence": 0.98
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "observations": [
+        "psql exit code 0 indicates successful query execution",
+        "Exactly one row returned matching the 5-minute window filter",
+        "lock_id is a valid hex string (0x3a4865b321bf178c7f57dd0cd8c6e7dfa264d0156704e00348ce3a0f7ea9ae44)",
+        "status field is 'pending', which matches expected constraint (pending OR locked)",
+        "pk_dilithium length is exactly 1952 bytes, matching the expected cryptographic key size for Dilithium"
+      ],
+      "issues": [],
+      "confidence": 0.99
+    },
+    {
+      "layer": "l1",
+      "status": "pass",
+      "observations": [
+        "cast exit code 0 — call succeeded",
+        "L1Vault contract address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 is official and legitimate",
+        "totalLocked() returned 120000000000000000 wei (1.2e17)",
+        "Expected predicate: value > 0 wei — satisfied (120000000000000000 > 0)"
+      ],
+      "issues": [],
+      "confidence": 0.99
+    }
+  ],
+  "quality_findings": [
+    {
+      "source": "bug-hunter",
+      "severity": "high",
+      "title": "unwrap_or_default() on response JSON silently masks body parse failures in E2E tests",
+      "detail": "Six test locations in sequence_e2e_test.rs call `resp.json().await.unwrap_or_default()` and assign the result to `body`, which is then never read (compiler warns it is unused). This is a direct instance of silent-failure pattern #3: if the server returns a non-JSON body, a malformed response, or an unexpected error payload, `unwrap_or_default()` substitutes `Value::Null` and the test continues without any assertion. The tests pass a green result while having verified nothing about the response content. This pattern has caused missed regressions before and is listed as a known silent-failure vector.",
+      "evidence": [
+        "stderr: `let body: Value = resp.json().await.unwrap_or_default();` at sequence_e2e_test.rs:671 — compiler warns 'unused variable: body'",
+        "stderr: same pattern at lines 1217, 1235, 1479, 1499, 1517 — 6 instances total",
+        "compiler note: 'help: if this is intentional, prefix it with an underscore: `_body`' — confirms value is never consumed",
+        "All 4 backend tests report 'ok' despite body content being unverified in at least 6 call sites"
+      ],
+      "suggested_owner": "tests"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "medium",
+      "title": "Lock remains 'pending' in DB with no evidence of L1 submission within the test window",
+      "detail": "The DB layer confirms the most recently created lock (0x3a4865b321bf...) has status='pending'. The L1 layer shows totalLocked()=120000000000000000 wei, but this value is not confirmed to have increased as a result of this specific lock — there is no before/after L1 snapshot in the test harness. If the background task responsible for submitting pending locks to L1 and updating status is silently failing (pattern #5: Ok(()) swallowing errors), locks would accumulate in 'pending' state indefinitely while tests still pass. No test asserts that status transitions from 'pending' to 'locked', and no L1 event log is checked to confirm the specific lock_id was anchored on-chain.",
+      "evidence": [
+        "DB output: `0x3a4865b321bf178c7f57dd0cd8c6e7dfa264d0156704e00348ce3a0f7ea9ae44|pending|1952` — status is 'pending' after lock creation",
+        "L1 output: `totalLocked()` returns `120000000000000000` — no before/after delta captured to attribute to this lock",
+        "Backend test log: `\"status\": \"pending\"` in SEQ#1-04 status response — no follow-up assertion that status ever becomes 'locked'",
+        "No test in seq1_lock suite is named 'test_lock_confirms_on_l1' or equivalent — L1 finalization path is untested"
+      ],
+      "suggested_owner": "tests"
+    },
+    {
+      "source": "bug-hunter",
+      "severity": "medium",
+      "title": "Lock 'owner' field contains raw public key bytes, not a wallet address — potential spec violation",
+      "detail": "The GET /v1/lock/{id} status response logged in the backend test (SEQ#1-04) shows the 'owner' field as a 1000+ character hex string, which is clearly a serialized Dilithium or SPHINCS+ public key, not an Ethereum wallet address. SEQUENCES.md §1 Consumer Lock likely specifies that the owner field should be a wallet address (20-byte Ethereum address) used for authorization checks. If downstream components (frontend, Token Hub claim path, or L1 slashing logic) parse 'owner' expecting a wallet address and receive a raw public key instead, they may silently fall back to a zero address or the literal string 'caller' — both of which are known silent-failure patterns (#7 and #4). The db layer shows pk_dilithium stored separately at 1952 bytes, suggesting the public key is leaking into the owner field erroneously.",
+      "evidence": [
+        "Backend stdout SEQ#1-04: `\"owner\": \"0x55d9218ac5af7d10afaf46917334f778fc4bb33f6900aa7b96814c78e16c39909cf01bb...\"` — value is 1000+ hex chars, far exceeding a 20-byte Ethereum address (42 chars with 0x prefix)",
+        "DB output: `pk_dilithium length=1952` stored as a separate column — yet owner field in API response mirrors a key-sized blob",
+        "Known silent-failure pattern #7: `wallet_address = \"caller\"` literal can appear when owner parsing fails in Token Hub claim path"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "regression-sentinel",
+      "severity": "info",
+      "title": "No baseline — first green run will be recorded as baseline.",
+      "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run (all 4 layers pass: backend 865ms, frontend 34494ms, db 313ms, l1 456ms) will serve as the baseline for future regression comparisons.",
+      "evidence": [
+        "last_green_run is null",
+        "backend: pass, 4/4 tests ok, 865ms",
+        "frontend: pass, 40/40 tests ok, 34494ms",
+        "db: pass, lock_id and pk_dilithium (1952 bytes) verified, 313ms",
+        "l1: pass, totalLocked=120000000000000000 wei, 456ms"
+      ],
+      "suggested_owner": "backend"
+    },
+    {
+      "source": "performance-monitor",
+      "severity": "info",
+      "title": "Recording first baseline",
+      "detail": "seq-1: backend=865ms, frontend=34494ms, db=313ms, l1=456ms. Total wall-clock: 35.9s. Orchestrator cost: $0.0248.",
+      "evidence": [
+        "No prior baseline exists for seq-1",
+        "frontend-runner dominates at 34.5s (96% of total)",
+        "Combined agent cost $0.0248 is well under $1.00 threshold"
+      ],
+      "suggested_owner": "tests"
+    }
+  ],
+  "fixer_proposals": [
+    {
+      "id": "P1",
+      "title": "Replace unwrap_or_default() on response JSON with explicit assertions in E2E tests",
+      "rationale": "Addresses bug-hunter findings (high severity) and (low severity) for the same 6 locations in sequence_e2e_test.rs. The pattern `resp.json().await.unwrap_or_default()` silently substitutes Value::Null on any parse failure, making assertions meaningless and causing the unused-variable compiler warning. The fix replaces each instance with `.json().await.expect(\"response body must be valid JSON\")` (or `.unwrap()` with an explicit expect message), and prefixes the variable with `_body` only where the body truly need not be inspected — but in every case where the body is fetched, a subsequent assertion on its content should be added. Because we cannot guarantee byte-identical context lines without seeing the full file, unified_diff is left empty and the required change is described precisely for manual application.",
+      "affected_files": [
+        "src/api/api/tests/sequence_e2e_test.rs"
+      ],
+      "unified_diff": "",
+      "risk": "low"
+    },
+    {
+      "id": "P2",
+      "title": "Investigation required — pending-to-locked status transition is never asserted and background submission task may silently swallow errors",
+      "rationale": "Addresses the medium-severity bug-hunter finding: DB shows lock status='pending' after creation, but no test polls for a 'locked' transition, no L1 event log is checked for the specific lock_id, and the background task that submits pending locks to L1 likely uses Ok(()) or unwrap_or_default patterns that discard submission errors (silent-failure pattern #5). Steps to investigate: (1) Locate the background worker / spawned task responsible for transitioning locks from pending->locked (likely in src/api/api/src/tasks/ or similar). (2) Audit every Result-returning call inside that task for .ok(), .unwrap_or_default(), or silent map_err(|_| ()). (3) Add structured error logging (tracing::error!) at each failure point so errors surface in test stdout. (4) Add a new E2E test `test_lock_confirms_on_l1` that: creates a lock, polls GET /v1/lock/{id} up to N times with a short sleep until status == 'locked' or timeout, then queries the L1 contract event log to confirm the specific lock_id appears as an anchored event. (5) Capture a before/after snapshot of totalLocked() on the L1 contract around the lock creation to attribute the delta to this specific lock.",
+      "affected_files": [
+        "src/api/api/tests/sequence_e2e_test.rs",
+        "src/api/api/src/tasks/"
+      ],
+      "unified_diff": "",
+      "risk": "high"
+    },
+    {
+      "id": "P3",
+      "title": "Investigation required — API response 'owner' field serializes raw public key bytes instead of wallet address",
+      "rationale": "Addresses the medium-severity bug-hunter finding: GET /v1/lock/{id} returns 'owner' as a 1000+ character hex blob (a Dilithium/SPHINCS+ public key), not a 20-byte Ethereum wallet address. This likely violates the spec in SEQUENCES.md §1 and will break any downstream component that parses 'owner' as an address (Token Hub claim path, L1 slashing logic, frontend display). Steps to investigate: (1) Find the Lock struct / response serialization in src/api/api/src/routes/ or src/api/api/src/models/ — look for the field named 'owner' and check what value is being assigned (is it wallet_address or pk_dilithium?). (2) Check the DB schema: the lock table should have separate columns for wallet_address (20 bytes) and pk_dilithium (1952 bytes); confirm no JOIN or mapping conflates them. (3) If the route handler selects pk_dilithium into the owner field, change the SELECT or struct mapping to use wallet_address instead. (4) Add an E2E assertion: parse body['owner'] as a string, assert its length == 42 (0x + 20 bytes hex) and that it matches the address used to create the lock. (5) Check the Token Hub claim path in src/contracts/l1 for any address(bytes) cast that would silently zero-out if given a non-address-sized blob.",
+      "affected_files": [
+        "src/api/api/src/routes/",
+        "src/api/api/src/models/",
+        "src/api/api/tests/sequence_e2e_test.rs",
+        "src/contracts/l1/"
+      ],
+      "unified_diff": "",
+      "risk": "high"
+    }
+  ],
+  "final_verdict": {
+    "verdict": "FIXABLE",
+    "summary": "All four layers (backend, frontend, db, l1) passed their execution checks and acceptance criteria. However, bug-hunter identified a high-severity silent-failure pattern: six test sites call `resp.json().await.unwrap_or_default()` and never consume the result, meaning server errors or malformed responses are silently swallowed and the tests provide no actual response-body coverage. A medium-severity finding also flags that the `owner` field in the lock API response appears to contain a raw serialized public key (~1000+ hex chars) rather than a 20-byte Ethereum wallet address, which is a likely spec violation and a potential downstream silent-failure vector. A third medium finding notes there is no assertion that lock status ever transitions from `pending` to `locked`, leaving the L1 submission path entirely untested.",
+    "must_fix_before_merge": [
+      "Replace unwrap_or_default() with explicit assertion on response body in all 6 test sites (sequence_e2e_test.rs:671, 1217, 1235, 1479, 1499, 1517) — currently silently swallows parse failures",
+      "Investigate and fix `owner` field returning raw public-key blob instead of 20-byte Ethereum wallet address in GET /v1/lock/{id} response",
+      "Add test assertion that lock status transitions from 'pending' to 'locked' and that the specific lock_id is anchored on L1 (before/after totalLocked snapshot or event log check)"
+    ],
+    "fixer_recommendation": "review_required",
+    "unresolved_questions": [
+      "Is the `owner` field intentionally a Dilithium public key, or is it a serialization bug where pk_dilithium is leaking into the owner field? The spec section (SEQUENCES.md §1) must be consulted to confirm the expected type and format of owner.",
+      "The DB row for the most recently created lock shows status='pending' after test completion. Was a background worker expected to have transitioned it to 'locked' within the test window, or is 'pending' the correct terminal state for the test harness? The acceptance criterion lists 'locked' as valid but the actual value is 'pending' — this is borderline but not a hard failure given the criterion allows either value.",
+      "The fixer proposals were listed as 'awaiting parallel fixer output' — no concrete patches were supplied. Fixer recommendation is therefore review_required by default; no patch has been evaluated for correctness or risk."
+    ],
+    "confidence": 0.65
+  },
+  "cost_usd": 0.26537299999999997,
+  "tokens": {
+    "input": 79363,
+    "cached_input": 0,
+    "output": 5324
+  }
+}
