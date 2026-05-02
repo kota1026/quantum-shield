@@ -1,0 +1,21 @@
+{
+  "route_id": "home-ja",
+  "route_label": "Home (JA)",
+  "path": "/ja",
+  "viewports": [
+    "desktop",
+    "mobile"
+  ],
+  "locales": [
+    "ja",
+    "en"
+  ],
+  "acceptance_criteria": [
+    "Does the page render without JavaScript errors in the browser console?",
+    "Are all text elements displaying in Japanese (ja locale) on initial load?",
+    "Do all interactive elements (buttons, links, navigation) respond to user interaction without lag or freezing?",
+    "Is the layout responsive and readable on both desktop and mobile viewports without horizontal scrolling on mobile?",
+    "Are images and media assets loading completely within 5 seconds on desktop viewport?",
+    "Does the page title and meta description contain appropriate Japanese content for SEO?"
+  ]
+}
