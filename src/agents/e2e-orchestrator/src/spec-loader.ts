@@ -62,9 +62,17 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
         // flagged the DB pass as "misleading." 5-minute window covers
         // the longest realistic drive step (cargo test ~120s + Playwright
         // ~100s = ~3.5 min) plus margin.
-        description: 'Verify lock row was created during this run window and pk_dilithium populated',
-        command: `psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium) FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"`,
-        expected: 'one row from this run window, status in {pending, locked}, pk_dilithium length 1952',
+        description: 'Verify lock row was created during this run window, pk_dilithium populated, and L1 submission was attempted',
+        // 2026-05-02: extended to include `l1_tx_hash IS NOT NULL` in the
+        // projection. Run 25240820973 verdict flagged the lack of any
+        // signal that the L1 submission code path was actually exercised
+        // — pk length only proves the API write happened. Now the
+        // verifier sees `l1_submitted=t` once L1 is reachable, which is
+        // a softer (but observable) substitute for a full
+        // pending→locked transition assertion (the latter requires
+        // polling for the L1TxConfirmationService to run).
+        command: `psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium), l1_tx_hash IS NOT NULL AS l1_submitted FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"`,
+        expected: 'one row from this run window, status in {pending, locked, confirmed}, pk_dilithium length 1952, l1_submitted=t when L1 vault is reachable',
         phase: 'verify',
       },
       {

@@ -349,7 +349,7 @@ impl AppState {
             dest_addr: req.dest_addr.clone(),
             expiry: req.expiry,
             nonce: req.nonce,
-            owner: req.pk_dilithium.clone(),
+            owner: req.dest_addr.to_lowercase(),
             sr_0: sr_0.to_string(),
             status: LockStatus::Pending,
             created_at: chrono::Utc::now().timestamp() as u64,
@@ -460,7 +460,7 @@ impl AppState {
                 dest_addr: row.wallet_address.clone(),
                 expiry: row.expiry as u64,
                 nonce: row.nonce as u64,
-                owner: hex::encode(&row.pk_dilithium),
+                owner: row.wallet_address.clone(),
                 sr_0: row.sr_0.clone(),
                 status: match row.status.as_str() {
                     "pending" => LockStatus::Pending,
@@ -551,7 +551,7 @@ impl AppState {
                 dest_addr: row.wallet_address.clone(),
                 expiry: row.expiry as u64,
                 nonce: row.nonce as u64,
-                owner: hex::encode(&row.pk_dilithium),
+                owner: row.wallet_address.clone(),
                 sr_0: row.sr_0.clone(),
                 status: match row.status.as_str() {
                     "pending" => LockStatus::Pending,
@@ -1115,7 +1115,7 @@ impl AppState {
             dest_addr: row.wallet_address.clone(),
             expiry: row.expiry as u64,
             nonce: row.nonce as u64,
-            owner: hex::encode(&row.pk_dilithium),
+            owner: row.wallet_address.clone(),
             sr_0: row.sr_0.clone(),
             status: match row.status.as_str() {
                 "pending" => LockStatus::Pending,
