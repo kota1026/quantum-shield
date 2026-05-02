@@ -75,20 +75,15 @@ jobs:
       QS__SECURITY__SKIP_TOTP_VERIFICATION: "false"
       QS__SECURITY__NORMAL_TIME_LOCK_HOURS: "24"
       QS__SECURITY__EMERGENCY_TIME_LOCK_DAYS: "7"
-      # CI signing wallet for Sepolia. Set as a repo-level secret to a
-      # private key whose address has been funded with Sepolia ETH from
-      # a faucet (https://sepoliafaucet.com or
-      # https://sepolia-faucet.pk910.de). Each lock costs ~0.001 ETH,
-      # so even 0.1 ETH funds ~100 CI runs.
-      #
-      # Until SEPOLIA_TEST_PRIVATE_KEY is set, this resolves to the
-      # empty string. The api-server's L1Vault init treats that as a
-      # missing key and falls into the "L1 not configured" branch, so
-      # the orchestrator's L1 verifier (Track J) will fail with the
-      # explicit "no l1_tx_hash" message — which is the correct,
-      # informative failure mode until the operator funds a wallet
-      # and adds the secret.
-      QS__L1_PRIVATE_KEY: ${{ secrets.SEPOLIA_TEST_PRIVATE_KEY }}
+      # CI signing wallet for Sepolia. Reuses the same DEPLOYER_PRIVATE_KEY
+      # secret that deploy-testnet.yml:136 already uses for contract
+      # deployments — that wallet is already funded with Sepolia ETH.
+      # Sharing one wallet between deploys and CI locks is intentional
+      # for now: cheaper to operate (one faucet, one balance), and the
+      # blast radius is identical (anything that compromises this key
+      # already controls the deployer). Rotate later if the threat
+      # model changes.
+      QS__L1_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
