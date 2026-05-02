@@ -31,11 +31,52 @@ export type ApplyOutcome =
   | { proposal_id: string; status: 'applied'; checked_clean: true }
   | { proposal_id: string; status: 'rejected'; reason: string };
 
+/**
+ * Cheap structural pre-check before `git apply --check`. The fixer agent
+ * has historically produced unified diffs that miss the file-header pair
+ * or have hunk markers floating in the middle (run 25207474843 rejected
+ * P1 at "corrupt patch at line 23" and P2 at "patch fragment without
+ * header at line 15"). Catching these in JS gives a precise, actionable
+ * rejection reason instead of a generic git error.
+ *
+ * Returns null if the structure looks well-formed; otherwise the reason
+ * to reject without invoking git at all.
+ */
+function preValidateUnifiedDiff(diff: string): string | null {
+  if (!diff.includes('--- a/')) {
+    return 'patch missing required `--- a/<path>` file header';
+  }
+  if (!diff.includes('+++ b/')) {
+    return 'patch missing required `+++ b/<path>` file header';
+  }
+  if (!/^@@ -\d+(?:,\d+)? \+\d+(?:,\d+)? @@/m.test(diff)) {
+    return 'patch missing valid `@@ -L,N +L,N @@` hunk header';
+  }
+  // Hunk-before-header is a common AI failure mode: a `@@ ... @@` line
+  // appears with no preceding `+++ b/` for that file. Scan in order.
+  let sawHeader = false;
+  for (const line of diff.split('\n')) {
+    if (line.startsWith('+++ b/')) sawHeader = true;
+    if (line.startsWith('@@ ') && !sawHeader) {
+      return 'patch has hunk header before any file header (`@@` before `+++ b/`)';
+    }
+  }
+  return null;
+}
+
 export async function applyPatch(
   repoRoot: string,
   proposal: FixerProposal,
   tempDir: string,
 ): Promise<ApplyOutcome> {
+  const structural = preValidateUnifiedDiff(proposal.unified_diff);
+  if (structural !== null) {
+    return {
+      proposal_id: proposal.id,
+      status: 'rejected',
+      reason: `pre-check failed: ${structural}`,
+    };
+  }
   const diffPath = resolve(tempDir, `${proposal.id}.patch`);
   await writeFile(diffPath, proposal.unified_diff);
   try {

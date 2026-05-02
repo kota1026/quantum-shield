@@ -43,10 +43,67 @@ the orchestrator decides whether to apply.
    - `low` = test/doc-only changes
    - `medium` = single backend service or single FE component
    - `high` = touches contracts, migrations, or auth/crypto
-5. **Diff format must be parseable** by `git apply --check`. Include
-   `--- a/...` and `+++ b/...` headers. Use 3 lines of context.
-6. If you cannot construct a fix without speculation, return a finding-
-   only proposal with empty `unified_diff` and `risk:"high"` titled
-   "Investigation required — no automatic fix proposed."
-7. Empty array `[]` is valid if every finding is informational only.
-8. Output JSON array only.
+
+## Diff format — STRICT
+
+The orchestrator runs your `unified_diff` through `git apply --check`.
+Run 25207474843 had 2/2 patches rejected with "corrupt patch at line 23"
+and "patch fragment without header at line 15" because the diff was
+hand-fabricated with wrong line numbers. Read this section carefully.
+
+5. **Every patch MUST start with these two header lines, on their own
+   lines, in this order**:
+   ```
+   --- a/<exact-path-from-repo-root>
+   +++ b/<exact-path-from-repo-root>
+   ```
+   No commentary before the headers. No trailing whitespace on the
+   header line.
+
+6. **Every hunk MUST start with `@@ -L,N +L,N @@` on its own line**.
+   The `-L,N` and `+L,N` numbers are line offset and length. If you
+   cannot calculate the line numbers from the evidence (you usually
+   cannot — you have not seen the source file), do **not** make up
+   numbers. Set `unified_diff` to `""` and instead populate `rationale`
+   with a step-by-step description of the change for a human; the
+   orchestrator will route it to manual review.
+
+7. **Context lines (no `+` or `-` prefix) MUST be exact byte copies of
+   the source**. Smart quotes, trailing whitespace, tabs vs. spaces,
+   wrong line endings — all of these break `git apply`. If you cannot
+   guarantee byte-identical context lines, leave `unified_diff` empty
+   per rule 6.
+
+8. **Three lines of context** before and after each changed region,
+   when possible. One hunk per contiguous edit; multiple hunks per file
+   are fine.
+
+9. **Multiple files**: concatenate their patches in `unified_diff`,
+   each with its own `--- a/` `+++ b/` header pair and one or more
+   `@@` hunks.
+
+10. **No prose inside `unified_diff`**. Not even `// note:` lines.
+    Anything that's not a header, hunk marker, or `+`/`-`/space-prefixed
+    line will fail `git apply`.
+
+## Fallbacks
+
+11. If a finding requires investigation rather than a mechanical fix,
+    return a finding-only proposal:
+    ```json
+    {
+      "id": "P1",
+      "title": "Investigation required — <one-sentence summary>",
+      "rationale": "<what you'd look at, what to assert, what files are involved>",
+      "affected_files": ["<best-guess paths>"],
+      "unified_diff": "",
+      "risk": "high"
+    }
+    ```
+    Empty `unified_diff` is the **correct** answer when you cannot
+    construct a safe, byte-accurate patch — better than a corrupt one
+    that wastes a `git apply --check` round-trip.
+
+12. Empty array `[]` is valid if every finding is informational only.
+
+13. Output JSON array only. No markdown, no preamble, no postamble.
