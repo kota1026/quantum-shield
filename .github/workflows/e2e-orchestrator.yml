@@ -154,8 +154,27 @@ jobs:
       - name: Start backend API server
         working-directory: src/api/api
         run: |
+          # Diagnostic: confirm DEPLOYER_PRIVATE_KEY secret resolved to a
+          # non-empty value before we start the server. Print only the
+          # length so we never leak the key into logs.
+          if [ -z "$QS__L1_PRIVATE_KEY" ]; then
+            echo "::warning::QS__L1_PRIVATE_KEY is EMPTY — DEPLOYER_PRIVATE_KEY secret may not be set; lock submission to L1 will silently no-op"
+          else
+            echo "QS__L1_PRIVATE_KEY length: ${#QS__L1_PRIVATE_KEY} (non-empty)"
+          fi
+          # 2026-05-02: corrected env var name. The previous
+          # `QS__L1__RPC_URL` (double underscore between L1 and RPC_URL)
+          # was parsed by the `config` crate as nested `l1.rpc_url`,
+          # NOT the top-level `l1_rpc_url` field that
+          # services/mod.rs:196-200 actually reads. Result: api-server
+          # used default.yaml's `https://rpc.sepolia.org` (Cloudflare
+          # 522) for L1 init, while the orchestrator's bash steps used
+          # publicnode for `cast call`. The L1Vault construction failed
+          # against the dead URL, hit the silent-fallback warn+None at
+          # services/mod.rs:215-218, and lock creation went into the
+          # "L1 not configured" branch. Single underscore = top-level.
           QS__DATABASE__URL=postgresql://quantum:quantum_dev@localhost:5432/quantum_shield \
-          QS__L1__RPC_URL=${{ env.L1_RPC_URL }} \
+          QS__L1_RPC_URL=${{ env.L1_RPC_URL }} \
             ../../../target/release/api-server &
           echo "Waiting for backend on :8080..."
           for i in {1..60}; do
