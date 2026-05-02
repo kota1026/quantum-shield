@@ -50,7 +50,15 @@ pub enum SearchType {
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ExplorerLockStatus {
-    /// Lock is active
+    /// Lock is created and persisted to DB but L1 anchoring is not yet
+    /// confirmed. Distinguished from `Active` per orchestrator run
+    /// 25244231635 cross-reviewer finding: previously the underscore
+    /// fallback in the DB-string → enum mapping silently coerced
+    /// `pending` → `active`, hiding from consumers that L1 confirmation
+    /// was still in flight (or, in CI without an L1 private key, never
+    /// occurred at all).
+    Pending,
+    /// Lock is active (L1-anchored / confirmed)
     Active,
     /// Unlock pending (in timelock)
     UnlockPending,
@@ -1108,6 +1116,7 @@ pub async fn get_locks(
     let locks: Vec<LockListItem> = rows.iter().map(|r| {
         let status = match r.status.as_str() {
             "active" | "confirmed" => ExplorerLockStatus::Active,
+            "pending" => ExplorerLockStatus::Pending,
             "unlock_pending" => ExplorerLockStatus::UnlockPending,
             "emergency_pending" => ExplorerLockStatus::EmergencyPending,
             "challenged" => ExplorerLockStatus::Challenged,
@@ -1147,6 +1156,7 @@ pub async fn get_lock_detail(
 
     let status = match lock.status.as_str() {
         "active" | "confirmed" => ExplorerLockStatus::Active,
+        "pending" => ExplorerLockStatus::Pending,
         "unlock_pending" => ExplorerLockStatus::UnlockPending,
         "emergency_pending" => ExplorerLockStatus::EmergencyPending,
         "challenged" => ExplorerLockStatus::Challenged,
@@ -1515,6 +1525,7 @@ pub async fn get_address_info(
     let recent_locks: Vec<AddressRecentLock> = recent_lock_rows.iter().map(|r| {
         let status = match r.status.as_str() {
             "active" | "confirmed" => ExplorerLockStatus::Active,
+            "pending" => ExplorerLockStatus::Pending,
             "unlock_pending" => ExplorerLockStatus::UnlockPending,
             "emergency_pending" => ExplorerLockStatus::EmergencyPending,
             "challenged" => ExplorerLockStatus::Challenged,
@@ -1941,6 +1952,7 @@ pub async fn get_recent_locks(
     let locks: Vec<LockListItem> = rows.iter().map(|r| {
         let status = match r.status.as_str() {
             "active" | "confirmed" => ExplorerLockStatus::Active,
+            "pending" => ExplorerLockStatus::Pending,
             "unlock_pending" => ExplorerLockStatus::UnlockPending,
             "emergency_pending" => ExplorerLockStatus::EmergencyPending,
             "challenged" => ExplorerLockStatus::Challenged,

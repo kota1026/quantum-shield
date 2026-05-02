@@ -77,9 +77,37 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
       },
       {
         layer: 'l1',
-        description: 'Verify totalLocked increased on Sepolia Vault',
-        command: `cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL"`,
-        expected: 'value > 0 wei',
+        // 2026-05-02: replaced the bare `totalLocked()(uint256) > 0` ping —
+        // run 25244231635 cross-reviewer correctly noted that vacuously
+        // matches against the contract's pre-existing balance and proves
+        // nothing about THIS run. Now we read the lock_id created in this
+        // run from DB, look up its l1_tx_hash, and confirm a successful
+        // receipt on L1. Without an L1 private key (no inline submission)
+        // the DB row has l1_tx_hash=NULL and this step fails loudly with
+        // "no recent lock submitted to L1" — which is exactly the signal
+        // we want until Track H wires up the Anvil fork in CI.
+        description: 'Verify the lock created in this run is anchored on L1 (receipt status==0x1)',
+        command: `bash -c '
+set -eo pipefail
+LOCK_ID=$(psql "$DATABASE_URL" -t -A -c "SELECT lock_id FROM locks WHERE created_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY created_at DESC LIMIT 1;" | tr -d " ")
+TX_HASH=$(psql "$DATABASE_URL" -t -A -c "SELECT l1_tx_hash FROM locks WHERE lock_id = '"'"'$LOCK_ID'"'"';" | tr -d " ")
+if [ -z "$TX_HASH" ] || [ "$TX_HASH" = "" ]; then
+  echo "FAIL: lock $LOCK_ID has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)"
+  echo "Total locked snapshot for context (should be unchanged from prior runs):"
+  cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL" || true
+  exit 1
+fi
+echo "checking L1 receipt for tx=$TX_HASH (lock=$LOCK_ID)"
+RECEIPT_STATUS=$(cast receipt "$TX_HASH" --rpc-url "$L1_RPC_URL" --json 2>/dev/null | jq -r ".status // \"missing\"" || echo "missing")
+echo "receipt status: $RECEIPT_STATUS"
+case "$RECEIPT_STATUS" in
+  0x1|1) echo "PASS: lock anchored on L1"; exit 0 ;;
+  0x0|0) echo "FAIL: tx reverted on L1"; exit 1 ;;
+  missing) echo "FAIL: tx not found on L1 (tx submitted but never mined, or wrong RPC)"; exit 1 ;;
+  *) echo "FAIL: unexpected receipt status $RECEIPT_STATUS"; exit 1 ;;
+esac
+'`,
+        expected: 'PASS: lock anchored on L1 — most recent lock has l1_tx_hash populated and the receipt has status==0x1',
         phase: 'verify',
       },
     ],
