@@ -51,24 +51,13 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
-      # 2026-05-02 (Track H): the orchestrator now talks to a local Anvil
-      # fork of Sepolia, not the public RPC directly. UPSTREAM_L1_RPC_URL
-      # is what the fork copies state from (still publicnode/secret), and
-      # L1_RPC_URL is what the api-server and the orchestrator's verifier
-      # actually hit. Without the fork, run 25244231635 had l1_tx_hash=NULL
-      # for every CI lock (no private key → state.l1_vault was None →
-      # routes/lock.rs silently skipped L1 submission) and the
-      # cross-reviewer correctly flagged the orchestrator as proving
-      # nothing about L1 anchoring. With the fork:
-      #   - QS__L1_PRIVATE_KEY = anvil's well-known account #0 (10000 ETH
-      #     on top of the forked Sepolia state — pays gas for inline
-      #     submission)
-      #   - Real `cast receipt` calls hit a real chain that received our
-      #     real submission
-      #   - The Vault at 0x07012aeF... exists in the fork because the
-      #     fork copied its state from live Sepolia
-      UPSTREAM_L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com' }}
-      L1_RPC_URL: http://localhost:8546
+      # CI talks to real Sepolia, not a fork. Fork-based CI (Track H,
+      # 2026-05-02) was reverted same-day: this protocol's value
+      # proposition is verifiable on-chain activity (Etherscan-visible
+      # PQC custody), so CI must produce real Sepolia receipts. The
+      # public publicnode endpoint is the fallback; the SEPOLIA_RPC_URL
+      # secret (Infura/Alchemy) takes precedence when configured.
+      L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com' }}
       L3_RPC_URL: http://localhost:8545
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       # The orchestrator is the closest thing we have to a production
@@ -86,11 +75,20 @@ jobs:
       QS__SECURITY__SKIP_TOTP_VERIFICATION: "false"
       QS__SECURITY__NORMAL_TIME_LOCK_HOURS: "24"
       QS__SECURITY__EMERGENCY_TIME_LOCK_DAYS: "7"
-      # Anvil's well-known unfunded-but-fork-funded test account #0.
-      # Public knowledge — every Foundry user has this same key on every
-      # local Anvil instance. Fine to commit; it has access ONLY to the
-      # ephemeral fork that lives 30 minutes inside this workflow's runner.
-      QS__L1_PRIVATE_KEY: ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+      # CI signing wallet for Sepolia. Set as a repo-level secret to a
+      # private key whose address has been funded with Sepolia ETH from
+      # a faucet (https://sepoliafaucet.com or
+      # https://sepolia-faucet.pk910.de). Each lock costs ~0.001 ETH,
+      # so even 0.1 ETH funds ~100 CI runs.
+      #
+      # Until SEPOLIA_TEST_PRIVATE_KEY is set, this resolves to the
+      # empty string. The api-server's L1Vault init treats that as a
+      # missing key and falls into the "L1 not configured" branch, so
+      # the orchestrator's L1 verifier (Track J) will fail with the
+      # explicit "no l1_tx_hash" message — which is the correct,
+      # informative failure mode until the operator funds a wallet
+      # and adds the secret.
+      QS__L1_PRIVATE_KEY: ${{ secrets.SEPOLIA_TEST_PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -157,52 +155,6 @@ jobs:
       - name: Run migrations
         working-directory: src/api/api
         run: cargo install sqlx-cli --version 0.7.4 --no-default-features --features postgres,native-tls --locked && sqlx migrate run
-
-      # 2026-05-02 (Track H): start a local Anvil fork of Sepolia BEFORE
-      # the api-server starts. The api-server reads QS__L1_PRIVATE_KEY at
-      # startup and constructs `state.l1_vault` — without this fork the
-      # private key would be unset (or pointed at real Sepolia where we
-      # have no funded account), and inline L1 submission in
-      # routes/lock.rs:122 would silently skip. Now api-server has a
-      # signer with 10000 ETH on a chain that mirrors Sepolia state at
-      # the moment we forked, so deposit() against the real Vault address
-      # 0x07012aeF... succeeds and produces a real receipt the
-      # orchestrator can verify.
-      - name: Start Anvil L1 fork
-        run: |
-          # Use foundry-toolchain@v1's pre-installed anvil (already cached
-          # earlier in this job for the cast call). No docker needed —
-          # foundry-toolchain installs the binary directly.
-          anvil \
-            --host 0.0.0.0 \
-            --port 8546 \
-            --chain-id 11155111 \
-            --fork-url "$UPSTREAM_L1_RPC_URL" \
-            --accounts 10 \
-            --balance 10000 \
-            --silent \
-            > /tmp/anvil.log 2>&1 &
-          echo "Waiting for Anvil L1 fork on :8546..."
-          for i in {1..60}; do
-            if curl -s -X POST -H "Content-Type: application/json" \
-                 --data '{"jsonrpc":"2.0","method":"eth_chainId","id":1}' \
-                 http://localhost:8546 2>/dev/null | grep -q "0xaa36a7"; then
-              echo "anvil L1 fork ready (chain_id=11155111)"
-              break
-            fi
-            sleep 2
-          done
-          if ! curl -s -X POST -H "Content-Type: application/json" \
-               --data '{"jsonrpc":"2.0","method":"eth_chainId","id":1}' \
-               http://localhost:8546 2>/dev/null | grep -q "0xaa36a7"; then
-            echo "::error::Anvil L1 fork failed to start within 120s"
-            tail -50 /tmp/anvil.log
-            exit 1
-          fi
-          # Verify the fork sees the live Vault contract (state was copied)
-          echo "Vault totalLocked() at fork-time:"
-          cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \
-            "totalLocked()(uint256)" --rpc-url http://localhost:8546
 
       - name: Start backend API server
         working-directory: src/api/api
