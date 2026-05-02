@@ -51,7 +51,15 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
-      L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org' }}
+      # 2026-05-02: switched the default Sepolia RPC away from
+      # rpc.sepolia.org (Cloudflare-fronted, returns HTTP 522 multiple
+      # times across runs 25147313400, 25149846972, 25155587002,
+      # 25168505086, 25207474843, 25239780249) to publicnode, which has
+      # been the only public Sepolia endpoint reachable from
+      # GitHub-hosted runners during those windows. The repo-level
+      # SEPOLIA_RPC_URL secret (set to Infura/Alchemy when configured)
+      # still takes precedence — this only changes the fallback.
+      L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com' }}
       L3_RPC_URL: http://localhost:8545
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       # The orchestrator is the closest thing we have to a production

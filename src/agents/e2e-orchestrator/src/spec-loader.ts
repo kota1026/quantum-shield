@@ -103,9 +103,13 @@ export const KNOWN_SEQUENCES: Record<string, SequenceBinding> = {
       },
       {
         layer: 'db',
-        description: 'Verify unlocks row and time_lock_until is 24h ahead of created_at',
-        command: `psql "$DATABASE_URL" -t -A -c "SELECT unlock_id, status, EXTRACT(EPOCH FROM (time_lock_until - created_at))/3600 FROM unlocks ORDER BY created_at DESC LIMIT 1;"`,
-        expected: 'status=requested or finalized, hours = 24',
+        description: 'Verify unlocks row created during this run window and time_lock_until is 24h ahead of created_at',
+        // 2026-05-02: 5-min window guard mirrors the lock binding (PR #153)
+        // — without it, LIMIT 1 ORDER BY created_at can pick a stale unlock
+        // request from a unit-test fixture instead of one created by this
+        // run, masking real failures and causing misleading verdicts.
+        command: `psql "$DATABASE_URL" -t -A -c "SELECT unlock_id, status, EXTRACT(EPOCH FROM (time_lock_until - created_at))/3600 FROM unlocks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"`,
+        expected: 'one row from this run window, status=requested or finalized, hours = 24',
         phase: 'verify',
       },
       {
