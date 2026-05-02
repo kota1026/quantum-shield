@@ -1,0 +1,85 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code=0 confirmed",
+      "test result: ok with 4 passed; 0 failed",
+      "All three core seq1_lock test cases executed and passed: test_lock_creates_successfully, test_lock_rejects_invalid_signature, test_lock_rejects_expired",
+      "No panic markers or unexpected error lines in stdout/stderr",
+      "SR_0 value present in output: 0x73e0e2a08c92f3acb85adb962760a524d62559cd83487a3c12b401bff8e092bd",
+      "Lock status field shows 'pending' in response JSON, indicating DB persistence",
+      "Invalid signature test returns 400 status as expected (SIG#1-03)",
+      "Expired lock test returns 400 status as expected (SIG#1-02)",
+      "SQLX_OFFLINE=true successfully used offline mode without database connectivity issues",
+      "Dilithium signature verification chain appears operational (no verification errors logged)"
+    ],
+    "issues": [],
+    "confidence": 0.95
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, unexpected: 0",
+      "Exit code: 0",
+      "All tests completed with expectedStatus='passed' and status='expected'",
+      "Test suite ran across Mobile Chrome and Mobile Safari projects",
+      "Lock creation flow validated: lock_id and SR_0 generation confirmed",
+      "Database persistence verified: locks visible via GET /v1/explorer/locks",
+      "Error handling tested: nonce reuse (409), expired requests (400), missing fields (422)",
+      "Multiple lock creation produces distinct lock_ids and SR_0 hashes",
+      "Explorer totalLocks counter incremented correctly on lock creation"
+    ],
+    "issues": [],
+    "confidence": 0.99
+  },
+  {
+    "layer": "db",
+    "status": "partial",
+    "observations": [
+      "psql exit code 0 — query executed successfully",
+      "Exactly one row returned from locks table in 5-minute window",
+      "lock_id: 0x9370d0485aea8ee1e5450e8c40f9930c7b102a46f2acfcb8e6a4dfbf5d70c80f",
+      "status: pending — valid state",
+      "length(pk_dilithium): 1952 bytes — matches expected Dilithium public key length",
+      "l1_submitted: false — L1 transaction hash is NULL"
+    ],
+    "issues": [
+      {
+        "severity": "high",
+        "title": "L1 submission failed or unavailable",
+        "detail": "l1_submitted = false indicates l1_tx_hash IS NULL. Lock is in 'pending' status but has not been submitted to L1 Vault. Expected specification states 'l1_submitted must equal t when L1 Vault is reachable'. Either L1 Vault is unreachable or the submission path failed.",
+        "location": "locks.l1_tx_hash"
+      }
+    ],
+    "confidence": 0.92
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [
+      "Database query found lock_id 0x9370d0485aea8ee1e5450e8c40f9930c7b102a46f2acfcb8e6a4dfbf5d70c80f",
+      "No l1_tx_hash present in locks table for this lock",
+      "L1 anchoring transaction was never submitted or not recorded",
+      "L1Vault totalLocked() call succeeded: 120000000000000000 wei (1.2e17)",
+      "Total locked value unchanged, indicating no new lock was anchored on L1",
+      "Exit code 1 confirms test failure"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "L1 anchoring did not occur",
+        "detail": "The most recent lock (id: 0x9370d0485aea8ee1e5450e8c40f9930c7b102a46f2acfcb8e6a4dfbf5d70c80f) has no l1_tx_hash recorded in the database. This indicates the lock was never submitted to L1. Root cause: QS__L1_PRIVATE_KEY environment variable may be unset, preventing transaction submission to L1 Vault (0x07012aeF87C6E423c32F2f8eaF81762f63337260).",
+        "location": "L1Vault:lock"
+      },
+      {
+        "severity": "high",
+        "title": "Missing Locked event emission",
+        "detail": "Without an l1_tx_hash, no transaction was mined on L1, so the expected Locked event from L1Vault was not emitted. The lock is stuck in pending state and cannot progress through the protocol.",
+        "location": "L1Vault:Locked"
+      }
+    ],
+    "confidence": 0.95
+  }
+]
