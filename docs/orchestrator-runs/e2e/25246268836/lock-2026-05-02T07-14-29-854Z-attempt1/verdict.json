@@ -1,0 +1,18 @@
+{
+  "verdict": "FIXABLE",
+  "summary": "The Consumer Lock sequence passes all off-chain layers (backend 4/4, frontend 40/40, DB row written with correct pk_dilithium=1952) but fails the L1 anchoring layer because QS__L1_PRIVATE_KEY is absent or unset, preventing the lock from ever being submitted to L1Vault. The API silently returns HTTP 200 with status='pending' and never advances the row to 'locked'/'confirmed', giving the consumer a false-positive success signal — a critical silent-failure pattern. The L1 contract and RPC are demonstrably reachable (totalLocked() returned successfully), so this is a configuration/secret injection failure, not an infrastructure outage, and the fix path is well-defined. No fixer proposals were received; remediation requires: (1) injecting QS__L1_PRIVATE_KEY into the runtime environment, (2) adding a hard-fail guard in the lock handler so missing signing keys produce a non-200 response or DB error state rather than silent deferral, and (3) extending backend and frontend test assertions to verify l1_tx_hash is non-null and status advances beyond 'pending'.",
+  "must_fix_before_merge": [
+    "Inject QS__L1_PRIVATE_KEY secret into CI/runtime environment so L1 transaction signing is possible",
+    "Hard-fail lock request (503/500 or rollback) when signing key is unavailable — eliminate silent pending-forever state",
+    "Mark DB row with an explicit error state (e.g., status='error', error_msg populated) when L1 submission fails so consumers are not given a false-positive lock_id",
+    "Backend seq1_lock test must assert l1_tx_hash IS NOT NULL and status != 'pending' after reasonable timeout",
+    "Frontend lock.integration.spec.ts must assert eventual status='locked'/'confirmed', not accept 'pending' as terminal success"
+  ],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [
+    "Is QS__L1_PRIVATE_KEY intentionally omitted in CI (e.g., testnet key not provisioned) or is this an accidental secret injection failure? The answer changes whether the fix is a secret rotation (ops) or a code change (dev).",
+    "Does the background L1 anchor task swallow the signing error via Ok(()) / warn-and-continue, or does it never start? The exact code path must be identified to confirm the silent-failure pattern and write a targeted fix.",
+    "The L1 layer script queries vault address 0x07012aeF87C6E423c32F2f8eaF81762f63337260 for totalLocked() but the acceptance criteria specify L1 Vault at 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 — are these the same contract under different aliases, or is the monitoring script pointing at the wrong contract?"
+  ],
+  "confidence": 0.65
+}

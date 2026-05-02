@@ -1,0 +1,9 @@
+# db step
+# command: psql "$DATABASE_URL" -t -A -c "SELECT lock_id, status, length(pk_dilithium), l1_tx_hash IS NOT NULL AS l1_submitted FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"
+# exit: 0
+
+# STDOUT
+0x22b24489b28cffd1fa685205cd4652a6416ba550c9bb8e498602e659c585c53f|pending|1952|f
+
+
+# STDERR

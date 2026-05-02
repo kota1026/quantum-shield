@@ -1,0 +1,86 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code == 0",
+      "stdout contains 'test result: ok. 4 passed; 0 failed'",
+      "no 'panicked' markers detected",
+      "no unexpected 'error:' lines in stderr (only deprecation warnings)",
+      "test seq1_lock::test_lock_creates_successfully passed",
+      "SR_0 value present in output: 0x2a67a4423e8ea220b04dab7e5f42e7e91b21f96f81031b736377bea083a39ae7",
+      "status field in output set to 'pending' (pre-L1 submission state expected)",
+      "hex-encoded lock request data present in stdout, consistent with serialized Dilithium + request structure"
+    ],
+    "issues": [
+      {
+        "severity": "low",
+        "title": "Future Rust incompatibilities",
+        "detail": "Dependencies 'redis v0.24.0' and 'sqlx-postgres v0.7.4' contain code that will be rejected by a future Rust version. No immediate impact but should be tracked for remediation.",
+        "location": "stderr (cargo warnings)"
+      }
+    ],
+    "confidence": 0.92
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, unexpected: 0",
+      "Exit code: 0",
+      "All 40 test cases executed across Chrome and Mobile Safari projects",
+      "Key test cases passed: health check, lock creation with valid SR_0 and lock_id, lock persistence in DB, Explorer count increment, nonce reuse rejection, expired lock rejection, missing field validation, multi-lock distinctness",
+      "Test durations range 5-337ms, all within 30s timeout",
+      "Lock integration tests confirm: POST /v1/lock endpoint functional, database persistence working, Explorer integration operational, validation rules enforced (nonce reuse, expiration, required fields)"
+    ],
+    "issues": [],
+    "confidence": 0.99
+  },
+  {
+    "layer": "db",
+    "status": "partial",
+    "observations": [
+      "psql exit code 0 — connection successful",
+      "Exactly one row returned from locks table within 5-minute window",
+      "lock_id: 0x22b24489b28cffd1fa685205cd4652a6416ba550c9bb8e498602e659c585c53f",
+      "status: pending — valid state (in {pending, locked, confirmed})",
+      "length(pk_dilithium): 1952 bytes — correct Dilithium public key length",
+      "l1_submitted (l1_tx_hash IS NOT NULL): false — L1 Vault unreachable or transaction not yet recorded"
+    ],
+    "issues": [
+      {
+        "severity": "medium",
+        "title": "L1 transaction not submitted",
+        "detail": "The l1_submitted column is false, indicating either the L1 Vault is unreachable or no L1 transaction hash has been recorded yet. The expected post-condition requires l1_submitted=true when L1 Vault is reachable.",
+        "location": "locks.l1_tx_hash"
+      }
+    ],
+    "confidence": 0.85
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [
+      "Script exited with code 1 (failure)",
+      "L1 anchoring did not occur: no l1_tx_hash found in locks table for the most recent lock (0x22b24489b28cffd1fa685205cd4652a6416ba550c9bb8e498602e659c585c53f)",
+      "Root cause indicator: QS__L1_PRIVATE_KEY may be unset, preventing transaction submission to L1",
+      "L1Vault totalLocked() call succeeded with result 120000000000000000 wei (1.2e17), indicating the vault contract is reachable and functional",
+      "The test expected a lock to be anchored on L1 with a valid l1_tx_hash and receipt status 0x1, but the anchor transaction was never submitted"
+    ],
+    "issues": [
+      {
+        "severity": "high",
+        "title": "L1 anchoring disabled or misconfigured",
+        "detail": "The most recent lock has no l1_tx_hash, indicating the Consumer Lock did not submit a transaction to L1Vault. The script suggests QS__L1_PRIVATE_KEY may be unset, which would prevent transaction signing and submission.",
+        "location": "off-chain:lock-anchoring"
+      },
+      {
+        "severity": "info",
+        "title": "L1Vault is reachable and responsive",
+        "detail": "cast call to 0x07012aeF87C6E423c32F2f8eaF81762f63337260 totalLocked() returned 120000000000000000 wei. The L1 contract and RPC are functioning.",
+        "location": "L1Vault:totalLocked"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

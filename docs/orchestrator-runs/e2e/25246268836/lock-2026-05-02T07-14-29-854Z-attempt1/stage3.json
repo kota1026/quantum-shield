@@ -1,0 +1,69 @@
+[
+  {
+    "source": "bug-hunter",
+    "severity": "critical",
+    "title": "L1 anchoring silently skipped — lock persists as 'pending' with no on-chain record",
+    "detail": "The Consumer Lock sequence completed successfully at every off-chain layer (backend 4/4, frontend 40/40, DB row written) but the lock was never submitted to L1Vault. The DB row shows l1_submitted=false and status='pending'; the L1 layer confirms no l1_tx_hash exists. This is a cross-layer silent failure: the API returned 200, the DB row looks healthy, and the frontend declared success — yet the canonical on-chain state was never updated. A lock that never reaches L1 is indistinguishable from a successful lock to the consumer, but provides no actual cryptographic commitment on the chain. The vault's totalLocked() value (120000000000000000 wei) is unchanged, confirming no ETH moved. The L1 script itself notes 'QS__L1_PRIVATE_KEY may be unset' as the probable cause, meaning the background task responsible for L1 submission either silently swallowed the signing error (matching known silent-failure pattern #5: Ok(()) swallowing background task errors) or was never started. This is precisely the 'best-effort L1 call that warns-and-continues' anti-pattern (silent-failure pattern #13) applied to the anchoring path.",
+    "evidence": [
+      "L1 layer stdout: 'FAIL: lock 0x22b24489b28cffd1fa685205cd4652a6416ba550c9bb8e498602e659c585c53f has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)'",
+      "DB layer stdout: '0x22b24489b28cffd1fa685205cd4652a6416ba550c9bb8e498602e659c585c53f|pending|1952|f' — l1_submitted column is 'f' (false)",
+      "L1 layer stdout: 'Total locked snapshot for context (should be unchanged from prior runs): 120000000000000000 [1.2e17]' — vault balance did not move",
+      "Backend stdout: '\"status\": \"pending\"' in lock response — status was never advanced to 'locked' or 'confirmed' by an L1 event",
+      "Frontend test passed: '[Lock Persisted] lock_id=0x4a0f8d3b..., status=pending' — frontend declared persistence success despite no L1 submission",
+      "L1 layer exit_code=1 while backend exit_code=0 and frontend exit_code=0 — cross-layer status divergence"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "high",
+    "title": "QS__L1_PRIVATE_KEY absence does not hard-fail the lock request — consumer receives false-positive 200",
+    "detail": "When QS__L1_PRIVATE_KEY is absent or invalid, the lock endpoint still returns HTTP 200 with a lock_id and SR_0, giving the consumer no indication that the lock will never be anchored on L1. The correct behaviour is either (a) reject the lock request at submission time with a 503/500 if the signing key is unavailable, or (b) ensure the background anchor task hard-fails and rolls back / marks the DB row in an error state that the consumer can observe. Instead, the row sits in 'pending' indefinitely with no error signal. This is a variant of the 'Ok(()) swallowing background task errors' pattern and directly violates the fail-hard requirement for L1 submission paths (silent-failure pattern #13).",
+    "evidence": [
+      "L1 stdout: 'QS__L1_PRIVATE_KEY may be unset' — signing key availability is not a hard precondition for accepting the request",
+      "DB stdout: 'status=pending' with 'l1_tx_hash IS NOT NULL = f' — row created without any error flag despite L1 submission failure",
+      "Backend exit_code=0, frontend exit_code=0 — no error surfaced to callers despite the anchor never being submitted",
+      "L1 exit_code=1 — the only signal of failure is in a separate monitoring script, not in the API response or DB state"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "bug-hunter",
+    "severity": "medium",
+    "title": "Frontend and backend tests do not assert l1_tx_hash presence — gap allows silent L1 anchoring failures to go undetected",
+    "detail": "All 40 frontend integration tests and all 4 backend e2e tests passed, yet the fundamental postcondition of the Consumer Lock sequence (a transaction hash anchoring the lock on L1) was not verified by any of them. The frontend test '[Lock Persisted] status=pending' treats 'pending' as a terminal success state. The backend test 'test_lock_creates_successfully' likewise does not poll for the lock to advance beyond 'pending' or assert a non-null l1_tx_hash. This means the entire test suite provides a false green signal whenever the L1 submission path is broken. Tests should assert that within a reasonable timeout the lock status advances to 'locked'/'confirmed' and l1_tx_hash is non-null.",
+    "evidence": [
+      "Frontend stdout: '[Lock Persisted] lock_id=0x4a0f8d3b628bb60bb80c213f25f76c4e9bbc2b5a409f989648a65e5552cbf4f8, status=pending' — test asserts only on 'pending', not on eventual L1 confirmation",
+      "Backend stdout: '\"status\": \"pending\"' — backend test accepts pending as pass condition",
+      "DB stdout: 'l1_submitted=f' — no test in backend or frontend layer checked this column",
+      "frontend stats: 'expected: 40, unexpected: 0' — full green suite despite no L1 anchor"
+    ],
+    "suggested_owner": "tests"
+  },
+  {
+    "source": "regression-sentinel",
+    "severity": "info",
+    "title": "No baseline — first green run will be recorded as baseline.",
+    "detail": "No prior green run exists for sequence 'Consumer Lock' (SEQUENCES.md §1). This run cannot be compared against a baseline. Note: this run is NOT fully green — the l1 layer failed (exit_code 1, L1 anchoring did not occur, likely due to QS__L1_PRIVATE_KEY being unset). A green baseline will only be recorded once all layers pass.",
+    "evidence": [
+      "last_green_run: null",
+      "l1 layer status: fail, exit_code: 1",
+      "stdout: 'FAIL: lock 0x22b24489b28cffd1fa685205cd4652a6416ba550c9bb8e498602e659c585c53f has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)'",
+      "backend: pass (821ms), frontend: pass (38357ms), db: pass/partial (290ms), l1: fail (1078ms)"
+    ],
+    "suggested_owner": "backend"
+  },
+  {
+    "source": "performance-monitor",
+    "severity": "info",
+    "title": "Recording first baseline",
+    "detail": "No baseline exists for seq-1. Current metrics recorded: backend 821ms, frontend 38357ms, db 290ms, L1 1078ms. Total orchestrator cost $0.024513.",
+    "evidence": [
+      "backend-runner: $0.011708",
+      "frontend-runner: $0.006763",
+      "db-verifier: $0.002311",
+      "l1-verifier: $0.003731"
+    ],
+    "suggested_owner": "tests"
+  }
+]
