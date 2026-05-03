@@ -20,6 +20,7 @@ import { runStep } from './exec.js';
 import { runAgent, runAgentsInParallel } from './agent-runner.js';
 import type { Config } from './config.js';
 import { applyPatch, filterAutoApplicable, type ApplyOutcome } from './apply-patches.js';
+import { runPreflight } from './preflight.js';
 
 const MAX_LOOP_ATTEMPTS = 3;
 
@@ -90,10 +91,66 @@ export async function runSequence(
   info(`Sequence: ${sequenceId} (attempt ${attempt}/${MAX_LOOP_ATTEMPTS})`);
   info(`Run dir:  ${runDir}`);
 
-  // Stage 1: spec-runner
-  info('Stage 1: spec-runner — loading SEQUENCES.md and producing test plan');
+  // Hoist binding/baseline above Stage 0 so the preflight early-exit can
+  // populate `plan` in its minimal RunReport with the static binding (no
+  // AI call needed). Stage 1 below upgrades `plan` to the AI-refined version.
   const binding = getSequenceBinding(sequenceId);
   const baseline = bindingToPlan(binding);
+
+  // Stage 0: infrastructure preflight. Runs before Stage 1 so we never spend
+  // Anthropic tokens on a run that would silent-no-op due to a missing CI
+  // secret or unreachable RPC. PRs #160/#162 each burned multiple full runs
+  // because the orchestrator had no way to distinguish "code is broken" from
+  // "the environment is misconfigured" — every patch attempt repeated the
+  // same `l1_vault present: false` symptom. Three deterministic checks here
+  // cover that entire failure class: signing key parses, RPC returns Sepolia
+  // chain ID, vault address has bytecode. On failure we write a minimal
+  // BLOCKED verdict.json with `summary=preflight_<which>_failed` and exit;
+  // the auto-commit step still picks up `preflight.json` and the verdict so
+  // a human reading the next run's artifacts sees the exact infra issue.
+  info('Stage 0: preflight — validating L1 secret/RPC/vault before agent steps');
+  const preflight = await runPreflight(config, runDir);
+  if (!preflight.passed) {
+    err(`Preflight failed: ${preflight.failed_check}`);
+    for (const c of preflight.checks) {
+      const tag = c.passed ? ok : err;
+      tag(`  ${c.name}: ${c.detail}`);
+    }
+    const blockedVerdict: FinalVerdict = {
+      verdict: 'BLOCKED',
+      summary: `preflight_${preflight.failed_check}_failed`,
+      must_fix_before_merge: preflight.checks
+        .filter((c) => !c.passed)
+        .map((c) => `${c.name}: ${c.detail}`),
+      fixer_recommendation: 'reject',
+      unresolved_questions: [
+        'Is DEPLOYER_PRIVATE_KEY registered in the sepolia GitHub Actions environment?',
+        'Is L1_RPC_URL reachable from the CI runner and pointing at Sepolia (chain id 11155111)?',
+        'Is the Vault contract deployed at the address the api-server expects?',
+      ],
+      confidence: 1.0,
+    };
+    await writeFile(resolve(runDir, 'verdict.json'), JSON.stringify(blockedVerdict, null, 2));
+    return {
+      sequence: sequenceId,
+      started_at: startedAt,
+      finished_at: nowIso(),
+      duration_ms: Date.now() - startMs,
+      plan: baseline,
+      plan_source: 'fallback',
+      layer_results: [],
+      layer_analyses: [],
+      quality_findings: [],
+      fixer_proposals: [],
+      final_verdict: blockedVerdict,
+      cost_usd: 0,
+      tokens: { input: 0, cached_input: 0, output: 0 },
+    };
+  }
+  ok(`Preflight passed: ${preflight.checks.length} checks green`);
+
+  // Stage 1: spec-runner (binding/baseline hoisted above Stage 0)
+  info('Stage 1: spec-runner — loading SEQUENCES.md and producing test plan');
   let plan: TestPlan = baseline;
   // Pre-Sherlock blocker HIGH-2 fix: track whether the AI-refined plan was
   // used or the static binding fallback. Surfaced in report.md so a silent
