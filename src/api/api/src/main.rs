@@ -46,11 +46,13 @@ async fn main() -> anyhow::Result<()> {
         Err(e) => eprintln!("[STARTUP] No .env file loaded: {}", e),
     }
 
-    // Debug: check if L1 private key is set
-    if std::env::var("QS__L1_PRIVATE_KEY").is_ok() {
-        eprintln!("[STARTUP] QS__L1_PRIVATE_KEY is SET");
-    } else {
-        eprintln!("[STARTUP] QS__L1_PRIVATE_KEY is NOT SET");
+    // Debug: check if L1 private key is set (and non-empty — std::env::var
+    // returns Ok("") for an env var exported as empty string, which CI
+    // does when the underlying secret is missing).
+    match std::env::var("QS__L1_PRIVATE_KEY") {
+        Ok(v) if v.is_empty() => eprintln!("[STARTUP] QS__L1_PRIVATE_KEY is SET but EMPTY (len=0) — secret likely missing in CI"),
+        Ok(v) => eprintln!("[STARTUP] QS__L1_PRIVATE_KEY is SET (len={})", v.len()),
+        Err(_) => eprintln!("[STARTUP] QS__L1_PRIVATE_KEY is NOT SET"),
     }
 
     // Initialize tracing
