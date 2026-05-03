@@ -154,14 +154,31 @@ jobs:
       - name: Start backend API server
         working-directory: src/api/api
         run: |
+          # Capture the api-server's stdout+stderr into a file under the
+          # docs/orchestrator-runs/<run_id>/ tree. The auto-commit step
+          # at the end of this workflow picks the whole tree up, so we
+          # can read the [STARTUP] lines and L1Vault init result from
+          # main on the next CI cycle. Without this, every startup
+          # diagnostic disappears into the GH Actions step log that
+          # the MCP API can't fetch.
+          API_LOG_DIR="${{ github.workspace }}/docs/orchestrator-runs/e2e/${{ github.run_id }}"
+          mkdir -p "$API_LOG_DIR"
+          API_LOG="$API_LOG_DIR/api-server.log"
+
           # Diagnostic: confirm DEPLOYER_PRIVATE_KEY secret resolved to a
           # non-empty value before we start the server. Print only the
-          # length so we never leak the key into logs.
-          if [ -z "$QS__L1_PRIVATE_KEY" ]; then
-            echo "::warning::QS__L1_PRIVATE_KEY is EMPTY — DEPLOYER_PRIVATE_KEY secret may not be set; lock submission to L1 will silently no-op"
-          else
-            echo "QS__L1_PRIVATE_KEY length: ${#QS__L1_PRIVATE_KEY} (non-empty)"
-          fi
+          # length so we never leak the key into logs. Tee'd into both
+          # the workflow log and the captured api-server log file so it
+          # appears in both places.
+          {
+            if [ -z "$QS__L1_PRIVATE_KEY" ]; then
+              echo "::warning::QS__L1_PRIVATE_KEY is EMPTY — DEPLOYER_PRIVATE_KEY secret may not be set; lock submission to L1 will silently no-op"
+            else
+              echo "QS__L1_PRIVATE_KEY length: ${#QS__L1_PRIVATE_KEY} (non-empty)"
+            fi
+            echo "QS__L1_RPC_URL: ${{ env.L1_RPC_URL }}"
+          } | tee "$API_LOG"
+
           # 2026-05-02: corrected env var name. The previous
           # `QS__L1__RPC_URL` (double underscore between L1 and RPC_URL)
           # was parsed by the `config` crate as nested `l1.rpc_url`,
@@ -175,12 +192,18 @@ jobs:
           # "L1 not configured" branch. Single underscore = top-level.
           QS__DATABASE__URL=postgresql://quantum:quantum_dev@localhost:5432/quantum_shield \
           QS__L1_RPC_URL=${{ env.L1_RPC_URL }} \
-            ../../../target/release/api-server &
+            ../../../target/release/api-server >> "$API_LOG" 2>&1 &
           echo "Waiting for backend on :8080..."
           for i in {1..60}; do
             curl -sf http://localhost:8080/v1/health > /dev/null && echo "backend ready" && break
             sleep 2
           done
+          # Print the api-server log tail to the workflow log too, so
+          # the GH Actions UI shows the startup sequence even if the
+          # auto-commit doesn't run for some reason (e.g. PR mode).
+          echo "=== api-server startup log (last 60 lines) ==="
+          tail -60 "$API_LOG" || echo "(no api-server log captured)"
+          echo "=== end api-server startup log ==="
 
       - name: Run orchestrator
         id: orchestrator
