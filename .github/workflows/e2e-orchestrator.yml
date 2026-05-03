@@ -35,6 +35,18 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # 2026-05-03: target the `sepolia` GitHub Actions environment so this
+    # job can read environment-scoped secrets — specifically
+    # DEPLOYER_PRIVATE_KEY, which deploy-testnet.yml configured under
+    # `environment: ${{ inputs.network }}` (= sepolia). Without this
+    # line the secret resolved to an empty string in the env block:
+    # bash diagnostic in the Start-backend step said "EMPTY" while
+    # main.rs:50's `is_ok()` check still reported "SET" (Ok("")), and
+    # L1VaultService::new failed against the empty private key, hit the
+    # silent-fallback warn+None at services/mod.rs:215-218, and every
+    # CI lock got `l1_tx_hash=NULL`. Run 25267401162's api-server.log
+    # made all of this visible for the first time.
+    environment: sepolia
     services:
       postgres:
         image: postgres:16
