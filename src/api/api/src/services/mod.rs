@@ -198,27 +198,37 @@ impl AppState {
             &config.l1_private_key,
             &config.l1_rpc_url,
         ) {
-            tracing::info!("Initializing L1 Vault Service...");
-            let provider = ethers::prelude::Provider::<ethers::prelude::Http>::try_from(l1_rpc_url.as_str())
-                .map_err(|e| anyhow::anyhow!("L1 Vault provider error: {}", e))?;
-            let chain_id = config.l1_chain_id.unwrap_or(SEPOLIA_CHAIN_ID);
-            match L1VaultService::new(
-                std::sync::Arc::new(provider),
-                vault_addr,
-                private_key,
-                chain_id,
-            ).await {
-                Ok(service) => {
-                    tracing::info!(vault_address = %vault_addr, "L1 Vault Service initialized");
-                    Some(service)
+            eprintln!("[STARTUP] Initializing L1 Vault Service (vault={}, rpc={}, pk_len={})", vault_addr, l1_rpc_url, private_key.len());
+            match ethers::prelude::Provider::<ethers::prelude::Http>::try_from(l1_rpc_url.as_str()) {
+                Ok(provider) => {
+                    let chain_id = config.l1_chain_id.unwrap_or(SEPOLIA_CHAIN_ID);
+                    eprintln!("[STARTUP] L1 Vault provider created, chain_id={}", chain_id);
+                    match L1VaultService::new(
+                        std::sync::Arc::new(provider),
+                        vault_addr,
+                        private_key,
+                        chain_id,
+                    ).await {
+                        Ok(service) => {
+                            eprintln!("[STARTUP] L1 Vault Service initialized successfully (vault={})", vault_addr);
+                            Some(service)
+                        }
+                        Err(e) => {
+                            eprintln!("[STARTUP] L1 Vault Service initialization FAILED: {:?}", e);
+                            None
+                        }
+                    }
                 }
                 Err(e) => {
-                    tracing::warn!("L1 Vault Service initialization failed: {}", e);
+                    eprintln!("[STARTUP] L1 Vault provider creation FAILED: {:?}", e);
                     None
                 }
             }
         } else {
-            tracing::info!("L1 Vault Service not configured (missing l1_vault_address, l1_private_key, or l1_rpc_url)");
+            eprintln!("[STARTUP] L1 Vault Service not configured (vault_addr_present={}, pk_present={}, rpc_present={})",
+                config.l1_vault_address.is_some(),
+                config.l1_private_key.is_some(),
+                config.l1_rpc_url.is_some());
             None
         };
 
