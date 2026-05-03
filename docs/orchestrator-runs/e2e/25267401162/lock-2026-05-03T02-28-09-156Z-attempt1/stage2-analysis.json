@@ -1,0 +1,91 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "exit_code = 0",
+      "test result: ok. 4 passed; 0 failed; 0 ignored",
+      "All four lock-related test cases passed: test_lock_creates_successfully, test_lock_status_retrievable, test_lock_rejects_invalid_signature, plus one additional passing test",
+      "SR_0 value computed and returned: 0xf1c79c561ea9e3535ef7b0293bd8fe81f86f1a4ccc62aa3382a6e7af0b6cfd22",
+      "Invalid signature properly rejected with HTTP 400 status (SEQ#1-03 log line confirms)",
+      "No panic markers detected in output",
+      "No unexpected error: lines in stdout",
+      "Test completed in 0.17s with optimized build"
+    ],
+    "issues": [
+      {
+        "severity": "info",
+        "title": "Cargo future-incompatibility warnings",
+        "detail": "Dependencies redis v0.24.0 and sqlx-postgres v0.7.4 contain code that will be rejected by a future Rust version. Consider updating these dependencies preemptively.",
+        "location": null
+      }
+    ],
+    "confidence": 0.98
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "Total tests: 40, passed: 40, failed: 0, skipped: 0, unexpected: 0",
+      "Exit code: 0",
+      "All tests executed across 2 browser projects (Mobile Chrome, Mobile Safari)",
+      "Test execution completed in 32.9 seconds",
+      "Lock creation flow validated: lock_id and SR_0 generation confirmed",
+      "Database persistence verified: locks visible via GET /v1/explorer/locks",
+      "Explorer totalLocks counter incremented correctly",
+      "Error handling tested: nonce reuse (409), expired locks (400), missing fields (422)",
+      "Multiple lock creation tested: 3 distinct locks with unique IDs and SR_0s",
+      "Health check passed: backend readiness confirmed"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "Query executed successfully (exit code 0)",
+      "Exactly one row returned from locks table in the last 5 minutes",
+      "lock_id is valid hex format: 0x4bb80ceff1536a63d0555bb9579926d067f9906245d95dca505d793909cd84ec",
+      "status value is 'pending', which is in the allowed set {pending, locked, confirmed}",
+      "pk_dilithium length is exactly 1952 bytes, matching Dilithium public key specification",
+      "l1_submitted is false (f), indicating L1 Vault submission has not occurred"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "L1 Vault submission not completed",
+        "detail": "Expected l1_submitted=true (t) when L1 Vault is reachable. The lock record exists in pending state but has not been submitted to L1 (l1_tx_hash IS NULL). This breaks the critical path for lock confirmation and is a hard failure per the expected post-condition.",
+        "location": "locks.l1_submitted"
+      }
+    ],
+    "confidence": 0.95
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [
+      "Script exited with code 1 (expected 0)",
+      "Most recent lock (ID: 0x4bb80ceff1536a63d0555bb9579926d067f9906245d95dca505d793909cd84ec) has no l1_tx_hash",
+      "L1 anchoring did not occur in this sequence run",
+      "totalLocked() call succeeded and returned 120000000000000000 wei (1.2e17)",
+      "L1Vault address (0x07012aeF87C6E423c32F2f8eaF81762f63337260) is legitimate",
+      "Root cause: QS__L1_PRIVATE_KEY environment variable is likely unset or invalid"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "L1 anchoring transaction not submitted",
+        "detail": "The Consumer Lock sequence created a lock in the application database, but no corresponding L1 transaction hash was recorded. This indicates the lock submission to L1 failed or was never attempted. The script diagnostic message suggests QS__L1_PRIVATE_KEY may be unset, preventing transaction signing.",
+        "location": "L1Vault:lock submission"
+      },
+      {
+        "severity": "high",
+        "title": "Missing l1_tx_hash in lock record",
+        "detail": "Lock 0x4bb80ceff1536a63d0555bb9579926d067f9906245d95dca505d793909cd84ec exists in the locks table but l1_tx_hash is null or empty. This breaks the chain of custody for the locked value.",
+        "location": "application database:locks table"
+      }
+    ],
+    "confidence": 0.95
+  }
+]

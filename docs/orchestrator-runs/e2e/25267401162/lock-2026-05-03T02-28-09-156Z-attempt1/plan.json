@@ -1,0 +1,49 @@
+{
+  "sequence_id": "seq-1",
+  "sequence_name": "Consumer Lock",
+  "layers": [
+    "backend",
+    "frontend",
+    "db",
+    "l1"
+  ],
+  "steps": [
+    {
+      "layer": "backend",
+      "description": "Rust integration test for Lock flow",
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq1_lock -- --nocapture",
+      "expected": "All backend integration test assertions pass: Lock Request is accepted by L3, Dilithium signature is verified, nonce and expiry are validated, SR_0 is computed as SHA3-256(\"QS_LOCK_V1\" || chain_id || asset || amount || dest_addr || expiry || nonce || pk_dilithium), a lock_id is issued, the lock record is written to DB, and the L1 Vault lockWithSR0 transaction is submitted — cargo test exits 0 with no FAILED lines in output",
+      "phase": "drive"
+    },
+    {
+      "layer": "frontend",
+      "description": "Playwright integration spec for Consumer Lock",
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json",
+      "expected": "All Playwright test cases pass: the UI Lock creation flow completes without error, the UI reflects a success state, and a corresponding DB row for the lock is observable — npx playwright exits 0 with 0 failed tests in the JSON reporter output",
+      "phase": "drive"
+    },
+    {
+      "layer": "db",
+      "description": "Verify lock row was created during this run window, pk_dilithium populated, and L1 submission was attempted",
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id, status, length(pk_dilithium), l1_tx_hash IS NOT NULL AS l1_submitted FROM locks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;\"",
+      "expected": "Exactly one row is returned from the last 5-minute window; status must be one of {pending, locked, confirmed}; pk_dilithium length must be exactly 1952 bytes (Dilithium public key size); l1_submitted must be t (true) when the L1 Vault is reachable — any deviation (zero rows, wrong pk_dilithium length, l1_submitted=f when L1 is reachable) is a hard failure",
+      "phase": "verify"
+    },
+    {
+      "layer": "l1",
+      "description": "Verify the lock created in this run is anchored on L1 (receipt status==0x1)",
+      "command": "bash -c '\nset -eo pipefail\nLOCK_ID=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id FROM locks WHERE created_at > NOW() - INTERVAL '\"'\"'5 minutes'\"'\"' ORDER BY created_at DESC LIMIT 1;\" | tr -d \" \")\nTX_HASH=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT l1_tx_hash FROM locks WHERE lock_id = '\"'\"'$LOCK_ID'\"'\"';\" | tr -d \" \")\nif [ -z \"$TX_HASH\" ] || [ \"$TX_HASH\" = \"\" ]; then\n  echo \"FAIL: lock $LOCK_ID has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)\"\n  echo \"Total locked snapshot for context (should be unchanged from prior runs):\"\n  cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"totalLocked()(uint256)\" --rpc-url \"$L1_RPC_URL\" || true\n  exit 1\nfi\necho \"checking L1 receipt for tx=$TX_HASH (lock=$LOCK_ID)\"\nRECEIPT_STATUS=$(cast receipt \"$TX_HASH\" --rpc-url \"$L1_RPC_URL\" --json 2>/dev/null | jq -r \".status // \\\"missing\\\"\" || echo \"missing\")\necho \"receipt status: $RECEIPT_STATUS\"\ncase \"$RECEIPT_STATUS\" in\n  0x1|1) echo \"PASS: lock anchored on L1\"; exit 0 ;;\n  0x0|0) echo \"FAIL: tx reverted on L1\"; exit 1 ;;\n  missing) echo \"FAIL: tx not found on L1 (tx submitted but never mined, or wrong RPC)\"; exit 1 ;;\n  *) echo \"FAIL: unexpected receipt status $RECEIPT_STATUS\"; exit 1 ;;\nesac\n'",
+      "expected": "Script exits 0 and prints \"PASS: lock anchored on L1\" — the most recent locks row has a non-empty l1_tx_hash and cast receipt for that hash returns status 0x1; any other receipt status (0x0, missing, or unexpected) or an absent l1_tx_hash is a hard failure",
+      "phase": "verify"
+    }
+  ],
+  "acceptance_criteria": [
+    "Backend integration test (seq1_lock) exits 0 with no FAILED assertions: Dilithium signature verification passes, nonce is unique, expiry is valid, SR_0 is correctly computed, lock_id is issued, and L1 lockWithSR0 is submitted",
+    "Playwright lock.integration.spec.ts exits 0 with 0 failed tests: the UI lock creation flow reaches success state and a DB row is produced",
+    "A locks row exists created within the last 5 minutes with status in {pending, locked, confirmed}, pk_dilithium column length exactly equals 1952, and l1_tx_hash IS NOT NULL",
+    "The L1 transaction recorded in l1_tx_hash has receipt status exactly 0x1 on the configured L1 RPC — a reverted (0x0) or missing transaction is a hard failure",
+    "L1 Vault totalLocked is non-zero after the lock is anchored, confirming assets were received by the Vault contract",
+    "No silent fallback or hardcoded address appears in the execution trace — all contract addresses and RPC URLs must be sourced from environment variables or configuration"
+  ],
+  "spec_section": "SEQUENCES.md §1 Consumer Lock"
+}
