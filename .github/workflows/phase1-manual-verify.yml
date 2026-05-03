@@ -1,0 +1,211 @@
+name: phase1-manual-verify
+
+# Phase 1 (Consumer Lock FE→BE→DB→L1) end-to-end verification *without*
+# the orchestrator's AI judgement. Boots api-server against real Sepolia,
+# posts one 0.0001 ETH lock, and asserts an Etherscan-confirmed tx receipt.
+# Zero Anthropic credits required — the verdict is deterministic bash.
+#
+# Triggered manually from the Actions tab. The Etherscan URL is printed in
+# the job summary so you can take a screenshot for grant evidence.
+
+on:
+  workflow_dispatch:
+    inputs:
+      amount_wei:
+        description: 'Lock amount in wei (default 1e14 = 0.0001 ETH)'
+        required: false
+        default: '100000000000000'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Same scoping as e2e-orchestrator so DEPLOYER_PRIVATE_KEY (env-scoped
+    # secret) is visible. Set in repo Settings → Environments → sepolia.
+    environment: sepolia
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quantum
+          POSTGRES_PASSWORD: quantum_dev
+          POSTGRES_DB: quantum_shield
+        ports: [5432:5432]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 3s --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+      L1_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com' }}
+      VAULT: '0x07012aeF87C6E423c32F2f8eaF81762f63337260'
+      QS__L1_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: 'src/api/api'
+
+      - uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Verify required secrets present
+        run: |
+          if [ -z "${QS__L1_PRIVATE_KEY}" ]; then
+            echo "::error::DEPLOYER_PRIVATE_KEY is empty (sepolia env secret missing)"
+            exit 1
+          fi
+          if [ "${#QS__L1_PRIVATE_KEY}" -ne 64 ]; then
+            echo "::error::DEPLOYER_PRIVATE_KEY length=${#QS__L1_PRIVATE_KEY} (expected 64 hex chars)"
+            exit 1
+          fi
+          echo "✓ DEPLOYER_PRIVATE_KEY length=64"
+
+      - name: Build api-server (release)
+        working-directory: src/api/api
+        run: SQLX_OFFLINE=true cargo build --bin api-server --release
+
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli --version 0.7.4 --no-default-features --features postgres,native-tls --locked
+
+      - name: Run migrations
+        working-directory: src/api/api
+        run: sqlx migrate run
+
+      - name: Boot api-server (RUN_MODE=testnet_beta)
+        working-directory: src/api/api
+        env:
+          QS__DATABASE__URL: ${{ env.DATABASE_URL }}
+          QS__L1_RPC_URL: ${{ env.L1_RPC_URL }}
+          QS__L1_VAULT_ADDRESS: ${{ env.VAULT }}
+          QS__SECURITY__SKIP_SIGNATURE_VERIFICATION: 'true'
+          QS__SECURITY__SKIP_TOTP_VERIFICATION: 'true'
+          RUN_MODE: testnet_beta
+          RUST_LOG: quantum_shield_api=info,tower_http=warn
+        run: |
+          ../../../target/release/api-server > "${{ runner.temp }}/api-server.log" 2>&1 &
+          echo $! > "${{ runner.temp }}/api-server.pid"
+          for i in {1..60}; do
+            if curl -sf http://localhost:8080/v1/health > /dev/null; then
+              echo "✓ api-server ready"
+              break
+            fi
+            sleep 1
+          done
+          # Surface startup state in workflow log
+          echo "=== api-server startup log ==="
+          head -30 "${{ runner.temp }}/api-server.log"
+          echo "=== end startup log ==="
+          if ! grep -q "AppState initialized. l1_vault present: true" "${{ runner.temp }}/api-server.log"; then
+            echo "::error::l1_vault did not initialize"
+            tail -50 "${{ runner.temp }}/api-server.log"
+            exit 1
+          fi
+
+      - name: POST /v1/lock
+        id: lock
+        run: |
+          NOW=$(date +%s)
+          EXPIRY=$((NOW + 3600))
+          NONCE=$((NOW * 1000))
+          DEST_ADDR="0x000000000000000000000000000000000000dEaD"
+          PK_DUMMY="0x$(printf '00%.0s' {1..1952})"
+          SIG_DUMMY="0x$(printf '00%.0s' {1..3309})"
+
+          PAYLOAD=$(jq -n \
+            --arg amount "${{ inputs.amount_wei }}" \
+            --arg dest "$DEST_ADDR" \
+            --argjson expiry "$EXPIRY" \
+            --argjson nonce "$NONCE" \
+            --arg pk "$PK_DUMMY" \
+            --arg sig "$SIG_DUMMY" \
+            '{chain_id: 11155111, asset: "ETH", amount: $amount, dest_addr: $dest, expiry: $expiry, nonce: $nonce, pk_dilithium: $pk, sig_dilithium: $sig}')
+
+          echo "POST payload: $(echo "$PAYLOAD" | jq -c .)"
+          RESPONSE=$(curl -sS -X POST http://localhost:8080/v1/lock \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+          echo "Response: $RESPONSE"
+
+          LOCK_ID=$(echo "$RESPONSE" | jq -r '.lock_id // empty')
+          RESPONSE_TX=$(echo "$RESPONSE" | jq -r '.l1_tx_hash // empty')
+          if [ -z "$LOCK_ID" ]; then
+            echo "::error::lock POST did not return lock_id"
+            echo "$RESPONSE" | jq .
+            exit 1
+          fi
+          echo "lock_id=$LOCK_ID" >> "$GITHUB_OUTPUT"
+          echo "response_tx=$RESPONSE_TX" >> "$GITHUB_OUTPUT"
+          echo "✓ lock_id=$LOCK_ID"
+          echo "✓ response.l1_tx_hash=${RESPONSE_TX:-<NOT RETURNED>}"
+
+      - name: Verify l1_tx_hash in DB
+        id: db
+        run: |
+          DB_TX=$(psql "${{ env.DATABASE_URL }}" -t -A -c \
+            "SELECT l1_tx_hash FROM locks WHERE lock_id = '${{ steps.lock.outputs.lock_id }}';" | tr -d ' ')
+          echo "db.l1_tx_hash=${DB_TX:-<NULL>}"
+          if [ -z "$DB_TX" ]; then
+            echo "::error::lock ${{ steps.lock.outputs.lock_id }} has no l1_tx_hash in DB"
+            echo "=== api-server.log tail (lock.rs deposit() likely silently failed) ==="
+            tail -80 "${{ runner.temp }}/api-server.log"
+            exit 1
+          fi
+          echo "tx_hash=$DB_TX" >> "$GITHUB_OUTPUT"
+
+      - name: cast receipt — Sepolia tx confirmation
+        id: receipt
+        run: |
+          TX="${{ steps.db.outputs.tx_hash }}"
+          # tx may need a few seconds to be mined
+          for i in {1..12}; do
+            RECEIPT=$(cast receipt "$TX" --rpc-url "${{ env.L1_RPC_URL }}" --json 2>/dev/null || echo "{}")
+            STATUS=$(echo "$RECEIPT" | jq -r '.status // "missing"')
+            if [ "$STATUS" != "missing" ]; then break; fi
+            echo "  receipt pending, retry $i/12..."
+            sleep 10
+          done
+          BLOCK=$(echo "$RECEIPT" | jq -r '.blockNumber // empty')
+          echo "status=$STATUS block=${BLOCK:-<pending>}"
+          case "$STATUS" in
+            "0x1"|"1") echo "result=PASS" >> "$GITHUB_OUTPUT" ;;
+            "0x0"|"0") echo "::error::tx reverted on L1"; exit 1 ;;
+            *)         echo "::error::tx not mined within 2 minutes (status=$STATUS)"; exit 1 ;;
+          esac
+          echo "block=$BLOCK" >> "$GITHUB_OUTPUT"
+
+      - name: Generate job summary (Etherscan artifact)
+        if: success()
+        run: |
+          {
+            echo "# Phase 1 PASS — lock anchored on Sepolia"
+            echo ""
+            echo "| field | value |"
+            echo "|---|---|"
+            echo "| lock_id | \`${{ steps.lock.outputs.lock_id }}\` |"
+            echo "| tx_hash | \`${{ steps.db.outputs.tx_hash }}\` |"
+            echo "| block | ${{ steps.receipt.outputs.block }} |"
+            echo "| etherscan | https://sepolia.etherscan.io/tx/${{ steps.db.outputs.tx_hash }} |"
+            echo ""
+            echo "**Screenshot the Etherscan link above — that URL is the Phase 1 ground-truth artifact.**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f "${{ runner.temp }}/api-server.pid" ]; then
+            kill "$(cat "${{ runner.temp }}/api-server.pid")" 2>/dev/null || true
+          fi
+
+      - name: Upload api-server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-server-log
+          path: ${{ runner.temp }}/api-server.log
