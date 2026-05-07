@@ -61,7 +61,17 @@ async fn main() -> anyhow::Result<()> {
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "quantum_shield_api=debug,tower_http=debug".into()),
         )
-        .with(tracing_subscriber::fmt::layer())
+        // Write to stderr (line-buffered) instead of the default stdout
+        // (block-buffered when redirected to a file). Run 25500066876
+        // captured tower_http DEBUG (high volume → buffer fills → flushes)
+        // but lost every quantum_shield_api INFO/WARN/ERROR — including the
+        // critical `tracing::error!("L1 lockWithSR0 failed")` line — because
+        // those events alone never filled the 4KB stdout buffer before
+        // SIGTERM. The [STARTUP] eprintln! lines (already on stderr) showed
+        // up fine, which was the diagnostic signal that buffering was the
+        // root cause. stderr is line-buffered when redirected to a file in
+        // Rust's default runtime, so every event flushes immediately.
+        .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
         .init();
 
     tracing::info!("Starting Quantum Shield API Server v{}", env!("CARGO_PKG_VERSION"));
