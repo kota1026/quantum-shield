@@ -7,6 +7,8 @@ name: phase1-manual-verify
 #
 # Triggered manually from the Actions tab. The Etherscan URL is printed in
 # the job summary so you can take a screenshot for grant evidence.
+#
+# 2026-05-03: nudge re-index after first push appeared 404 in GitHub UI.
 
 on:
   workflow_dispatch:
