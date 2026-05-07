@@ -91,6 +91,16 @@ export async function runSequence(
   info(`Sequence: ${sequenceId} (attempt ${attempt}/${MAX_LOOP_ATTEMPTS})`);
   info(`Run dir:  ${runDir}`);
 
+  // NO_AI mode: skip every Anthropic-dependent stage. Triggered by
+  // `NO_AI=1` (or `=true`) in env, normally set from the workflow_dispatch
+  // input on e2e-orchestrator.yml. With this flag we still run preflight
+  // and Stage 2 drive/verify (both bash-only), then synthesize the verdict
+  // deterministically from the per-layer exit codes — every layer pass =
+  // PASS, any fail = FIXABLE. Use case: Anthropic credit exhausted, or
+  // anyone who just wants the bash truth without paying for AI judgement.
+  const NO_AI = process.env.NO_AI === '1' || process.env.NO_AI === 'true';
+  if (NO_AI) info('NO_AI=1 — skipping Stage 1 spec-runner / Stage 2 analyzers / Stage 3 quality / Stage 4 fixer+reviewer');
+
   // Hoist binding/baseline above Stage 0 so the preflight early-exit can
   // populate `plan` in its minimal RunReport with the static binding (no
   // AI call needed). Stage 1 below upgrades `plan` to the AI-refined version.
@@ -150,42 +160,46 @@ export async function runSequence(
   ok(`Preflight passed: ${preflight.checks.length} checks green`);
 
   // Stage 1: spec-runner (binding/baseline hoisted above Stage 0)
-  info('Stage 1: spec-runner — loading SEQUENCES.md and producing test plan');
   let plan: TestPlan = baseline;
   // Pre-Sherlock blocker HIGH-2 fix: track whether the AI-refined plan was
   // used or the static binding fallback. Surfaced in report.md so a silent
   // degradation cannot hide behind a green verdict.
   let planSource: 'ai' | 'fallback' = 'fallback';
-  try {
-    const spec = await loadSpec(config.REPO_ROOT);
-    const planAgent = await runAgent(
-      'spec-runner',
-      JSON.stringify({
-        spec_excerpt: spec.slice(0, 30_000),
-        binding_hint: baseline,
-        sequence_id: binding.id,
-        sequence_name: binding.name,
-      }),
-      config,
-    );
-    if (!planAgent.ok) {
-      warn(`spec-runner failed: ${planAgent.error}; using binding fallback`);
-    } else {
-      const parsed = TestPlan.safeParse(planAgent.parsed_json);
-      if (parsed.success) {
-        const { plan: reconciled, corrected } = reconcilePhasesFromBinding(parsed.data, baseline);
-        plan = reconciled;
-        planSource = 'ai';
-        ok(`spec-runner produced plan with ${plan.steps.length} steps across ${plan.layers.length} layers`);
-        if (corrected > 0) {
-          info(`reconciled ${corrected}/${plan.steps.length} step phase(s) from binding (AI omitted phase classification)`);
-        }
+  if (NO_AI) {
+    info('Stage 1: spec-runner skipped (NO_AI) — using static binding plan');
+  } else {
+    info('Stage 1: spec-runner — loading SEQUENCES.md and producing test plan');
+    try {
+      const spec = await loadSpec(config.REPO_ROOT);
+      const planAgent = await runAgent(
+        'spec-runner',
+        JSON.stringify({
+          spec_excerpt: spec.slice(0, 30_000),
+          binding_hint: baseline,
+          sequence_id: binding.id,
+          sequence_name: binding.name,
+        }),
+        config,
+      );
+      if (!planAgent.ok) {
+        warn(`spec-runner failed: ${planAgent.error}; using binding fallback`);
       } else {
-        warn(`spec-runner output didn't match schema, using binding fallback (${parsed.error.issues.length} issues)`);
+        const parsed = TestPlan.safeParse(planAgent.parsed_json);
+        if (parsed.success) {
+          const { plan: reconciled, corrected } = reconcilePhasesFromBinding(parsed.data, baseline);
+          plan = reconciled;
+          planSource = 'ai';
+          ok(`spec-runner produced plan with ${plan.steps.length} steps across ${plan.layers.length} layers`);
+          if (corrected > 0) {
+            info(`reconciled ${corrected}/${plan.steps.length} step phase(s) from binding (AI omitted phase classification)`);
+          }
+        } else {
+          warn(`spec-runner output didn't match schema, using binding fallback (${parsed.error.issues.length} issues)`);
+        }
       }
+    } catch (e) {
+      warn(`spec-runner failed (${(e as Error).message}); using binding fallback`);
     }
-  } catch (e) {
-    warn(`spec-runner failed (${(e as Error).message}); using binding fallback`);
   }
   await writeFile(resolve(runDir, 'plan.json'), JSON.stringify(plan, null, 2));
 
@@ -249,6 +263,69 @@ export async function runSequence(
   for (const r of layerResults) {
     const tag = r.status === 'pass' ? ok : r.status === 'skipped' ? warn : err;
     tag(`layer ${r.layer.padEnd(8)} ${r.status} (exit=${r.exit_code}, ${r.duration_ms}ms)`);
+  }
+
+  // NO_AI deterministic verdict path. Bypass Stage 2 analyzers, Stage 3
+  // quality, Stage 4 fixer+reviewer entirely — all of those need
+  // Anthropic. The verdict here is purely a function of the bash exit
+  // codes from Stage 2 drive/verify, which is what actually matters for
+  // Phase 1 (lock route DB row + L1 receipt). Skipping the AI loop also
+  // skips auto-fix recursion since there are no fixer proposals.
+  if (NO_AI) {
+    const synthAnalyses: LayerAnalysis[] = layerResults.map((r) => ({
+      layer: r.layer as LayerAnalysis['layer'],
+      status: r.status === 'skipped' ? 'fail' : (r.status as 'pass' | 'fail'),
+      observations: r.status === 'pass'
+        ? [`${r.layer} drive/verify exit=0 in ${r.duration_ms}ms (no_ai deterministic)`]
+        : [],
+      issues: r.status === 'pass' ? [] : [{
+        severity: 'critical',
+        title: `${r.layer} layer ${r.status} (exit=${r.exit_code})`,
+        detail: ((r.stderr_excerpt || r.stdout_excerpt || '').slice(0, 800)) || `[orchestrator] no output captured`,
+      }],
+      confidence: 1,
+    }));
+    await writeFile(resolve(runDir, 'stage2-analysis.json'), JSON.stringify(synthAnalyses, null, 2));
+    await writeFile(resolve(runDir, 'stage3.json'), JSON.stringify([], null, 2));
+
+    const failed = layerResults.filter((r) => r.status !== 'pass');
+    const synthVerdict: FinalVerdict = failed.length === 0 ? {
+      verdict: 'PASS',
+      summary: `All ${layerResults.length} layers passed (no_ai deterministic)`,
+      must_fix_before_merge: [],
+      fixer_recommendation: 'apply',
+      unresolved_questions: [],
+      confidence: 1,
+    } : {
+      verdict: 'FIXABLE',
+      summary: `${failed.length}/${layerResults.length} layer(s) failed: ${failed.map((r) => r.layer).join(', ')}`,
+      must_fix_before_merge: failed.map((r) =>
+        `${r.layer}: see stage2/${r.layer}.log + api-server.log (exit=${r.exit_code})`,
+      ),
+      fixer_recommendation: 'review_required',
+      unresolved_questions: [],
+      confidence: 1,
+    };
+    await writeFile(resolve(runDir, 'verdict.json'), JSON.stringify(synthVerdict, null, 2));
+
+    const tag = synthVerdict.verdict === 'PASS' ? ok : warn;
+    tag(`verdict: ${synthVerdict.verdict} (no_ai mode, $0.000)`);
+
+    return {
+      sequence: plan.sequence_id,
+      started_at: startedAt,
+      finished_at: nowIso(),
+      duration_ms: Date.now() - startMs,
+      plan,
+      plan_source: planSource,
+      layer_results: layerResults,
+      layer_analyses: synthAnalyses,
+      quality_findings: [],
+      fixer_proposals: [],
+      final_verdict: synthVerdict,
+      cost_usd: 0,
+      tokens: { input: 0, cached_input: 0, output: 0 },
+    };
   }
 
   info('Stage 2: dispatching layer analyzer agents (haiku x5)');
