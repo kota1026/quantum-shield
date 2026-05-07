@@ -24,6 +24,11 @@ on:
         required: false
         default: 'lock'
         type: string
+      no_ai:
+        description: 'Deterministic mode — skip Anthropic stages, verdict from layer exit codes only'
+        required: false
+        default: false
+        type: boolean
   schedule:
     # Daily 21:17 UTC = 06:17 JST. Off-peak so we don't compete with morning PRs.
     - cron: '17 21 * * *'
@@ -223,6 +228,10 @@ jobs:
         env:
           REPO_ROOT: ${{ github.workspace }}
           REPORTS_DIR: ${{ github.workspace }}/src/agents/e2e-orchestrator/reports
+          # Skip every Anthropic-dependent stage when the workflow_dispatch
+          # input requests it. Verdict is then a deterministic function of
+          # the Stage 2 layer exit codes (orchestrator.ts NO_AI branch).
+          NO_AI: ${{ inputs.no_ai && '1' || '' }}
         continue-on-error: true
         run: |
           set -o pipefail
