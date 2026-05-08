@@ -73,36 +73,38 @@ See `docs/INTEGRATION_METHODOLOGY_v2.md` for full plan.
 - Verify Docker services are running before any integration work.
 - After implementation, run: `grep -rn "MOCK_\|FALLBACK_" src/ --include="*.ts" --include="*.tsx" | grep -v mock.ts | grep -v .test. | grep -v .spec.`
 
-## Autonomous Research & Strategy (EVERY SESSION)
+## Autonomous Research & Strategy
 
-**At the start of every session**, Claude MUST automatically:
+Industry intelligence is now produced **autonomously, daily, at JST 06:30** by
+`.github/workflows/daily-plan.yml` (replaces the legacy `daily-research.yml`).
 
-### 1. Industry Intelligence (Web Search)
-Search and report on (spend max 2 minutes):
-- **NIST PQC updates**: New standards, algorithm changes, migration guidance
-- **Ethereum PQC**: New EIPs, Vitalik statements, EF research, precompile proposals
-- **Competitors**: QRL, PQShield, StarkNet PQC, any new PQC-on-Ethereum projects
-- **Quantum computing milestones**: IBM, Google, Microsoft hardware advances
-- **Academic papers**: arxiv.org PQC + blockchain papers from last 30 days
+### Daily flow
 
-### 2. Strategic Recommendations
-Based on findings, propose (in 3-5 bullet points):
-- Feature priorities that strengthen competitive position
-- Technical improvements based on new research
-- Grant/partnership opportunities
-- Risk alerts (new competitors, algorithm concerns)
+1. **JST 06:30** — workflow fetches NIST / EIPs / arxiv cs.CR / Ethereum Magicians /
+   competitor GitHub releases.
+2. **Sonnet 4.6** turns signals into a **prioritized update plan** (P0/P1/P2)
+   and emits **unified diffs for mechanical P0 actions**.
+3. **Briefing PR** opens against `main`: `docs/intelligence/daily-plan/YYYY-MM-DD.md`.
+4. **Draft PRs** open per mechanical P0 action (label `daily-plan-action`),
+   protected by a path allow-list (no `src/api/api/`, no `src/frontend/web/src/`,
+   no `src/contracts/`, no `CLAUDE.md`, no `.claude/settings.json`,
+   no `.claude/rules/blockchain.md`).
+5. **Slack** receives headline + P0 list via `SLACK_WEBHOOK_URL`.
 
-### 3. Output
-- Brief summary to user (5-10 lines)
-- If significant findings: update `docs/intelligence/LATEST.md`
-- Reference `docs/grants/EF_ESP_APPLICATION.md` for grant alignment
+### Session start (Claude in IDE)
 
-### 4. Monitoring Data Sources
-- https://csrc.nist.gov/projects/post-quantum-cryptography
-- https://ethresear.ch (PQC topics)
-- https://eips.ethereum.org (new proposals)
-- https://arxiv.org/list/cs.CR/recent (cryptography papers)
-- https://github.com/topics/post-quantum (new repos)
+Read the latest entry in `docs/intelligence/daily-plan/` instead of
+re-running web research yourself. Only re-search if the latest plan is more
+than 24 hours old or the user asks for fresh signals. Reference
+`docs/grants/EF_ESP_APPLICATION.md` when proposing grant-relevant work.
+
+### Monitoring Data Sources (used by the workflow)
+
+- https://csrc.nist.gov/news/rss?CategoryId=44
+- https://eips.ethereum.org/all.json
+- http://export.arxiv.org/rss/cs.CR
+- https://ethereum-magicians.org/c/eips/13.json
+- GitHub releases: `theQRL/QRL`, `PQShield/pqshield`, `starkware-libs/cairo`
 
 ## Development Workflow (MANDATORY)
 
