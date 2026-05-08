@@ -1,0 +1,62 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [
+      "Agent backend-runner did not return a parseable result"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Layer agent failure: backend-runner",
+        "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CapxojBA773F7BTFGGppG\"}"
+      }
+    ],
+    "confidence": 0
+  },
+  {
+    "layer": "frontend",
+    "status": "fail",
+    "observations": [
+      "Agent frontend-runner did not return a parseable result"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Layer agent failure: frontend-runner",
+        "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CapxojCQ5zKr3MABcCX1b\"}"
+      }
+    ],
+    "confidence": 0
+  },
+  {
+    "layer": "db",
+    "status": "fail",
+    "observations": [
+      "Agent db-verifier did not return a parseable result"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Layer agent failure: db-verifier",
+        "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011Capxoj8BX4Nfz26cbJ8nK\"}"
+      }
+    ],
+    "confidence": 0
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [
+      "Agent l1-verifier did not return a parseable result"
+    ],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "Layer agent failure: l1-verifier",
+        "detail": "Anthropic request failed: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CapxojBQLWbwmf7MEjpY1\"}"
+      }
+    ],
+    "confidence": 0
+  }
+]
