@@ -1,5 +1,8 @@
 name: Claude Code Updates Watch
 
+# 2026-05-08: nudge re-index — first merge appeared 404 in GitHub UI,
+# same workaround as commit bf27cb88 for phase1-manual-verify.
+
 on:
   schedule:
     - cron: '0 0 * * 1'  # Every Monday 00:00 UTC
