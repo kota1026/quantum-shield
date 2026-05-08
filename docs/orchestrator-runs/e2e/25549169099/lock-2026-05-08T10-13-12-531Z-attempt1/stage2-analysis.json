@@ -1,0 +1,42 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "backend drive/verify exit=0 in 1677ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "frontend drive/verify exit=0 in 56240ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "db",
+    "status": "pass",
+    "observations": [
+      "db drive/verify exit=0 in 273ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "l1 layer fail (exit=1)",
+        "detail": "FAIL: lock 0x24de8a307e6f009ee39b40613177b0d8f6d0bb079583e20e6ab9bcdd73b9e150 has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)\nTotal locked snapshot for context (should be unchanged from prior runs):\n220000000000000000 [2.2e17]\n"
+      }
+    ],
+    "confidence": 1
+  }
+]
