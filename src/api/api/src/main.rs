@@ -59,7 +59,22 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "quantum_shield_api=debug,tower_http=debug".into()),
+                // The binary's crate name is `api_server` (from
+                // `[[bin]] name = "api-server"` — Rust replaces hyphens
+                // with underscores). routes::lock and services::* live
+                // under the binary, so their tracing target is
+                // `api_server::routes::lock` etc., NOT
+                // `quantum_shield_api::*` (that crate is the lib used
+                // only by integration tests). Run 25535809732 captured
+                // tower_http DEBUG just fine but no INFO/WARN/ERROR from
+                // any app code, because EnvFilter dropped every event
+                // whose target didn't start with `quantum_shield_api`
+                // (lib) or `tower_http`. Adding `api_server=debug` fixes
+                // it so the captured api-server.log finally surfaces
+                // routes/lock.rs:154's `tracing::error!("L1 lockWithSR0
+                // failed - lock record saved but L1 deposit not
+                // confirmed")` — the next concrete fix target.
+                .unwrap_or_else(|_| "api_server=debug,quantum_shield_api=debug,tower_http=debug".into()),
         )
         // Write to stderr (line-buffered) instead of the default stdout
         // (block-buffered when redirected to a file). Run 25500066876
