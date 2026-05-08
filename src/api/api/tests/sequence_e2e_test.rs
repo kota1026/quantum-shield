@@ -92,7 +92,7 @@ mod seq1_lock {
         let nonce = unique_nonce();
         let chain_id: u64 = 11155111;
         let asset = "ETH";
-        let amount = "100000000000000"; // 0.0001 ETH (was 1 ETH; reduced 2026-05-08 because Sepolia faucet allowances couldn't sign 1 ETH transfers — see api-server.log "insufficient funds for transfer" in run 25549122663)
+        let amount = "10000000000000000"; // 0.01 ETH = MIN_LOCK_AMOUNT (Vault L1VaultTestnet.sol:48). Run 25550682072 confirmed amounts below MIN_LOCK_AMOUNT trigger `0x5945ea56 = InsufficientAmount()` on the lockWithSR0 call; the revert burns gas and quickly drains the deployer wallet, so subsequent locks then fail with `insufficient funds for transfer`. Sticking to the contract minimum keeps the per-run cost as low as possible while passing the on-chain check.
         let dest_addr = "0x1234567890abcdef1234567890abcdef12345678";
         let expiry: u64 = 1900000000;
 
@@ -147,7 +147,7 @@ mod seq1_lock {
         let nonce = unique_nonce();
         let chain_id: u64 = 11155111;
         let asset = "ETH";
-        let amount = "100000000000000";
+        let amount = "10000000000000000";
         let dest_addr = "0x1234567890abcdef1234567890abcdef12345678";
         let expiry: u64 = 1000000000; // Past
 
@@ -192,12 +192,12 @@ mod seq1_lock {
         let (_pk2, sk2) = gen_dilithium_keypair();
         let nonce = unique_nonce();
         let sig_hex =
-            sign_lock_message(&sk2, 11155111, "ETH", "100000000000000", "0x1234567890abcdef1234567890abcdef12345678", 1900000000, nonce);
+            sign_lock_message(&sk2, 11155111, "ETH", "10000000000000000", "0x1234567890abcdef1234567890abcdef12345678", 1900000000, nonce);
 
         let payload = json!({
             "chain_id": 11155111u64,
             "asset": "ETH",
-            "amount": "100000000000000",
+            "amount": "10000000000000000",
             "dest_addr": "0x1234567890abcdef1234567890abcdef12345678",
             "expiry": 1900000000u64,
             "nonce": nonce,
@@ -230,7 +230,7 @@ mod seq1_lock {
         let nonce = unique_nonce();
         let chain_id: u64 = 11155111;
         let asset = "ETH";
-        let amount = "50000000000000"; // 0.00005 ETH (was 0.5 ETH; reduced 2026-05-08 — see comment on test_lock_creates_successfully)
+        let amount = "10000000000000000"; // 0.01 ETH = MIN_LOCK_AMOUNT — see comment on test_lock_creates_successfully
         let dest_addr = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
         let expiry: u64 = 1900000000;
 
@@ -305,7 +305,7 @@ mod seq2_unlock_normal {
         let nonce = unique_nonce();
         let chain_id: u64 = 11155111;
         let asset = "ETH";
-        let amount = "100000000000000";
+        let amount = "10000000000000000";
         let dest_addr = "0x2222222222222222222222222222222222222222";
         let expiry: u64 = 1900000000;
 
@@ -409,7 +409,7 @@ mod seq2_unlock_normal {
 
         let fake_lock_id = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef";
         let dest_addr = "0x1111111111111111111111111111111111111111";
-        let amount = "100000000000000";
+        let amount = "10000000000000000";
 
         let unlock_sig = sign_unlock_message(&sk, fake_lock_id, dest_addr, amount);
         let payload = json!({
