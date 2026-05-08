@@ -6,6 +6,9 @@ name: Daily Plan (JST 06:30)
 #   3. Open a briefing PR with the daily plan markdown
 #   4. For each mechanical action with a diff, open a separate draft PR
 #   5. Post headline + P0 list to Slack
+#
+# 2026-05-08: nudge re-index — first merge appeared 404 in GitHub UI,
+# same workaround as commit bf27cb88 for phase1-manual-verify.
 
 on:
   schedule:
