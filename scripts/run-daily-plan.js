@@ -14,6 +14,7 @@
  * Cost target: ~$0.12/day (Sonnet 4.6, ~10k input + ~6k output).
  */
 
+const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
@@ -42,7 +43,7 @@ const MAX_TOKENS = 8192;
 const FEEDS = [
   { name: 'NIST PQC News',      url: 'https://csrc.nist.gov/news/rss?CategoryId=44' },
   { name: 'Ethereum EIPs',      url: 'https://eips.ethereum.org/all.json' },
-  { name: 'arxiv cs.CR',        url: 'http://export.arxiv.org/rss/cs.CR' },
+  { name: 'arxiv cs.CR',        url: 'https://export.arxiv.org/rss/cs.CR' },
   { name: 'Ethereum Magicians', url: 'https://ethereum-magicians.org/c/eips/13.json' },
 ];
 
@@ -54,11 +55,19 @@ const COMPETITOR_REPOS = [
 
 // --- HTTP helpers ---------------------------------------------------------
 
-function fetchText(url, timeoutMs = 8000) {
+function fetchText(url, timeoutMs = 8000, redirectsLeft = 3) {
   return new Promise((resolve) => {
-    const req = https.get(url, { headers: { 'user-agent': 'quantum-shield-daily-plan/1.0' } }, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return resolve(fetchText(res.headers.location, timeoutMs));
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return resolve({ ok: false, body: '' });
+    }
+    const client = parsed.protocol === 'http:' ? http : https;
+    const req = client.get(url, { headers: { 'user-agent': 'quantum-shield-daily-plan/1.0' } }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirectsLeft > 0) {
+        const next = new URL(res.headers.location, url).toString();
+        return resolve(fetchText(next, timeoutMs, redirectsLeft - 1));
       }
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
