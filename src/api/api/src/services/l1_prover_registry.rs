@@ -3,14 +3,35 @@
 //! Provides Rust bindings for the ProverRegistry contract on L1 (Sepolia).
 //! Implements L1 integration for:
 //! - SEQUENCES §4.7-4.8: Slashing execution on L1
-//! - SEQUENCES §6: Prover Exit (requestExit + executeExit on L1)
+//! - SEQUENCES §6: Prover Exit (requestExit + completeExit on L1)
 //!
-//! ## Contract Functions
-//! - `slash(proverId, colludingCount, reason)` — Slash a prover (onlyOwner)
-//! - `requestExit(proverId)` — Request prover exit (7-day unbonding)
-//! - `executeExit(proverId)` — Execute exit after unbonding period
-//! - `getProver(proverId)` — View prover details (read-only)
-//! - `isActiveProver(proverId)` — Check if prover is active (read-only)
+//! ## Phase 3 PR1/5 (2026-05-09) ABI alignment
+//!
+//! The previously-bundled ABI (`abi/ProverRegistry.json`) and the matching
+//! Rust signatures were generated against the alternate
+//! `src/l1/contracts/src/prover/ProverRegistry.sol` source — the one keyed by
+//! `bytes32 proverId`. The contract actually deployed on Sepolia at
+//! `0x08e1fc1A0d614bc132B48950760c7A291cCB8946` is the canonical
+//! `src/l1/contracts/src/ProverRegistry.sol`, which is keyed by
+//! `address proverAddress`.
+//!
+//! Verified on-chain 2026-05-09 via `cast call` on Sepolia:
+//!   - `MIN_STAKE_MAINNET()` returns `1e18` (canonical contract)
+//!   - `MIN_STAKE_PHASE1()` reverts (alternate not deployed)
+//!   - `testnetMode()` returns `true` (registration is free, no msg.value)
+//!   - `authorizedSlashers(VAULT)` returns `true` (Vault may already slash)
+//!
+//! As a result this binding now models the canonical, on-chain ABI — every
+//! prior `slash(bytes32,...)`, `getProver(bytes32)`, `isActiveProver(bytes32)`
+//! call would have hit a 4-byte selector mismatch and been silently swallowed
+//! by the existing best-effort wrappers. Same precedent as Phase 2 PR1 (#179).
+//!
+//! ## Contract Functions (deployed canonical)
+//! - `slash(address proverAddress, uint256 amount, bytes32 reason)` — onlyAuthorizedSlasher
+//! - `requestExit()` — caller (msg.sender) requests their own exit
+//! - `completeExit()` — caller (msg.sender) finishes after unbonding
+//! - `getProver(address)` — returns Prover{address,bytes32,bytes,uint256,uint256,bool,uint256,uint256}
+//! - `isActiveProver(address)` — bool, returns the stored isActive flag
 //!
 //! ## Architecture
 //! - PG is Source of Truth (SM-001) — L1 calls are best-effort
@@ -74,27 +95,27 @@ impl L1ProverRegistryService {
 
     /// Slash a prover on L1
     ///
-    /// Calls `ProverRegistry.slash(proverId, colludingCount, reason)`
-    /// SEQUENCES §4.7: Quadratic slashing N² × 10%
+    /// Calls `ProverRegistry.slash(address proverAddress, uint256 amount, bytes32 reason)`
+    /// on the deployed canonical contract.
+    /// SEQUENCES §4.7: Quadratic slashing N² × 10% — the caller computes the
+    /// final wei amount and passes it here. (The alternate, non-deployed
+    /// contract took `colludingCount` and computed the slash on-chain; the
+    /// canonical contract takes `amount` directly.)
     ///
     /// # Arguments
-    /// * `prover_id` - Prover ID (bytes32)
-    /// * `colluding_count` - Number of colluding provers
+    /// * `prover_address` - Prover operator wallet (`provers.operator_addr`)
+    /// * `amount` - Slash amount in wei (already-computed quadratic share)
     /// * `reason` - Reason hash (bytes32, typically challenge_id hash)
-    #[instrument(skip(self), fields(colluding_count = colluding_count))]
+    #[instrument(skip(self), fields(prover_address = ?prover_address, amount = %amount))]
     pub async fn slash(
         &self,
-        prover_id: [u8; 32],
-        colluding_count: u64,
+        prover_address: Address,
+        amount: U256,
         reason: [u8; 32],
     ) -> Result<H256, L1Error> {
         info!("Submitting slash() to L1 ProverRegistry");
 
-        let tx = self.contract.slash(
-            prover_id,
-            U256::from(colluding_count),
-            reason,
-        );
+        let tx = self.contract.slash(prover_address, amount, reason);
 
         let pending_tx = tx.send().await
             .map_err(|e| L1Error::TxSubmission(format!("ProverRegistry.slash() failed: {}", e)))?;
@@ -103,7 +124,8 @@ impl L1ProverRegistryService {
 
         info!(
             tx_hash = %tx_hash,
-            colluding_count = colluding_count,
+            prover_address = ?prover_address,
+            amount = %amount,
             "ProverRegistry.slash() transaction submitted"
         );
 
@@ -112,19 +134,27 @@ impl L1ProverRegistryService {
 
     /// Request prover exit on L1
     ///
-    /// Calls `ProverRegistry.requestExit(proverId)`
-    /// SEQUENCES §6: Initiates 7-day unbonding period
+    /// Calls `ProverRegistry.requestExit()` on the deployed canonical contract.
+    /// SEQUENCES §6: Initiates 7-day unbonding period.
+    ///
+    /// ABI note (Phase 3 PR1/5): The canonical deployed contract identifies
+    /// the prover by `msg.sender`, not by an explicit `proverId` parameter —
+    /// the alternate (non-deployed) contract took `bytes32 proverId`. The
+    /// `_prover_id` arg is preserved on the Rust signature for source-compat
+    /// with existing call sites in `services/mod.rs` (which are out of this
+    /// PR's file-touch budget); Phase 3 PR2-5 may revisit it once the prover
+    /// registration binding lands.
     ///
     /// Note: This must be called by the prover's operator address.
     /// The API signer must be the registered operator for this call to succeed.
     #[instrument(skip(self))]
     pub async fn request_exit(
         &self,
-        prover_id: [u8; 32],
+        _prover_id: [u8; 32],
     ) -> Result<H256, L1Error> {
         info!("Submitting requestExit() to L1 ProverRegistry");
 
-        let tx = self.contract.request_exit(prover_id);
+        let tx = self.contract.request_exit();
 
         let pending_tx = tx.send().await
             .map_err(|e| L1Error::TxSubmission(format!("ProverRegistry.requestExit() failed: {}", e)))?;
@@ -141,26 +171,30 @@ impl L1ProverRegistryService {
 
     /// Execute prover exit on L1 (after unbonding period)
     ///
-    /// Calls `ProverRegistry.executeExit(proverId)`
+    /// Calls `ProverRegistry.completeExit()` on the deployed canonical
+    /// contract (the alternate non-deployed contract called this `executeExit`).
     /// Returns staked ETH to prover operator.
-    /// Only succeeds after 7-day unbonding period.
+    /// Only succeeds after the 7-day unbonding period.
+    ///
+    /// ABI note (Phase 3 PR1/5): same `_prover_id` source-compat shim as
+    /// `request_exit` — caller is identified by `msg.sender` on-chain.
     #[instrument(skip(self))]
     pub async fn execute_exit(
         &self,
-        prover_id: [u8; 32],
+        _prover_id: [u8; 32],
     ) -> Result<H256, L1Error> {
-        info!("Submitting executeExit() to L1 ProverRegistry");
+        info!("Submitting completeExit() to L1 ProverRegistry");
 
-        let tx = self.contract.execute_exit(prover_id);
+        let tx = self.contract.complete_exit();
 
         let pending_tx = tx.send().await
-            .map_err(|e| L1Error::TxSubmission(format!("ProverRegistry.executeExit() failed: {}", e)))?;
+            .map_err(|e| L1Error::TxSubmission(format!("ProverRegistry.completeExit() failed: {}", e)))?;
 
         let tx_hash = pending_tx.tx_hash();
 
         info!(
             tx_hash = %tx_hash,
-            "ProverRegistry.executeExit() transaction submitted"
+            "ProverRegistry.completeExit() transaction submitted"
         );
 
         Ok(tx_hash)
@@ -168,31 +202,45 @@ impl L1ProverRegistryService {
 
     /// Get prover details from L1 (read-only)
     ///
-    /// Returns on-chain prover data including stake, status, and operator address.
+    /// Calls `ProverRegistry.getProver(address)` on the deployed canonical
+    /// contract and maps the returned `Prover` struct to `L1ProverInfo`.
+    ///
+    /// Canonical struct field order (`IProverRegistry.Prover`):
+    ///   0. proverAddress (address)
+    ///   1. sphincsPubKeyHash (bytes32)
+    ///   2. sphincsPublicKey (bytes)
+    ///   3. stakedAmount (uint256)
+    ///   4. registeredAt (uint256)
+    ///   5. isActive (bool)
+    ///   6. successfulSigns (uint256)
+    ///   7. slashedCount (uint256)
     #[instrument(skip(self))]
     pub async fn get_prover(
         &self,
-        prover_id: [u8; 32],
+        prover_address: Address,
     ) -> Result<L1ProverInfo, L1Error> {
-        let prover = self.contract.get_prover(prover_id).call().await
+        let prover = self.contract.get_prover(prover_address).call().await
             .map_err(|e| L1Error::ContractCall(format!("getProver() failed: {}", e)))?;
 
         Ok(L1ProverInfo {
-            operator: prover.0,
-            stake: prover.3,
-            status: prover.4,
-            registered_at: prover.5,
-            slash_count: prover.8,
+            operator: prover.prover_address,
+            stake: prover.staked_amount,
+            registered_at: prover.registered_at,
+            is_active: prover.is_active,
+            slash_count: prover.slashed_count,
         })
     }
 
     /// Check if prover is active on L1 (read-only)
+    ///
+    /// Calls `ProverRegistry.isActiveProver(address)` on the deployed
+    /// canonical contract.
     #[instrument(skip(self))]
     pub async fn is_active(
         &self,
-        prover_id: [u8; 32],
+        prover_address: Address,
     ) -> Result<bool, L1Error> {
-        let active = self.contract.is_active_prover(prover_id).call().await
+        let active = self.contract.is_active_prover(prover_address).call().await
             .map_err(|e| L1Error::ContractCall(format!("isActiveProver() failed: {}", e)))?;
 
         Ok(active)
@@ -204,13 +252,20 @@ impl L1ProverRegistryService {
     }
 }
 
-/// Parsed prover data from L1 ProverRegistry
+/// Parsed prover data from L1 ProverRegistry.
+///
+/// Phase 3 PR1/5: realigned to the canonical deployed contract's `Prover`
+/// struct (address-keyed). The previous version had a `status: u8` field
+/// because the alternate (non-deployed) contract exposed an enum; the
+/// canonical contract exposes a plain `bool isActive` instead. Slashing
+/// activity is tracked via `slash_count` (was field index 8 in the alternate
+/// ABI; is field index 7 in the canonical ABI).
 #[derive(Debug)]
 pub struct L1ProverInfo {
     pub operator: Address,
     pub stake: U256,
-    pub status: u8,
     pub registered_at: U256,
+    pub is_active: bool,
     pub slash_count: U256,
 }
 

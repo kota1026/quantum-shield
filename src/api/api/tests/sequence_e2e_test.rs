@@ -905,6 +905,129 @@ mod seq5_prover_registration {
             "Dashboard must include stake_amount"
         );
     }
+
+    /// SEQ#5-04: register_prover persists a row in the `provers` table.
+    ///
+    /// Phase 3 PR2/5 — strict DB-shape integration test (mirrors the SEQ#3-02
+    /// emergency-unlock pattern: POST → assert response → re-read via API to
+    /// confirm the row landed). Sepolia ProverRegistry
+    /// 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 is in `testnetMode=true`
+    /// (verified on-chain 2026-05-09), so registration bypasses the 1 ETH
+    /// MIN_STAKE_MAINNET requirement — this test needs no funded wallet.
+    /// Backend currently writes DB only; the L1 ProverRegistry call is wired
+    /// in PR4 (orchestrator binding) and verified end-to-end by PR5 (matrix).
+    #[tokio::test]
+    async fn test_prover_register_creates_db_row() {
+        println!("SEQ#5-04 register_prover DB persistence — start");
+        let client = Client::new();
+
+        // SPHINCS+-128s public key is exactly 32 bytes (SPHINCS_PUBLIC_KEY_BYTES).
+        // TODO(PR3): swap for real keygen once a `gen_sphincs_keypair` helper lands.
+        let sphincs_pubkey = format!("0x{}", hex::encode([0xCDu8; 32]));
+        let nonce = unique_nonce();
+        // Deterministic-but-unique operator address keyed off the test nonce so
+        // re-runs against a long-lived DB don't collide. lower-case hex matches
+        // the `LOWER(operator_addr)` query in get_prover_status_by_wallet.
+        let operator_addr = format!("0x{:040x}", nonce as u128);
+
+        let payload = json!({
+            "operator_addr": operator_addr,
+            "sphincs_pubkey": sphincs_pubkey,
+            "hsm_attestation": "0xhsm_attestation_dev_mode_placeholder",
+            "multisig_proof": "0xmultisig_proof_dev_mode_placeholder",
+            "stake_amount": "1000000000000000000" // 1 ETH (testnetMode bypasses on L1)
+        });
+
+        // Step 1: POST /v1/prover/register
+        let resp = client
+            .post(format!("{}/v1/prover/register", API_BASE))
+            .json(&payload)
+            .send()
+            .await
+            .expect("Prover register request failed");
+        let status = resp.status().as_u16();
+        let body: Value = resp.json().await.unwrap_or_default();
+        println!(
+            "SEQ#5-04 Register: status={}, body={}",
+            status,
+            serde_json::to_string_pretty(&body).unwrap_or_default()
+        );
+
+        // Step 2: Assert response shape (axum default 200; route also accepts 201/202)
+        assert!(
+            matches!(status, 200 | 201 | 202),
+            "register_prover must accept the request, got {}",
+            status
+        );
+        let prover_id = body
+            .get("prover_id")
+            .and_then(|v| v.as_str())
+            .expect("Response must include prover_id")
+            .to_string();
+        assert!(
+            prover_id.starts_with("0x") && prover_id.len() == 66,
+            "prover_id must be 0x + 64 hex chars (SHA3-256), got {}",
+            prover_id
+        );
+        assert_eq!(
+            body.get("status").and_then(|v| v.as_str()),
+            Some("pending_approval"),
+            "Newly registered prover must be pending_approval (ProverStatus → snake_case)"
+        );
+
+        // Step 3: Brief wait for DB landing (mirrors SEQ#3-02)
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+        // Step 4: Verify DB persistence via GET /v1/prover/{prover_id}.
+        // The handler reads through Redis-then-DB (services/mod.rs:670),
+        // so a 200 here proves the row is reachable end-to-end.
+        let info_resp = client
+            .get(format!("{}/v1/prover/{}", API_BASE, prover_id))
+            .send()
+            .await
+            .expect("Prover info request failed");
+        let info_status = info_resp.status().as_u16();
+        let info: Value = info_resp.json().await.unwrap_or_default();
+        println!("SEQ#5-04 GET /v1/prover/{}: status={}", prover_id, info_status);
+        assert_eq!(info_status, 200, "GET /v1/prover/{{id}} must return 200 for stored prover");
+        assert_eq!(
+            info.get("operator_addr").and_then(|v| v.as_str()),
+            Some(operator_addr.as_str()),
+            "DB row's operator_addr must match the registered wallet"
+        );
+        assert_eq!(
+            info.get("status").and_then(|v| v.as_str()),
+            Some("pending_approval"),
+            "DB row's status must be pending_approval"
+        );
+
+        // Step 5: Cross-check via wallet-lookup endpoint, which queries the
+        // `provers` table directly (routes/prover.rs:151) — this confirms the
+        // SQL row exists with operator_addr indexed correctly.
+        let by_wallet_resp = client
+            .get(format!("{}/v1/prover/status/by-wallet/{}", API_BASE, operator_addr))
+            .send()
+            .await
+            .expect("Prover status-by-wallet request failed");
+        let by_wallet: Value = by_wallet_resp.json().await.unwrap_or_default();
+        assert_eq!(
+            by_wallet.get("registered").and_then(|v| v.as_bool()),
+            Some(true),
+            "status-by-wallet must report registered=true after insert"
+        );
+        assert_eq!(
+            by_wallet.get("prover_id").and_then(|v| v.as_str()),
+            Some(prover_id.as_str()),
+            "status-by-wallet must return the same prover_id we just got"
+        );
+
+        // sphincs_pubkey non-NULL: enforced by `sphincs_pubkey BYTEA NOT NULL` in
+        // migrations/001_initial_schema.sql:115 — the INSERT in store_prover
+        // (services/mod.rs:609) would have failed if it were null/empty.
+        // Phase 3 PR4 will add the on-chain `getProver(address)` round-trip via
+        // the orchestrator binding to assert the matching ProverRegistry record.
+        println!("SEQ#5-04 PASSED — DB persistence verified, L1 call deferred to PR4");
+    }
 }
 
 // =============================================================================

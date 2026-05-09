@@ -3,9 +3,14 @@
     "type": "constructor",
     "inputs": [
       {
-        "name": "_foundation",
+        "name": "_securityCouncil",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_testnetMode",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "nonpayable"
@@ -16,7 +21,7 @@
   },
   {
     "type": "function",
-    "name": "BASE_SLASH_RATE",
+    "name": "MIN_STAKE_MAINNET",
     "inputs": [],
     "outputs": [
       {
@@ -29,46 +34,7 @@
   },
   {
     "type": "function",
-    "name": "COUNCIL_APPROVAL_THRESHOLD",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "MAX_SLASH_RATE",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "MIN_STAKE_PHASE1",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "SPHINCS_PUBKEY_SIZE",
+    "name": "SPHINCS_PUBKEY_LENGTH",
     "inputs": [],
     "outputs": [
       {
@@ -94,51 +60,31 @@
   },
   {
     "type": "function",
-    "name": "activeProverCount",
-    "inputs": [],
-    "outputs": [
+    "name": "activeProverList",
+    "inputs": [
       {
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
       }
     ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "addStake",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "payable"
-  },
-  {
-    "type": "function",
-    "name": "approvalMode",
-    "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "uint8",
-        "internalType": "enum ProverRegistry.ApprovalMode"
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "approveByFoundation",
+    "name": "addAuthorizedSlasher",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "slasher",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -146,44 +92,7 @@
   },
   {
     "type": "function",
-    "name": "autoApprove",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "calculateSlashAmount",
-    "inputs": [
-      {
-        "name": "stake",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "colludingCount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "pure"
-  },
-  {
-    "type": "function",
-    "name": "councilMembers",
+    "name": "authorizedSlashers",
     "inputs": [
       {
         "name": "",
@@ -202,43 +111,44 @@
   },
   {
     "type": "function",
-    "name": "executeExit",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
+    "name": "completeExit",
+    "inputs": [],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
   {
     "type": "function",
-    "name": "foundation",
+    "name": "getActiveProverCount",
     "inputs": [],
     "outputs": [
       {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
+        "name": "count",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "getApprovalVoteCount",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
+    "name": "getActiveProvers",
+    "inputs": [],
     "outputs": [
       {
-        "name": "",
+        "name": "provers",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMinStake",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "minStake",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -250,145 +160,112 @@
     "name": "getProver",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "proverAddress",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
       {
-        "name": "operator",
+        "name": "prover",
+        "type": "tuple",
+        "internalType": "struct IProverRegistry.Prover",
+        "components": [
+          {
+            "name": "proverAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "sphincsPubKeyHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "sphincsPublicKey",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "stakedAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "registeredAt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "isActive",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "successfulSigns",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "slashedCount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPublicKey",
+    "inputs": [
+      {
+        "name": "proverAddress",
         "type": "address",
         "internalType": "address"
-      },
+      }
+    ],
+    "outputs": [
       {
-        "name": "sphincsPublicKey",
+        "name": "publicKey",
         "type": "bytes",
         "internalType": "bytes"
-      },
-      {
-        "name": "sphincsPubKeyHash",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "stake",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "status",
-        "type": "uint8",
-        "internalType": "enum ProverRegistry.ProverStatus"
-      },
-      {
-        "name": "registeredAt",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "approvedAt",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalSignatures",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "slashCount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "exitRequestedAt",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "getProverIdByOperator",
+    "name": "getPublicKeyHash",
     "inputs": [
       {
-        "name": "operator",
+        "name": "proverAddress",
         "type": "address",
         "internalType": "address"
       }
     ],
     "outputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getProverIdByPubKeyHash",
-    "inputs": [
       {
         "name": "pubKeyHash",
         "type": "bytes32",
         "internalType": "bytes32"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "getUnbondingEndTime",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
+    "name": "getUnbondingPeriod",
+    "inputs": [],
     "outputs": [
       {
-        "name": "",
+        "name": "period",
         "type": "uint256",
         "internalType": "uint256"
       }
     ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "hasCouncilMemberVoted",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "member",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
+    "stateMutability": "pure"
   },
   {
     "type": "function",
@@ -408,26 +285,7 @@
     "name": "isActiveProver",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "operatorToProverId",
-    "inputs": [
-      {
-        "name": "",
+        "name": "proverAddress",
         "type": "address",
         "internalType": "address"
       }
@@ -435,8 +293,8 @@
     "outputs": [
       {
         "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -476,173 +334,36 @@
   },
   {
     "type": "function",
-    "name": "provers",
-    "inputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "operator",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "sphincsPublicKey",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "sphincsPubKeyHash",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "stake",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "status",
-        "type": "uint8",
-        "internalType": "enum ProverRegistry.ProverStatus"
-      },
-      {
-        "name": "registeredAt",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "approvedAt",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalSignatures",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "slashCount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "exitRequestedAt",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "hsmAttestationHash",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "pubKeyHashToProverId",
-    "inputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "recordSignature",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "register",
+    "name": "registerProver",
     "inputs": [
       {
         "name": "sphincsPublicKey",
         "type": "bytes",
         "internalType": "bytes"
-      },
-      {
-        "name": "hsmAttestation",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "multisigProof",
-        "type": "bytes",
-        "internalType": "bytes"
       }
     ],
     "outputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "success",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "payable"
   },
   {
     "type": "function",
-    "name": "requestExit",
+    "name": "registerProverTestnet",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setApprovalMode",
-    "inputs": [
-      {
-        "name": "newMode",
-        "type": "uint8",
-        "internalType": "enum ProverRegistry.ApprovalMode"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setCouncilMember",
-    "inputs": [
-      {
-        "name": "member",
+        "name": "proverAddress",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "isActive",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "sphincsPublicKey",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -650,28 +371,48 @@
   },
   {
     "type": "function",
-    "name": "setFoundation",
+    "name": "removeAuthorizedSlasher",
     "inputs": [
       {
-        "name": "newFoundation",
+        "name": "slasher",
         "type": "address",
         "internalType": "address"
       }
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "requestExit",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "securityCouncil",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
     "name": "slash",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "proverAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        "name": "colludingCount",
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -683,6 +424,19 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "testnetMode",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -719,12 +473,12 @@
   },
   {
     "type": "function",
-    "name": "voteForApproval",
+    "name": "updateSecurityCouncil",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "newCouncil",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -735,7 +489,7 @@
     "name": "withdrawInsuranceFund",
     "inputs": [
       {
-        "name": "to",
+        "name": "treasury",
         "type": "address",
         "internalType": "address"
       },
@@ -747,63 +501,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "event",
-    "name": "ApprovalModeUpdated",
-    "inputs": [
-      {
-        "name": "oldMode",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "enum ProverRegistry.ApprovalMode"
-      },
-      {
-        "name": "newMode",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "enum ProverRegistry.ApprovalMode"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "CouncilMemberUpdated",
-    "inputs": [
-      {
-        "name": "member",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "isActive",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "OwnershipTransferred",
-    "inputs": [
-      {
-        "name": "previousOwner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "newOwner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
   },
   {
     "type": "event",
@@ -820,47 +517,16 @@
   },
   {
     "type": "event",
-    "name": "ProverApproved",
+    "name": "ProverExitRequested",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "approvedBy",
+        "name": "prover",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "mode",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "enum ProverRegistry.ApprovalMode"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "ProverExitRequested",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "exitRequestedAt",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "unbondingEndsAt",
+        "name": "unbondingCompleteAt",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -873,10 +539,10 @@
     "name": "ProverExited",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
+        "name": "prover",
+        "type": "address",
         "indexed": true,
-        "internalType": "bytes32"
+        "internalType": "address"
       },
       {
         "name": "stakeReturned",
@@ -892,13 +558,7 @@
     "name": "ProverRegistered",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "operator",
+        "name": "prover",
         "type": "address",
         "indexed": true,
         "internalType": "address"
@@ -906,11 +566,11 @@
       {
         "name": "sphincsPubKeyHash",
         "type": "bytes32",
-        "indexed": false,
+        "indexed": true,
         "internalType": "bytes32"
       },
       {
-        "name": "stake",
+        "name": "stakedAmount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -923,19 +583,13 @@
     "name": "ProverSlashed",
     "inputs": [
       {
-        "name": "proverId",
-        "type": "bytes32",
+        "name": "prover",
+        "type": "address",
         "indexed": true,
-        "internalType": "bytes32"
+        "internalType": "address"
       },
       {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "slashCount",
+        "name": "slashAmount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -945,50 +599,6 @@
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SignatureRecorded",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "totalSignatures",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "StakeWithdrawn",
-    "inputs": [
-      {
-        "name": "proverId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "operator",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -1008,12 +618,7 @@
   },
   {
     "type": "error",
-    "name": "AlreadyExited",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "AlreadyVoted",
+    "name": "AlreadyUnbonding",
     "inputs": []
   },
   {
@@ -1033,47 +638,22 @@
   },
   {
     "type": "error",
-    "name": "InvalidApprovalMode",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidHSMAttestation",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidMultisigProof",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "InvalidPublicKeyLength",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidSlashAmount",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NoStakeToSlash",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotCouncilMember",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotFoundation",
+    "name": "NotAuthorizedSlasher",
     "inputs": []
   },
   {
     "type": "error",
     "name": "NotOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotSecurityCouncil",
     "inputs": []
   },
   {
@@ -1093,11 +673,6 @@
   },
   {
     "type": "error",
-    "name": "ProverNotPending",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "ProverNotUnbonding",
     "inputs": []
   },
@@ -1113,7 +688,7 @@
   },
   {
     "type": "error",
-    "name": "UnbondingPeriodNotExpired",
+    "name": "UnbondingNotComplete",
     "inputs": []
   },
   {
