@@ -763,6 +763,131 @@ mod seq4_challenge {
             status
         );
     }
+
+    /// SEQ#4-04: submit_challenge persists a row in the `challenges` table.
+    ///
+    /// Phase 3 PR3/5 — full chained flow Lock → Unlock → Challenge → DB read.
+    /// Mirrors the SEQ#3-02 (emergency unlock) and SEQ#5-04 (prover register)
+    /// strict DB-shape pattern: POST → assert response → re-read via API.
+    ///
+    /// Q4 strategy (c): only verify the challenge *submission* (request side
+    /// + DB landing). The 48h defense window + `resolveChallenge`
+    /// (onlySecurityCouncil) is deferred to a nightly/manual job that PR5
+    /// wires in CI; orchestrator's `Vault.challenges(lockId).status==PENDING`
+    /// cast call is added in PR4. Slashing-side flow is a Phase 3.x follow-up.
+    ///
+    /// Bond formula (challenge.rs:73-75): `MAX(0.1 ETH, amount × 1%)`.
+    /// With amount = MIN_LOCK_AMOUNT (0.01 ETH = 1e16 wei), the 1% term is
+    /// 1e14 wei (well below the 0.1 ETH floor), so required bond = 0.1 ETH
+    /// = 1e17 wei = MIN_CHALLENGE_BOND on L1VaultTestnet.sol:56 (verified
+    /// on-chain 2026-05-09). Pre-requisite: the route requires lock status
+    /// to be UnlockPending or EmergencyPending (challenge.rs:65-70), so we
+    /// must POST /v1/unlock first to flip the lock from `pending` →
+    /// `unlock_pending` (unlock.rs:299) before the challenge can be filed.
+    #[tokio::test]
+    async fn test_challenge_submission_creates_db_row() {
+        println!("SEQ#4-04 challenge submission DB persistence — start");
+        let client = Client::new();
+        let (pk_hex, sk) = gen_dilithium_keypair();
+        let nonce = unique_nonce();
+        let chain_id: u64 = 11155111;
+        let amount = "10000000000000000"; // 0.01 ETH = MIN_LOCK_AMOUNT
+        let dest_addr = "0x4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c";
+        let expiry: u64 = 1900000000;
+        let challenger_addr = "0x4444444444444444444444444444444444444444";
+
+        // Step 1: Create lock
+        let lock_sig = sign_lock_message(&sk, chain_id, "ETH", amount, dest_addr, expiry, nonce);
+        let lock_resp = client.post(format!("{}/v1/lock", API_BASE))
+            .json(&json!({"chain_id": chain_id, "asset": "ETH", "amount": amount,
+                "dest_addr": dest_addr, "expiry": expiry, "nonce": nonce,
+                "pk_dilithium": pk_hex, "sig_dilithium": lock_sig}))
+            .send().await.expect("Lock request failed");
+        let lock_body: Value = lock_resp.json().await.unwrap_or_default();
+        let lock_id = lock_body.get("lock_id").and_then(|v| v.as_str())
+            .unwrap_or_default().to_string();
+        assert!(!lock_id.is_empty(), "SEQ#4-04 FAILED: lock creation must return lock_id");
+        println!("SEQ#4-04 Lock created: lock_id={}", lock_id);
+
+        // Step 2: Brief wait + flip lock to UnlockPending via /v1/unlock so the
+        // challenge route's status check (challenge.rs:65-70) passes.
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        let unlock_sig = sign_unlock_message(&sk, &lock_id, dest_addr, amount);
+        let unlock_resp = client.post(format!("{}/v1/unlock", API_BASE))
+            .json(&json!({"lock_id": lock_id, "dest_addr": dest_addr,
+                "amount": amount, "sig_dilithium": unlock_sig}))
+            .send().await.expect("Unlock request failed");
+        let unlock_status = unlock_resp.status().as_u16();
+        assert!(matches!(unlock_status, 200 | 201 | 202),
+            "Unlock must succeed to put lock in UnlockPending, got {}", unlock_status);
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+
+        // Step 3: Submit challenge. fraud_proof_hash is computed server-side via
+        // SHA3-256 over `req.fraud_proof` (challenge.rs:84) — we send raw bytes hex.
+        let fraud_proof = format!("0x{}", hex::encode([0xAAu8; 64]));
+        let bond = "100000000000000000"; // 0.1 ETH = MIN_CHALLENGE_BOND floor
+        let req_started_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let resp = client.post(format!("{}/v1/challenge", API_BASE))
+            .json(&json!({"lock_id": lock_id, "challenger": challenger_addr,
+                "fraud_proof": fraud_proof, "bond": bond}))
+            .send().await.expect("Challenge submit request failed");
+        let status = resp.status().as_u16();
+        let body: Value = resp.json().await.unwrap_or_default();
+        println!("SEQ#4-04 Challenge submit: status={}, body={}", status,
+            serde_json::to_string_pretty(&body).unwrap_or_default());
+
+        // Step 4: Assert response shape (ChallengeResponse — snake_case from serde default).
+        assert!(matches!(status, 200 | 201 | 202),
+            "submit_challenge must accept the request, got {}", status);
+        let challenge_id = body.get("challenge_id").and_then(|v| v.as_str())
+            .expect("Response must include challenge_id").to_string();
+        assert!(challenge_id.starts_with("0x") && challenge_id.len() == 34,
+            "challenge_id is generate_challenge_id() = 0x + 32 hex (16 bytes), got {} (len={})",
+            challenge_id, challenge_id.len());
+        assert_eq!(body.get("lock_id").and_then(|v| v.as_str()), Some(lock_id.as_str()),
+            "Response lock_id must match the lock we challenged");
+        assert_eq!(body.get("bond").and_then(|v| v.as_str()), Some(bond),
+            "Response bond must echo MIN_CHALLENGE_BOND");
+        assert_eq!(body.get("status").and_then(|v| v.as_str()), Some("pending"),
+            "Newly submitted challenge must be pending (ChallengeStatus::Pending → snake_case)");
+        let fraud_proof_hash = body.get("fraud_proof_hash").and_then(|v| v.as_str())
+            .expect("Response must include fraud_proof_hash");
+        assert!(fraud_proof_hash.starts_with("0x") && fraud_proof_hash.len() == 66,
+            "fraud_proof_hash must be 0x + 64 hex (SHA3-256), got {}", fraud_proof_hash);
+        let deadline = body.get("defense_deadline").and_then(|v| v.as_u64())
+            .expect("Response must include defense_deadline");
+        let hours_until = (deadline.saturating_sub(req_started_at)) / 3600;
+        assert!(hours_until >= 47 && hours_until <= 49,
+            "defense_deadline must be ~48h from now (DEFENSE_DEADLINE_HOURS), got {}h", hours_until);
+
+        // Step 5: Verify DB persistence via GET /v1/challenge/:lock_id
+        // (routes/mod.rs:87 → challenge::get_challenge → state.get_challenge_by_lock_id).
+        // A 200 here proves the row landed in `challenges` (migrations/001:154).
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+        let info_resp = client.get(format!("{}/v1/challenge/{}", API_BASE, lock_id))
+            .send().await.expect("Challenge info request failed");
+        let info_status = info_resp.status().as_u16();
+        let info: Value = info_resp.json().await.unwrap_or_default();
+        println!("SEQ#4-04 GET /v1/challenge/{}: status={}, body={}",
+            lock_id, info_status, serde_json::to_string_pretty(&info).unwrap_or_default());
+        assert_eq!(info_status, 200, "GET /v1/challenge/{{lock_id}} must return 200 for stored row");
+        assert_eq!(info.get("challenge_id").and_then(|v| v.as_str()), Some(challenge_id.as_str()),
+            "DB row's challenge_id must match the one returned by submit_challenge");
+        assert_eq!(info.get("lock_id").and_then(|v| v.as_str()), Some(lock_id.as_str()),
+            "DB row's lock_id must match");
+        assert_eq!(info.get("bond").and_then(|v| v.as_str()), Some(bond),
+            "DB row's bond must equal MIN_CHALLENGE_BOND");
+        assert!(info.get("fraud_proof_hash").and_then(|v| v.as_str())
+            .map(|s| !s.is_empty()).unwrap_or(false),
+            "DB row's fraud_proof_hash must be non-NULL (NOT NULL in 001:159)");
+
+        // Q4 strategy (c) — DO NOT wait for the 48h defense window or the
+        // onlySecurityCouncil resolveChallenge. Vault.challenges(lockId).status
+        // ==PENDING is verified by the orchestrator binding (PR4). The slashing
+        // pipeline (auto_resolve → SlashingService → ProverRegistry.slash) is a
+        // Phase 3.x follow-up, gated on the resolve transaction.
+        println!("SEQ#4-04 PASSED — request-side verified, defense+resolve deferred (Q4 strategy c)");
+    }
 }
 
 // =============================================================================
