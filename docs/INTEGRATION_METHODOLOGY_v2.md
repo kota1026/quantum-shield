@@ -251,6 +251,26 @@ const connectors = isTestEnv
 
 これらは run 25588391389 の証拠が示す通り **Phase 1 の本質的達成を妨げない** — receipt は本物で contract state は動いた。verdict 文字列だけが厳密な PASS まで届いていない。
 
+### Phase 2 — Orchestrator-Driven Sepolia 自動検証 (2026-05-09 達成)
+
+**Run 25594074126 (NO_AI matrix workflow_dispatch)** の **unlock leg** が `verdict: PASS, "All 4 layers passed (no_ai deterministic)", confidence 1.0` を返した。これは backend cargo test (`seq2_unlock_normal::test_unlock_after_lock` — lock 作成 → unlock リクエスト → DB row + L1 record の連続フロー) を含む 4 layer (frontend / backend / db / l1) が全部 PASS という意味で、Phase 2 (Normal Unlock) の orchestrator-driven Sepolia 検証が成立した最初の run。
+
+#### 達成までに要した PR (#179, #180, #181, #182)
+
+| PR | 役割 |
+|---|---|
+| #179 (P2 PR1) | `spec-loader.ts` の unlock binding 修正 — `FROM unlocks` → `FROM unlock_requests` (テーブル名)、`time_lock_until` → `release_time` (カラム名)、L1 verify を vacuous `totalLocked()` → `getUnlockRequest(bytes32 lockId).requestedAt > 0` に upgrade |
+| #180 (P2 PR2 + PR4 stacked) | backend `L1VaultService::request_emergency_unlock` 追加 + orchestrator の emergency binding 追加 + Playwright spec |
+| #181 (P2 PR3 + PR5 stacked) | seq3 emergency 用 backend integration test 追加 + workflow yaml の matrix 化 (lock/unlock/emergency) + `inputs.run_emergency` |
+| #182 (P2 hotfix) | option C bond budget guard — schedule の自動 emergency 包含を撤回、明示的 `run_emergency=true` 必須に |
+
+#### 残存する技術的制約 (Phase 2.x で解消予定)
+
+- **Lock leg の wallet race**: 同じ run 25594074126 の lock leg は `insufficient funds for transfer` で FIXABLE に倒れた。matrix 2 leg が同一 deployer wallet を共有していて、unlock leg が 9 秒先行して seq2 の lock prerequisite を実行した時点で残高が枯渇 → lock leg の seq1 lockWithSR0 が走らせられなかった。  
+  **対処**: `strategy.max-parallel: 1` を matrix に追加して legs を sequential 実行に切り替える (本セッション中の小修正で対応)。Phase 3 で prover/observer 用に複数 wallet を入れる前段階の暫定策。
+- **Phase 1 lock leg の再検証は未取得**: run 25588391389 の 3 件の Sepolia tx で実体検証は完了済みだが、新 matrix yaml 環境下での clean lock-leg PASS verdict は未取得。`max-parallel: 1` 投入後に再 trigger で取得予定。
+- **Emergency leg は未実証**: PR #180 の `request_emergency_unlock` backend method、PR #181 の seq3 test、PR #181 の orchestrator emergency binding は揃っているが、bond 0.5 ETH (`L1VaultTestnet.MIN_BOND_WEI`) を消費するため schedule auto-include は撤回 (#182)。手動で `gh workflow run e2e-orchestrator.yml -f no_ai=true -f run_emergency=true` を打つと走る。
+
 ---
 
 ## 4. セッション管理戦略

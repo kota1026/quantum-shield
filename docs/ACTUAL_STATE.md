@@ -1,17 +1,19 @@
-# Quantum Shield - 実態調査レポート (2026-05-08 更新)
+# Quantum Shield - 実態調査レポート (2026-05-09 更新)
 
 > **目的**: コード実態と照合し、正確な現状を記録する
 > **手法**: 全レイヤーの実コードを調査。docsの記載は検証対象であり根拠としない
-> **更新履歴**: 2026-03-01 初版 / 2026-03-03 Phase 6全完了 / 2026-04-03 Public Beta Launch完了 / **2026-05-08 Phase 1 Orchestrator-driven Sepolia 自動検証達成**
+> **更新履歴**: 2026-03-01 初版 / 2026-03-03 Phase 6全完了 / 2026-04-03 Public Beta Launch完了 / 2026-05-08 Phase 1 Orchestrator-driven Sepolia 自動検証達成 / **2026-05-09 Phase 2 (Normal Unlock) Orchestrator-driven Sepolia 自動検証達成**
 
 ---
 
-## 🛰 Orchestrator-Driven Sepolia 自動検証 (2026-05-08)
+## 🛰 Orchestrator-Driven Sepolia 自動検証
+
+### Phase 1 (Lock) — 2026-05-08 達成
 
 | 項目 | 値 |
 |---|---|
 | Run | `25588391389` (NO_AI mode, workflow_dispatch) |
-| Sequence | `lock` (Phase 1) |
+| Sequence | `lock` |
 | Real Sepolia tx (lockWithSR0) | 3 件成功 |
 | Vault `totalLocked()` 推移 | 0.22 ETH → 0.73 ETH (+0.51 ETH) |
 | Vault | [`0x07012aeF87C6E423c32F2f8eaF81762f63337260`](https://sepolia.etherscan.io/address/0x07012aeF87C6E423c32F2f8eaF81762f63337260) |
@@ -23,7 +25,19 @@
 - [`0xc6e568c2...6b95af2`](https://sepolia.etherscan.io/tx/0xc6e568c20eafd994fcf7bb52396e283e79df21958f08e7d54270283fd6b95af2)
 - [`0x39373954...19ff8a6`](https://sepolia.etherscan.io/tx/0x39373954c96f496fabeda1fc7e126a6ffd7461880f3bb4eca00e4ac0319ff8a6)
 
-詳細経緯は `docs/INTEGRATION_METHODOLOGY_v2.md` の「Phase 1 — Orchestrator-Driven Sepolia 自動検証」を参照。
+### Phase 2 (Normal Unlock) — 2026-05-09 達成
+
+| 項目 | 値 |
+|---|---|
+| Run | `25594074126` (NO_AI matrix workflow_dispatch) |
+| Sequence (matrix leg) | `unlock` |
+| Verdict | `PASS — All 4 layers passed (no_ai deterministic)`、confidence 1.0 |
+| Layer 構成 | backend (cargo test seq2_unlock_normal::test_unlock_after_lock) ✓ / frontend (Playwright) ✓ / db (`unlock_requests` row check) ✓ / l1 (`getUnlockRequest(lockId).requestedAt > 0`) ✓ |
+| 関連 PR | #179 binding fix / #180 backend + orchestrator emergency / #181 seq3 test + matrix / #182 bond budget guard |
+
+> Run 25594074126 の **lock** leg は同時並走中に deployer wallet を unlock leg と奪い合って `insufficient funds for transfer` で FIXABLE。`max-parallel: 1` 投入後に再 trigger で clean lock+unlock 両 PASS を取得予定。Phase 1 単独の実体検証は run 25588391389 で既達成。
+
+詳細経緯は `docs/INTEGRATION_METHODOLOGY_v2.md` の「Phase 1 / Phase 2 — Orchestrator-Driven Sepolia 自動検証」を参照。
 
 ---
 
