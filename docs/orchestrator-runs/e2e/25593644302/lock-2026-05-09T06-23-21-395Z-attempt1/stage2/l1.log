@@ -1,0 +1,30 @@
+# l1 step
+# command: bash -c '
+set -eo pipefail
+LOCK_ID=$(psql "$DATABASE_URL" -t -A -c "SELECT lock_id FROM locks WHERE created_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY created_at DESC LIMIT 1;" | tr -d " ")
+TX_HASH=$(psql "$DATABASE_URL" -t -A -c "SELECT l1_tx_hash FROM locks WHERE lock_id = '"'"'$LOCK_ID'"'"';" | tr -d " ")
+if [ -z "$TX_HASH" ] || [ "$TX_HASH" = "" ]; then
+  echo "FAIL: lock $LOCK_ID has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)"
+  echo "Total locked snapshot for context (should be unchanged from prior runs):"
+  cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL" || true
+  exit 1
+fi
+echo "checking L1 receipt for tx=$TX_HASH (lock=$LOCK_ID)"
+RECEIPT_STATUS=$(cast receipt "$TX_HASH" --rpc-url "$L1_RPC_URL" --json 2>/dev/null | jq -r ".status // "missing"" || echo "missing")
+echo "receipt status: $RECEIPT_STATUS"
+case "$RECEIPT_STATUS" in
+  0x1|1) echo "PASS: lock anchored on L1"; exit 0 ;;
+  0x0|0) echo "FAIL: tx reverted on L1"; exit 1 ;;
+  missing) echo "FAIL: tx not found on L1 (tx submitted but never mined, or wrong RPC)"; exit 1 ;;
+  *) echo "FAIL: unexpected receipt status $RECEIPT_STATUS"; exit 1 ;;
+esac
+'
+# exit: 1
+
+# STDOUT
+FAIL: lock 0x8175e54ed63bee712342e035c30a6a9f96ea65d14b58741b21c1ad9631e850fc has no l1_tx_hash (L1 anchoring did not occur in this run; QS__L1_PRIVATE_KEY may be unset)
+Total locked snapshot for context (should be unchanged from prior runs):
+760000000000000000 [7.6e17]
+
+
+# STDERR
