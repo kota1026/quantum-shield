@@ -93,6 +93,12 @@ const FEEDS = [
   // G. Geopolitics / commercial / Japan
   { axis: 'G', name: 'NEC R&D',                url: 'https://www.nec.com/en/global/rd/feed/index.atom' },
   { axis: 'G', name: 'Vitalik blog',           url: 'https://vitalik.eth.limo/feed.xml' },
+  // Agentic-ops meta-knowledge sources (Japanese Claude Code community).
+  // X has no native RSS — use RSSHub mirror, which is fragile but cheap to
+  // try. Blog feed is the stable backup. Either failing degrades to
+  // FETCH_FAILED in the briefing without breaking the run.
+  { axis: 'G', name: '東大Claude Code研究所 (X via RSSHub)', url: 'https://rsshub.app/twitter/user/ClaudeCode_UT' },
+  { axis: 'G', name: 'Claude Code研究所 blog',  url: 'https://www.claude-code-lab.com/feed' },
 ];
 
 const COMPETITOR_REPOS = [
