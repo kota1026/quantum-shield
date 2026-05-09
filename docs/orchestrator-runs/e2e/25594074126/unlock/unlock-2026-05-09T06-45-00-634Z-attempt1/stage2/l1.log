@@ -1,0 +1,32 @@
+# l1 step
+# command: bash -c '
+set -eo pipefail
+LOCK_ID=$(psql "$DATABASE_URL" -t -A -c "SELECT lock_id FROM unlock_requests WHERE created_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY created_at DESC LIMIT 1;" | tr -d " ")
+if [ -z "$LOCK_ID" ]; then
+  echo "FAIL: no unlock_requests row from this run window — drive step did not produce a request"
+  exit 1
+fi
+echo "checking L1 unlock request for lock=$LOCK_ID"
+RAW=$(cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "getUnlockRequest(bytes32)((bytes32,address,uint256,bytes32,bytes32,uint256,uint256,bool,uint256,uint256,uint256,uint256,uint256))" "$LOCK_ID" --rpc-url "$L1_RPC_URL" 2>/dev/null || echo "")
+if [ -z "$RAW" ]; then
+  echo "FAIL: getUnlockRequest call failed (RPC error or wrong ABI)"
+  exit 1
+fi
+# struct order: lockId, recipient, amount, stateRoot, unlockStateRoot, requestedAt, unlockableAt, isEmergency, bond, signatureCount, unlockNonce, proverRequestedAt, emergencyReadyAt
+REQUESTED_AT=$(echo "$RAW" | tr -d "()" | awk -F", " "{print $6}")
+echo "on-chain requestedAt: $REQUESTED_AT"
+if [ -z "$REQUESTED_AT" ] || [ "$REQUESTED_AT" = "0" ]; then
+  echo "FAIL: lock $LOCK_ID has no on-chain unlock request (requestUnlock tx not submitted or reverted)"
+  exit 1
+fi
+echo "PASS: unlock request anchored on L1 — requestedAt=$REQUESTED_AT"
+'
+# exit: 0
+
+# STDOUT
+checking L1 unlock request for lock=0x2a83545333a40eb89933fa23ea83e326f320f8ac8afb14e8b32369237b89a2d9
+on-chain requestedAt: 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000, 0, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0, 0, false, 0, 0, 0, 0, 0
+PASS: unlock request anchored on L1 — requestedAt=0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000, 0, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0, 0, false, 0, 0, 0, 0, 0
+
+
+# STDERR

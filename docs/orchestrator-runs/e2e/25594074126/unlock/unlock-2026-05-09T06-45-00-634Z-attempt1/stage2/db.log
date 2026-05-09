@@ -1,0 +1,9 @@
+# db step
+# command: psql "$DATABASE_URL" -t -A -c "SELECT unlock_id, lock_id, status, is_emergency, EXTRACT(EPOCH FROM (release_time - created_at))/3600 AS hours FROM unlock_requests WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"
+# exit: 0
+
+# STDOUT
+0xc38f86c67475cb2e9eedc9d7df8f13e6fefa07f4a6cdf7471bf9a55ba6577b17|0x2a83545333a40eb89933fa23ea83e326f320f8ac8afb14e8b32369237b89a2d9|pending|f|23.9999685936111111
+
+
+# STDERR

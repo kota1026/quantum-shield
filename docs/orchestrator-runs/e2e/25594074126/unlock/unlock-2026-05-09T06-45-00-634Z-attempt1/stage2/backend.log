@@ -1,0 +1,37 @@
+# backend step
+# command: cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq2_unlock_normal -- --nocapture
+# exit: 0
+
+# STDOUT
+
+running 2 tests
+SEQ#2-02 Nonexistent lock unlock: status=404
+test seq2_unlock_normal::test_unlock_nonexistent_lock_rejected ... ok
+SEQ#2-01 Lock created: lock_id=0x2455d4e59eda4b6e237144e5cdb6a1f92af98f6952baaa15a98c1110d9285ecd
+SEQ#2-01 Unlock response: status=200, body={
+  "prover_signatures_collected": 0,
+  "prover_signatures_required": 2,
+  "release_time": 1778395503,
+  "selected_provers": [
+    "0x0000000000000000000000000000000000000001",
+    "0x0000000000000000000000000000000000000002"
+  ],
+  "sr_1": "0x6aeac871282030e07373a8b7d5af5b5359f7131fcff6645a928412de302ef121",
+  "status": "pending_signatures",
+  "time_lock_hours": 24,
+  "unlock_id": "0x744e63ac13d89d02606a162c69744b574b3c0dfd607b19bfb31295d8c2edf97b",
+  "vrf_request_id": "0x428b3e1c41ac28cdcd1be1ed913ae82bbcf727ed570765577ab8b42a453c6bfe",
+  "vrf_status": "fallback_used"
+}
+SEQ#2-01 Selected provers: 2 (expected 2 from 2-of-5)
+test seq2_unlock_normal::test_unlock_after_lock ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 1.32s
+
+
+
+# STDERR
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 0.41s
+[1m[33mwarning[0m: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0, sqlx-postgres v0.7.4
+[1m[92mnote[0m: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+[1m[92m     Running[0m tests/sequence_e2e_test.rs (/home/runner/work/quantum-shield/quantum-shield/target/debug/deps/sequence_e2e_test-40391b077d3850ab)
