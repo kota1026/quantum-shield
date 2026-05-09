@@ -182,6 +182,55 @@ impl L1VaultService {
         Ok(tx_hash)
     }
 
+    /// Request emergency unlock on L1 (no Prover signatures, requires bond)
+    ///
+    /// Calls `requestEmergencyUnlock(lockId, recipient)` payable with the bond
+    /// as msg.value. The bond is `MAX(MIN_EMERGENCY_BOND, amount * 5%)` and is
+    /// computed by the route layer (`routes/unlock.rs::create_emergency_unlock`)
+    /// — this method just submits the tx with the supplied `bond_amount_wei`.
+    ///
+    /// Per Phase 2 strategy (c), this submits the *request* only; the matching
+    /// `executeUnlock` after the 7d timelock is left to a nightly job. The
+    /// orchestrator's L1 verify reads on-chain `getUnlockRequest(lockId)` to
+    /// confirm `is_emergency=true`, so DB persistence of the tx hash is not
+    /// required for the verdict (deferred to a future schema migration).
+    ///
+    /// # Arguments
+    /// * `lock_id` - Lock ID (bytes32, hex with 0x prefix)
+    /// * `recipient` - Recipient address that will receive funds on executeUnlock
+    /// * `bond_amount_wei` - Bond to attach as msg.value (computed by caller)
+    #[instrument(skip(self), fields(lock_id = %lock_id, bond_wei = %bond_amount_wei))]
+    pub async fn request_emergency_unlock(
+        &self,
+        lock_id: &str,
+        recipient: &str,
+        bond_amount_wei: U256,
+    ) -> Result<H256, L1Error> {
+        info!("Submitting requestEmergencyUnlock to L1 Vault on Sepolia");
+
+        let lock_id_bytes: [u8; 32] = hex_to_bytes32(lock_id)?;
+        let recipient_addr: Address = recipient.parse()
+            .map_err(|_| L1Error::ContractCall("Invalid recipient address".into()))?;
+
+        let tx = self.contract
+            .request_emergency_unlock(lock_id_bytes, recipient_addr)
+            .value(bond_amount_wei);
+
+        let pending_tx = tx.send().await
+            .map_err(|e| L1Error::TxSubmission(format!("requestEmergencyUnlock failed: {}", e)))?;
+
+        let tx_hash = pending_tx.tx_hash();
+
+        info!(
+            tx_hash = %tx_hash,
+            lock_id = %lock_id,
+            bond_wei = %bond_amount_wei,
+            "requestEmergencyUnlock transaction submitted"
+        );
+
+        Ok(tx_hash)
+    }
+
     /// Execute unlock after timelock expiry
     ///
     /// Calls `executeUnlock(lockId)` — only succeeds if timelock has passed
