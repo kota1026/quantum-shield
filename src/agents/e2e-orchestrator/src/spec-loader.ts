@@ -139,19 +139,62 @@ esac
       },
       {
         layer: 'db',
-        description: 'Verify unlocks row created during this run window and time_lock_until is 24h ahead of created_at',
-        // 2026-05-02: 5-min window guard mirrors the lock binding (PR #153)
-        // — without it, LIMIT 1 ORDER BY created_at can pick a stale unlock
-        // request from a unit-test fixture instead of one created by this
-        // run, masking real failures and causing misleading verdicts.
-        command: `psql "$DATABASE_URL" -t -A -c "SELECT unlock_id, status, EXTRACT(EPOCH FROM (time_lock_until - created_at))/3600 FROM unlocks WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"`,
-        expected: 'one row from this run window, status=requested or finalized, hours = 24',
+        // 2026-05-09 (PR1 of Phase 2 rollout): two latent bugs corrected.
+        //   (1) Table name was `unlocks` — actual table is `unlock_requests`
+        //       (migrations/001_initial_schema.sql:64). The previous query
+        //       would have failed with "relation does not exist" the first
+        //       time this binding ran against a real Sepolia run.
+        //   (2) Column was `time_lock_until` — actual column is
+        //       `release_time` (same migration, line 76).
+        // 5-min window guard preserved from the lock binding (PR #153) so
+        // we don't latch onto a stale unit-test fixture.
+        description: 'Verify unlock_requests row created during this run window and release_time is 24h ahead of created_at (normal unlock; emergency would be 7d)',
+        command: `psql "$DATABASE_URL" -t -A -c "SELECT unlock_id, lock_id, status, is_emergency, EXTRACT(EPOCH FROM (release_time - created_at))/3600 AS hours FROM unlock_requests WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;"`,
+        expected: 'one row from this run window, status in {pending, requested, finalized}, is_emergency=f, hours ≈ 24',
         phase: 'verify',
       },
       {
         layer: 'l1',
-        description: 'Verify L1 lock is unlocked or scheduled',
-        command: `cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url "$L1_RPC_URL"`,
+        // 2026-05-09 (PR1 of Phase 2 rollout): replaced the bare
+        // `totalLocked()` ping with an on-chain unlock-request lookup.
+        // Mirrors the lock-binding upgrade in PR #160 — the prior
+        // `totalLocked()` call vacuously matched against the contract's
+        // pre-existing balance and proved nothing about THIS run.
+        //
+        // `unlock_requests` has no `l1_tx_hash` column (only `locks`
+        // does), so we can't `cast receipt` an unlock tx the way the
+        // lock binding does. Instead we read the on-chain UnlockRequest
+        // struct via `getUnlockRequest(bytes32 lockId)` (L1Vault.sol:1142)
+        // — keyed by lockId, not unlockId — and assert `requestedAt > 0`,
+        // which is set by `_createUnlockRequest` (L1Vault.sol:459) only
+        // after the L1 `requestUnlock` call lands. A schema migration to
+        // add `unlock_requests.l1_tx_hash` so we can do receipt-status
+        // verification (the lock binding's pattern) is tracked as a
+        // potential PR1.5 follow-up.
+        description: 'Verify the unlock request created in this run is anchored on L1 (Vault.getUnlockRequest(lockId).requestedAt > 0)',
+        command: `bash -c '
+set -eo pipefail
+LOCK_ID=$(psql "$DATABASE_URL" -t -A -c "SELECT lock_id FROM unlock_requests WHERE created_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY created_at DESC LIMIT 1;" | tr -d " ")
+if [ -z "$LOCK_ID" ]; then
+  echo "FAIL: no unlock_requests row from this run window — drive step did not produce a request"
+  exit 1
+fi
+echo "checking L1 unlock request for lock=$LOCK_ID"
+RAW=$(cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "getUnlockRequest(bytes32)((bytes32,address,uint256,bytes32,bytes32,uint256,uint256,bool,uint256,uint256,uint256,uint256,uint256))" "$LOCK_ID" --rpc-url "$L1_RPC_URL" 2>/dev/null || echo "")
+if [ -z "$RAW" ]; then
+  echo "FAIL: getUnlockRequest call failed (RPC error or wrong ABI)"
+  exit 1
+fi
+# struct order: lockId, recipient, amount, stateRoot, unlockStateRoot, requestedAt, unlockableAt, isEmergency, bond, signatureCount, unlockNonce, proverRequestedAt, emergencyReadyAt
+REQUESTED_AT=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$6}")
+echo "on-chain requestedAt: $REQUESTED_AT"
+if [ -z "$REQUESTED_AT" ] || [ "$REQUESTED_AT" = "0" ]; then
+  echo "FAIL: lock $LOCK_ID has no on-chain unlock request (requestUnlock tx not submitted or reverted)"
+  exit 1
+fi
+echo "PASS: unlock request anchored on L1 — requestedAt=$REQUESTED_AT"
+'`,
+        expected: 'PASS: getUnlockRequest(lockId).requestedAt > 0 — proves the requestUnlock tx landed on Sepolia in this run',
         phase: 'verify',
       },
     ],
