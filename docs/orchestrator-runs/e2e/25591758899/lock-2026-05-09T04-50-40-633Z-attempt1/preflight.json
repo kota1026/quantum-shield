@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "l1_private_key_format",
+      "passed": true,
+      "detail": "len=64 hex (valid)"
+    },
+    {
+      "name": "l1_rpc_chain_id",
+      "passed": true,
+      "detail": "0xaa36a7 (Sepolia, via https://ethereum-sepolia-rpc.publicnode.com)"
+    },
+    {
+      "name": "l1_vault_bytecode",
+      "passed": true,
+      "detail": "43696 hex chars of bytecode at 0x07012aeF87C6E423c32F2f8eaF81762f63337260"
+    }
+  ]
+}
