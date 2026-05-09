@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       sequence:
-        description: 'Sequence to verify (lock | unlock | emergency | slashing | all). Leave blank to use the trigger-derived matrix.'
+        description: 'Sequence to verify (lock | unlock | prover | challenge | emergency | slashing | all). Leave blank to use the trigger-derived matrix.'
         required: false
         default: ''
         type: string
@@ -34,6 +34,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_slashing:
+        description: 'Include the slashing sequence (default off; depends on resolveChallenge availability — Phase 3.x)'
+        required: false
+        default: false
+        type: boolean
   schedule:
     # Daily 21:17 UTC = 06:17 JST. Off-peak so we don't compete with morning PRs.
     - cron: '17 21 * * *'
@@ -43,15 +48,26 @@ permissions:
 
 jobs:
   # Compute the matrix axis once so the `verify` job can fan out per sequence.
-  # Logic (Phase 2 PR5/5):
+  # Logic (Phase 3 PR5/5):
   #   - workflow_dispatch with explicit `inputs.sequence` set       → that single sequence (back-compat).
-  #   - schedule (nightly cron 21:17 UTC = 06:17 JST)               → [lock, unlock, emergency].
-  #   - workflow_dispatch with `run_emergency=true`                 → [lock, unlock, emergency].
-  #   - workflow_dispatch default / push / pull_request             → [lock, unlock] (push/PR builds skip emergency
-  #                                                                   to avoid burning the 0.01 ETH bond per run;
-  #                                                                   nightly absorbs that cost on schedule).
-  # Sepolia bond budget: ~0.13 ETH/nightly run (lock 0.09 + emergency 0.04). Deployer wallet sits at
-  # ~0.55 ETH after the recent faucet topup → ~4 nightly runs sustainable before another drip.
+  #   - workflow_dispatch with run_slashing=true AND run_emergency=true
+  #                                                                 → [lock, unlock, prover, challenge, emergency, slashing] (full Phase 1+2+3 + extras).
+  #   - workflow_dispatch with `run_emergency=true`                 → [lock, unlock, prover, challenge, emergency] (Phase 1+2 default + Phase 3 default).
+  #   - workflow_dispatch with `run_slashing=true` (alone)          → [lock, unlock, prover, challenge, slashing].
+  #   - schedule (nightly cron 21:17 UTC = 06:17 JST)               → [lock, unlock, prover, challenge] (Phase 3 default).
+  #   - workflow_dispatch default                                   → [lock, unlock, prover, challenge] (same as nightly).
+  #   - push / pull_request                                         → [lock] only (smoke check, no bond burn).
+  #
+  # Sepolia bond budget per nightly run (Phase 3):
+  #   - lock:      ~0.09 ETH (per-leg overhead + L1 lock submission gas)
+  #   - unlock:    ~0.005 ETH (gas only — no bond)
+  #   - prover:    ~0.0002 ETH (testnetMode=true → 0 ETH stake + register gas)
+  #   - challenge: ~0.105 ETH (0.1 ETH MIN_CHALLENGE_BOND per L1VaultTestnet.sol:56 + gas)
+  #   Total nightly without emergency: ~0.2 ETH/run.
+  #   Total nightly with emergency:    ~0.7 ETH/run (adds 0.5 ETH MIN_BOND_WEI for emergency).
+  # Deployer wallet sits at ~0.43 ETH after recent Phase 2 runs — first nightly with
+  # the full Phase 3 matrix (lock+unlock+prover+challenge ≈ 0.2 ETH) is sustainable;
+  # `run_emergency=true` operator-triggered runs may need a faucet topup first.
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -61,25 +77,45 @@ jobs:
         env:
           INPUT_SEQUENCE: ${{ inputs.sequence }}
           INPUT_RUN_EMERGENCY: ${{ inputs.run_emergency }}
+          INPUT_RUN_SLASHING: ${{ inputs.run_slashing }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          # 2026-05-09: schedule no longer auto-includes "emergency". The actual
-          # MIN_BOND_WEI on `L1VaultTestnet` is 0.5 ETH (not the 0.01 ETH the PR5
-          # plan assumed) — surfaced when authoring seq3_unlock_emergency in
-          # PR #181. One nightly run with emergency therefore costs ~0.5 ETH +
-          # gas, exceeding the deployer wallet's ~0.55 ETH balance per run.
-          # Option C: emergency only fires when the operator explicitly opts
-          # in via workflow_dispatch with `run_emergency=true`. Schedule keeps
-          # lock+unlock so the daily smoke continues without bond burn. To run
-          # emergency: `gh workflow run e2e-orchestrator.yml -f run_emergency=true`.
+          # 2026-05-09 (Phase 3 PR5/5): schedule now fans out across the four
+          # always-on Phase 1+2+3 sequences (lock, unlock, prover, challenge).
+          # Adding prover+challenge to the nightly default costs only ~0.105
+          # ETH/run extra (prover stake is 0 in testnetMode; challenge bond is
+          # 0.1 ETH per L1VaultTestnet.sol:56), so total nightly burn is
+          # ~0.2 ETH/run and stays well inside the deployer wallet's runway.
+          #
+          # Emergency (0.5 ETH MIN_BOND_WEI) and slashing (depends on the
+          # resolveChallenge nightly job — Q4 strategy (c) defers that to
+          # Phase 3.x) remain opt-in via workflow_dispatch flags so a single
+          # operator-triggered run can include them deliberately:
+          #   gh workflow run e2e-orchestrator.yml -f run_emergency=true
+          #   gh workflow run e2e-orchestrator.yml -f run_slashing=true
+          #   gh workflow run e2e-orchestrator.yml -f run_emergency=true -f run_slashing=true
           if [ -n "$INPUT_SEQUENCE" ]; then
+            # Explicit single-sequence override (back-compat with Phase 2 PR5/5).
             SEQS="[\"$INPUT_SEQUENCE\"]"
+          elif [ "$INPUT_RUN_EMERGENCY" = "true" ] && [ "$INPUT_RUN_SLASHING" = "true" ]; then
+            # Operator opted into both extras — full Phase 1+2+3 + emergency + slashing.
+            # Cost: ~0.7 ETH/run. Verify wallet balance before triggering.
+            SEQS='["lock","unlock","prover","challenge","emergency","slashing"]'
           elif [ "$INPUT_RUN_EMERGENCY" = "true" ]; then
-            SEQS='["lock","unlock","emergency"]'
+            # Phase 1+2 default + Phase 3 default + emergency. Cost: ~0.7 ETH/run.
+            SEQS='["lock","unlock","prover","challenge","emergency"]'
+          elif [ "$INPUT_RUN_SLASHING" = "true" ]; then
+            # Phase 1+2 default + Phase 3 default + slashing. Cost: ~0.2 ETH/run
+            # (slashing leg verifies challenge request only; resolveChallenge
+            # nightly job deferred to Phase 3.x per Q4 strategy (c)).
+            SEQS='["lock","unlock","prover","challenge","slashing"]'
           elif [ "$EVENT_NAME" = "push" ] || [ "$EVENT_NAME" = "pull_request" ]; then
+            # PR/push smoke check — single lock leg, no bond burn.
             SEQS='["lock"]'
           else
-            SEQS='["lock","unlock"]'
+            # schedule (nightly) and workflow_dispatch default — Phase 3 default.
+            # Cost: ~0.2 ETH/run.
+            SEQS='["lock","unlock","prover","challenge"]'
           fi
           echo "sequences=$SEQS" >> "$GITHUB_OUTPUT"
           echo "Matrix sequences: $SEQS"
@@ -164,7 +200,7 @@ jobs:
       # already controls the deployer). Rotate later if the threat
       # model changes.
       QS__L1_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-      # The matrix axis: one of lock | unlock | emergency. Threaded through to
+      # The matrix axis: one of lock | unlock | prover | challenge | emergency | slashing. Threaded through to
       # the orchestrator CLI (`pnpm verify --sequence "$SEQUENCE"`) and into
       # run-info.json so each leg's auto-committed artifact is named per leg.
       SEQUENCE: ${{ matrix.sequence }}
