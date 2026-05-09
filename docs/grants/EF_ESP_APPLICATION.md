@@ -44,6 +44,7 @@ Traditional approaches to post-quantum signatures on Ethereum face a gas cost ba
    - 2025 cryptanalysis paper estimates **~1M qubits sufficient to break RSA-2048**, down from the 20M figure used in earlier roadmaps.
    - Federal mandate: critical-infrastructure PQC transition by **2027** (NIST). NSA CNSA 2.0 requires PQC by 2033–2035 for national security systems.
    - Quantum-resistant token market cap reached **$9.37B** in 2026 — institutional demand is real and growing.
+   - **Buyer discovery (in progress)**: as of W19 2026, supply-side signal is strong — Fireblocks publicly evaluating ML-DSA / SLH-DSA / FN-DSA for MPC integration; Coinbase committed to "quantum-proof" custody by EOY 2026; EIP-8141 (Vitalik-backed, March 2026) defines the migration path. Direct buyer interviews with named custodians (Fireblocks, BitGo, Japanese FSA-regulated exchanges) are scheduled by W20 (May 2026) to convert observed demand signal into concrete integration intent. We treat the existing supply-side evidence as necessary but not yet sufficient, and are explicit about that gap.
 
 ## Technical Architecture
 
