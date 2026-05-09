@@ -1,0 +1,9 @@
+# db step
+# command: psql "$DATABASE_URL" -t -A -c "SELECT prover_id, operator_addr, status, length(sphincs_pubkey) FROM provers WHERE registered_at > NOW() - INTERVAL '5 minutes' ORDER BY registered_at DESC LIMIT 1;"
+# exit: 0
+
+# STDOUT
+0x0000000000000000000000000000000000000001|0x0000000000000000000000000000000000000001|active|32
+
+
+# STDERR

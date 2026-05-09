@@ -1,0 +1,46 @@
+[
+  {
+    "layer": "backend",
+    "status": "fail",
+    "observations": [],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "backend layer fail (exit=101)",
+        "detail": "\u001b[1m\u001b[92m    Finished\u001b[0m `test` profile [optimized + debuginfo] target(s) in 0.42s\n\u001b[1m\u001b[33mwarning\u001b[0m: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0, sqlx-postgres v0.7.4\n\u001b[1m\u001b[92mnote\u001b[0m: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n\u001b[1m\u001b[92m     Running\u001b[0m tests/sequence_e2e_test.rs (/home/runner/work/quantum-shield/quantum-shield/target/debug/deps/sequence_e2e_test-40391b077d3850ab)\n\nthread 'seq5_prover_registration::test_prover_register_creates_db_row' (32998) panicked at src/api/api/tests/sequence_e2e_test.rs:1082:9:\nregister_prover must accept the request, got 400\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\u001b["
+      }
+    ],
+    "confidence": 1
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "frontend drive/verify exit=0 in 33741ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "db",
+    "status": "pass",
+    "observations": [
+      "db drive/verify exit=0 in 303ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "l1 layer fail (exit=1)",
+        "detail": "checking L1 ProverRegistry.getProver(address) for prover=0x0000000000000000000000000000000000000001\non-chain proverAddress: 0x0000000000000000000000000000000000000001, 0x0bcdd0df6a2e10784e1241541e91ccb897541af713e327f9555231d141c99644, 0x0101010101010101010101010101010101010101010101010101010101010101, 0, 1771919292 [1.771e9], true, 0, 0\non-chain registeredAt:  0x0000000000000000000000000000000000000001, 0x0bcdd0df6a2e10784e1241541e91ccb897541af713e327f9555231d141c99644, 0x0101010101010101010101010101010101010101010101010101010101010101, 0, 1771919292 [1.771e9], true, 0, 0\non-chain isActive:      0x0000000000000000000000000000000000000001, 0x0bcdd0df6a2e10784e1241541e91ccb897541af713e327f9555231d141c99644, 0x0101010101010101010101010101010101010101010101010101010101010101, 0, 1771919292 [1"
+      }
+    ],
+    "confidence": 1
+  }
+]

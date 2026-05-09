@@ -1,0 +1,56 @@
+# backend step
+# command: cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq5_prover_registration -- --nocapture
+# exit: 101
+
+# STDOUT
+
+running 4 tests
+SEQ#5-04 register_prover DB persistence — start
+SEQ#5-04 Register: status=400, body={
+  "code": 1001,
+  "message": "Invalid signature: HSM attestation validation failed: HSM attestation invalid: Invalid attestation format"
+}
+SEQ#5-02 Prover List: status=200, count=2
+SEQ#5-03 Prover Dashboard: status=200, prover_id=0x0000000000000000000000000000000000000001, body={
+  "active_challenges": 0,
+  "last_activity": 1778318205,
+  "pending_rewards": "0",
+  "prover_id": "0x0000000000000000000000000000000000000001",
+  "queue_size": 0,
+  "signatures_24h": 0,
+  "slash_count": 0,
+  "stake_amount": "400000000000000000000000",
+  "status": "active",
+  "total_earnings": "0",
+  "total_signatures": 0,
+  "uptime_percentage": 99.9
+}
+test seq5_prover_registration::test_prover_register_creates_db_row ... FAILED
+test seq5_prover_registration::test_prover_list ... ok
+test seq5_prover_registration::test_prover_dashboard ... ok
+SEQ#5-01 Prover Register: status=400, body={
+  "code": 1001,
+  "message": "Invalid signature: HSM attestation validation failed: HSM attestation invalid: Invalid attestation format"
+}
+SEQ#5-01 Registration returned 400 (expected: placeholder attestation rejected)
+test seq5_prover_registration::test_prover_registration ... ok
+
+failures:
+
+failures:
+    seq5_prover_registration::test_prover_register_creates_db_row
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.13s
+
+
+
+# STDERR
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 0.42s
+[1m[33mwarning[0m: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0, sqlx-postgres v0.7.4
+[1m[92mnote[0m: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+[1m[92m     Running[0m tests/sequence_e2e_test.rs (/home/runner/work/quantum-shield/quantum-shield/target/debug/deps/sequence_e2e_test-40391b077d3850ab)
+
+thread 'seq5_prover_registration::test_prover_register_creates_db_row' (32998) panicked at src/api/api/tests/sequence_e2e_test.rs:1082:9:
+register_prover must accept the request, got 400
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+[1m[91merror[0m: test failed, to rerun pass `--test sequence_e2e_test`
