@@ -55,3 +55,10 @@ Workflow:
 _Above seed produced by hand from the 2026-03-08 → 2026-05-08 research pass.
 Future entries are produced by the `claude-updates` skill +
 `claude-updates-curator` agent and appended below._
+
+## 2026-05-09T06:45:10Z — version change detected
+
+- Previous: `none`
+- Current:  `2.1.138`
+- Action:   run `/claude-updates` to fetch release notes and propose integrations.
+- Branch:   main
