@@ -426,6 +426,47 @@ pub async fn create_emergency_unlock(
         .update_lock_status(&req.lock_id, LockStatus::EmergencyPending, Some(release_time))
         .await?;
 
+    // 9. Submit requestEmergencyUnlock to L1 Vault (Sepolia) if configured.
+    //    Phase 2 strategy (c): submit the *request* only; the executeUnlock
+    //    after the 7d timelock is left to a nightly job. The orchestrator's
+    //    L1 verify reads on-chain getUnlockRequest(lockId) to confirm
+    //    is_emergency=true, so a DB column for l1_tx_hash is not required for
+    //    the verdict (deferred to a future schema migration / PR1.5).
+    if let Some(ref l1_vault) = state.l1_vault {
+        let bond_wei = ethers::prelude::U256::from_dec_str(&bond_required)
+            .map_err(|e| ApiError::Internal(format!("invalid bond_required: {}", e)))?;
+
+        match l1_vault.request_emergency_unlock(&req.lock_id, &req.dest_addr, bond_wei).await {
+            Ok(tx_hash) => {
+                let tx_hash_str = format!("{:?}", tx_hash);
+                tracing::info!(
+                    l1_tx_hash = %tx_hash_str,
+                    lock_id = %req.lock_id,
+                    unlock_id = %unlock_id,
+                    "L1 requestEmergencyUnlock submitted successfully"
+                );
+                if let Err(e) = crate::db::LockRepository::update_unlock_status(
+                    state.pool(), &unlock_id, "pending",
+                ).await {
+                    tracing::warn!(
+                        unlock_id = %unlock_id,
+                        error = %e,
+                        "Failed to update unlock_request status (L1 tx submitted)"
+                    );
+                }
+            }
+            Err(e) => {
+                tracing::error!(
+                    error = %e,
+                    lock_id = %req.lock_id,
+                    "L1 requestEmergencyUnlock failed - DB record saved but L1 not confirmed"
+                );
+            }
+        }
+    } else {
+        tracing::info!("L1 Vault not configured - skipping L1 requestEmergencyUnlock");
+    }
+
     tracing::info!(
         "Emergency unlock request created: {}, bond: {}",
         unlock_id, bond_required

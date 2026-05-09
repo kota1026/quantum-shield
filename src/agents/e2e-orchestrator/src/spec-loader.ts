@@ -204,6 +204,96 @@ echo "PASS: unlock request anchored on L1 — requestedAt=$REQUESTED_AT"
       'No skip_signature_verification leak in production guard',
     ],
   },
+  emergency: {
+    id: 'seq-3',
+    name: 'Emergency Unlock',
+    spec_section: 'SEQUENCES.md §3 Emergency Unlock',
+    steps: [
+      {
+        layer: 'backend',
+        // 2026-05-09 (PR4 of Phase 2 rollout): drives the existing seq3
+        // backend response-shape test. PR3 will author a full-flow test
+        // (FE→BE→DB→L1 round-trip); the orchestrator binding is shipped
+        // first (this PR) and PR3 plugs into the same `seq3_unlock_emergency`
+        // module filter without further binding changes.
+        description: 'Emergency unlock backend Rust test (response shape + DB row)',
+        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq3_unlock_emergency -- --nocapture',
+        expected: 'Emergency unlock request landed in DB with is_emergency=true and bond_amount >= 0.01 ETH',
+        phase: 'drive',
+      },
+      {
+        layer: 'frontend',
+        description: 'Playwright emergency unlock integration spec',
+        command: 'cd src/frontend/web && npx playwright test e2e/integration/emergency-unlock.integration.spec.ts --reporter=json',
+        expected: 'UI emergency-unlock submission produces success state and DB row with is_emergency=true',
+        phase: 'drive',
+      },
+      {
+        layer: 'db',
+        // 2026-05-09 (PR4 of Phase 2 rollout): mirrors the `unlock` binding's
+        // 5-min window guard (PR1 #179). Distinguishes emergency from normal
+        // by `is_emergency=TRUE` filter so the row picked up here is from the
+        // emergency drive step, not a leftover normal-unlock fixture.
+        // bond_amount is asserted ≥ MIN_EMERGENCY_BOND (0.01 ETH = 1e16 wei,
+        // see L1VaultTestnet.sol:50). Q2 strategy (c): we verify the
+        // *request* landed; the 5-min EMERGENCY_TIME_LOCK + execute path is
+        // exercised by the nightly job in PR5, not here.
+        description: 'Verify emergency unlock_requests row created during this run window with is_emergency=true and bond meeting MIN_EMERGENCY_BOND',
+        command: `psql "$DATABASE_URL" -t -A -c "SELECT unlock_id, lock_id, is_emergency, bond_amount, status, EXTRACT(EPOCH FROM (release_time - created_at))/60 AS lock_min FROM unlock_requests WHERE created_at > NOW() - INTERVAL '5 minutes' AND is_emergency = TRUE ORDER BY created_at DESC LIMIT 1;"`,
+        expected: 'one emergency unlock_requests row from this run window, is_emergency=t, bond_amount >= 10000000000000000 (= 0.01 ETH), status in {pending, locked, confirmed}, lock_min >= 5 minutes',
+        phase: 'verify',
+      },
+      {
+        layer: 'l1',
+        // 2026-05-09 (PR4 of Phase 2 rollout): on-chain assertion that the
+        // emergency request landed. Mirrors the unlock-binding pattern (PR1
+        // #179) — read lock_id from this run's emergency unlock_requests
+        // row, then call Vault.getEmergencyUnlock(bytes32) and assert the
+        // returned EmergencyUnlock.initiatedAt > 0. `initiatedAt` is set by
+        // requestEmergencyUnlock at L1VaultTestnet.sol:439 only when the
+        // tx lands, so >0 is the cleanest "request anchored" signal —
+        // analogous to UnlockRequest.requestedAt in the unlock binding.
+        // Struct order (see L1VaultTestnet.sol:137-146):
+        //   lockId, initiator, bondAmount, initiatedAt, emergencyReadyAt,
+        //   status (uint8 enum), enhancedMonitoring, fromTimeout
+        // Q2 strategy (c): we assert the request was created, not that
+        // executeUnlock ran. The 5-min EMERGENCY_TIME_LOCK + execute is
+        // covered by PR5's nightly matrix.
+        description: 'Verify the emergency unlock created in this run is anchored on L1 (Vault.getEmergencyUnlock(lockId).initiatedAt > 0)',
+        command: `bash -c '
+set -eo pipefail
+LOCK_ID=$(psql "$DATABASE_URL" -t -A -c "SELECT lock_id FROM unlock_requests WHERE created_at > NOW() - INTERVAL '"'"'5 minutes'"'"' AND is_emergency = TRUE ORDER BY created_at DESC LIMIT 1;" | tr -d " ")
+if [ -z "$LOCK_ID" ]; then
+  echo "FAIL: no emergency unlock_requests row from this run window — drive step did not produce a request"
+  exit 1
+fi
+echo "checking L1 emergency unlock for lock=$LOCK_ID"
+RAW=$(cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "getEmergencyUnlock(bytes32)((bytes32,address,uint256,uint256,uint256,uint8,bool,bool))" "$LOCK_ID" --rpc-url "$L1_RPC_URL" 2>/dev/null || echo "")
+if [ -z "$RAW" ]; then
+  echo "FAIL: getEmergencyUnlock call failed (RPC error or wrong ABI). TODO(PR5): refine ABI signature after first Sepolia run if struct field order differs"
+  exit 1
+fi
+# struct order: lockId, initiator, bondAmount, initiatedAt, emergencyReadyAt, status, enhancedMonitoring, fromTimeout
+INITIATED_AT=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$4}")
+echo "on-chain initiatedAt: $INITIATED_AT"
+if [ -z "$INITIATED_AT" ] || [ "$INITIATED_AT" = "0" ]; then
+  echo "FAIL: lock $LOCK_ID has no on-chain emergency unlock (requestEmergencyUnlock tx not submitted or reverted)"
+  exit 1
+fi
+echo "PASS: emergency unlock anchored on L1 — initiatedAt=$INITIATED_AT"
+'`,
+        expected: 'PASS: getEmergencyUnlock(lockId).initiatedAt > 0 — proves the requestEmergencyUnlock tx landed on Sepolia in this run',
+        phase: 'verify',
+      },
+    ],
+    acceptance_criteria: [
+      'Playwright emergency-unlock.integration.spec.ts passes',
+      'A new unlock_requests row exists with is_emergency=TRUE',
+      'bond_amount >= MIN_EMERGENCY_BOND (0.01 ETH = 1e16 wei) per L1VaultTestnet.sol:50',
+      'On-chain getEmergencyUnlock(lockId) returns initiatedAt > 0 (request landed on Sepolia)',
+      'release_time - created_at >= EMERGENCY_TIME_LOCK (5 min, testnet-tuned per L1VaultTestnet.sol:47)',
+    ],
+  },
   slashing: {
     id: 'seq-6',
     name: 'Slashing',
