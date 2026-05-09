@@ -60,10 +60,23 @@ Trigger an unscheduled run via the GitHub Actions UI:
 
 ## Authentication
 
-The workflow uses **Claude Code OAuth** (not the Anthropic API), so calls
-consume your Claude Pro/Max subscription quota instead of API credits.
+The workflow tries two paths in order:
+
+1. **Claude Code OAuth** (preferred) — `claude` CLI authenticated via the
+   `CLAUDE_CODE_OAUTH_TOKEN` repo secret. Calls consume your Claude
+   Pro/Max subscription quota; no per-token billing.
+2. **Anthropic API key** (fallback) — direct `https.request` to
+   `api.anthropic.com` using the `ANTHROPIC_API_KEY` repo secret. Billed
+   against the API credit balance.
+
+If OAuth fails (rate limit, expired token, CLI install failure), the
+script automatically retries via the API key path. This removes the
+single-vendor kill switch on the cron pipeline (W19 strategy decision
+#5, originally raised by the devil's-advocate agent).
 
 ### One-time setup
+
+#### Path 1 — OAuth (recommended)
 
 Locally, run:
 
@@ -72,18 +85,22 @@ claude setup-token
 ```
 
 Follow the browser flow. The CLI prints a long-lived OAuth token of the
-form `sk-ant-oat01-...`. Then:
+form `sk-ant-oat01-…`. Then:
 
 1. GitHub repo → **Settings → Secrets and variables → Actions → New
    repository secret**
 2. Name: `CLAUDE_CODE_OAUTH_TOKEN`
 3. Value: paste the token
 
-The workflow's `Install Claude Code CLI` step does
-`npm install -g @anthropic-ai/claude-code` and `claude --print` reads the
-token from the env var automatically.
+#### Path 2 — API key (fallback)
+
+1. Get an API key from `https://console.anthropic.com/settings/keys`
+   (starts with `sk-ant-api03-…`).
+2. Add as repo secret `ANTHROPIC_API_KEY`.
+3. Keep a small credit balance ($5–$10 covers months at this volume).
 
 ### Rotation
 
-If the workflow starts failing with an auth error, regenerate via
-`claude setup-token` and update the secret.
+If the workflow starts failing with an auth error on both paths,
+regenerate the OAuth token (`claude setup-token`) and/or rotate the API
+key, then update the corresponding secret.
