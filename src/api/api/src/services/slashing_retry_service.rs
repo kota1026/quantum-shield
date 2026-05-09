@@ -36,11 +36,12 @@
 
 use std::sync::Arc;
 
+use ethers::types::{Address, U256};
 use sqlx::PgPool;
 use tokio::sync::watch;
 use tracing::{debug, error, info, instrument};
 
-use crate::db::{ChallengeRepository, PendingRetrySlashing};
+use crate::db::{ChallengeRepository, PendingRetrySlashing, ProverRepository};
 use crate::services::l1_prover_registry::{L1ProverRegistryService, hex_to_bytes32};
 
 /// Configuration for the slashing retry service.
@@ -148,26 +149,26 @@ impl SlashingRetryService {
     /// logs and moves on so one bad row cannot block the whole queue.
     #[instrument(skip(self), fields(slashing_id = %row.slashing_id))]
     async fn retry_single(&self, row: PendingRetrySlashing) {
-        // Re-validate hex with the strict helper. If this fails, the row
-        // is permanently bad input and should not be retried.
-        let prover_id_bytes = match hex_to_bytes32(&row.prover_id) {
-            Ok(b) => b,
-            Err(e) => {
-                error!(
-                    prover_id = %row.prover_id,
-                    error = %e,
-                    "SlashingRetry: prover_id is permanently invalid hex — skipping"
-                );
-                // Record the permanent failure so operators notice.
-                let _ = ChallengeRepository::mark_slashing_l1_retry_failed(
-                    &self.pool,
-                    &row.slashing_id,
-                    &format!("permanently invalid prover_id hex: {}", e),
-                )
-                .await;
-                return;
-            }
-        };
+        // Re-validate the challenge_id hex (still bytes32 on-chain — used
+        // as the `reason` arg to `slash(address,uint256,bytes32)`). The
+        // prover_id hex is no longer passed to L1 (the canonical contract
+        // takes `address`), but we still validate it to surface permanently
+        // bad rows the same way as before — see Phase 3 PR1/5 in
+        // `services/l1_prover_registry.rs`.
+        if let Err(e) = hex_to_bytes32(&row.prover_id) {
+            error!(
+                prover_id = %row.prover_id,
+                error = %e,
+                "SlashingRetry: prover_id is permanently invalid hex — skipping"
+            );
+            let _ = ChallengeRepository::mark_slashing_l1_retry_failed(
+                &self.pool,
+                &row.slashing_id,
+                &format!("permanently invalid prover_id hex: {}", e),
+            )
+            .await;
+            return;
+        }
 
         let challenge_bytes = match hex_to_bytes32(&row.challenge_id) {
             Ok(b) => b,
@@ -187,18 +188,88 @@ impl SlashingRetryService {
             }
         };
 
-        let colluding_count = row.colluding_count.max(1) as u64;
+        // Phase 3 PR1/5: resolve operator address from PG. The deployed
+        // canonical `ProverRegistry.slash` takes `address proverAddress`,
+        // not `bytes32 proverId`.
+        let prover_address = match ProverRepository::get_by_id(&self.pool, &row.prover_id).await {
+            Ok(Some(prover_row)) => match prover_row.operator_addr.parse::<Address>() {
+                Ok(addr) => addr,
+                Err(e) => {
+                    error!(
+                        prover_id = %row.prover_id,
+                        operator_addr = %prover_row.operator_addr,
+                        error = %e,
+                        "SlashingRetry: operator_addr is not a valid Ethereum address — skipping"
+                    );
+                    let _ = ChallengeRepository::mark_slashing_l1_retry_failed(
+                        &self.pool,
+                        &row.slashing_id,
+                        &format!(
+                            "permanently invalid operator_addr {} for prover_id {}: {}",
+                            prover_row.operator_addr, row.prover_id, e
+                        ),
+                    )
+                    .await;
+                    return;
+                }
+            },
+            Ok(None) => {
+                error!(
+                    prover_id = %row.prover_id,
+                    "SlashingRetry: prover_id not found in PG — cannot retry without operator_addr"
+                );
+                let _ = ChallengeRepository::mark_slashing_l1_retry_failed(
+                    &self.pool,
+                    &row.slashing_id,
+                    &format!("prover_id {} not found in PG", row.prover_id),
+                )
+                .await;
+                return;
+            }
+            Err(e) => {
+                // Transient DB error — do NOT mark permanently failed.
+                error!(
+                    prover_id = %row.prover_id,
+                    error = %e,
+                    "SlashingRetry: DB lookup failed (transient) — leaving row pending_retry"
+                );
+                return;
+            }
+        };
+
+        // Convert the persisted slash_amount (BigDecimal wei) to U256. The
+        // on-disk value is the integer wei amount produced by the original
+        // quadratic calculation in `SlashingService::execute_slashing`.
+        let slash_amount_str = row.slash_amount.with_scale(0).to_string();
+        let slash_amount_u256 = match U256::from_dec_str(&slash_amount_str) {
+            Ok(v) => v,
+            Err(e) => {
+                error!(
+                    slash_amount = %slash_amount_str,
+                    error = %e,
+                    "SlashingRetry: slash_amount is not a valid uint256 — skipping permanently"
+                );
+                let _ = ChallengeRepository::mark_slashing_l1_retry_failed(
+                    &self.pool,
+                    &row.slashing_id,
+                    &format!("permanently invalid slash_amount {}: {}", slash_amount_str, e),
+                )
+                .await;
+                return;
+            }
+        };
 
         info!(
             slashing_id = %row.slashing_id,
             attempt = row.l1_retry_count + 1,
-            colluding_count,
+            prover_address = ?prover_address,
+            slash_amount = %slash_amount_u256,
             "SlashingRetry: submitting L1 slash() to ProverRegistry"
         );
 
         match self
             .registry
-            .slash(prover_id_bytes, colluding_count, challenge_bytes)
+            .slash(prover_address, slash_amount_u256, challenge_bytes)
             .await
         {
             Ok(tx_hash) => {

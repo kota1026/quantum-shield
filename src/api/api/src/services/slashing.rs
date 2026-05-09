@@ -17,6 +17,7 @@
 //! - Insurance fund balance updated in PG
 
 use bigdecimal::BigDecimal;
+use ethers::types::{Address, U256};
 use sqlx::PgPool;
 use std::str::FromStr;
 use tracing::{info, warn, instrument};
@@ -77,7 +78,15 @@ pub struct SlashingResult {
 }
 
 /// Validate and convert the `prover_id` / `challenge_id` hex strings to the
-/// `bytes32` format required by `ProverRegistry.slash()`.
+/// `bytes32` format used internally by Quantum Shield. The `challenge_id`
+/// bytes32 also flows through to the L1 `slash(...)` call as the `reason`
+/// parameter on the deployed canonical contract.
+///
+/// The first element (prover_id bytes32) is NOT passed to L1 anymore — the
+/// canonical deployed contract identifies provers by `address` rather than
+/// `bytes32 proverId` (see Phase 3 PR1/5 ABI alignment in
+/// `l1_prover_registry.rs`). It is still validated up-front so we fail fast
+/// on garbage input before any DB write.
 ///
 /// Fail-fast: invalid hex returns `ApiError::InvalidRequest`. This runs BEFORE
 /// any DB writes so malformed input cannot leave a half-applied slashing record.
@@ -102,6 +111,32 @@ fn prepare_l1_slash_args(
         ))
     })?;
     Ok((prover_bytes, challenge_bytes))
+}
+
+/// Resolve a Quantum Shield `prover_id` (bytes32 hash) to the L1 wallet
+/// address that the deployed canonical `ProverRegistry` keys provers by.
+///
+/// Returns the parsed `Address` on success, or a stringified error on
+/// failure. Errors are returned (not panicked) so the caller can mark the
+/// slashing row as `pending_retry` rather than crashing the pipeline.
+///
+/// Phase 3 PR1/5: the deployed `ProverRegistry.slash` takes
+/// `address proverAddress`, not `bytes32 proverId`. Each slashing row in PG
+/// stores the prover_id; we map it to `provers.operator_addr` here.
+async fn lookup_prover_l1_address(
+    pool: &PgPool,
+    prover_id: &str,
+) -> Result<Address, String> {
+    let row = ProverRepository::get_by_id(pool, prover_id)
+        .await
+        .map_err(|e| format!("DB lookup failed for prover_id={}: {}", prover_id, e))?
+        .ok_or_else(|| format!("prover_id={} not found in DB (no operator_addr)", prover_id))?;
+    row.operator_addr
+        .parse::<Address>()
+        .map_err(|e| format!(
+            "operator_addr={} for prover_id={} is not a valid 0x-prefixed Ethereum address: {}",
+            row.operator_addr, prover_id, e
+        ))
 }
 
 /// Slashing execution service
@@ -227,9 +262,73 @@ impl SlashingService {
         let (l1_tx_hash, l1_status): (Option<String>, L1SlashStatus) = if l1_slashing_enabled {
             if let Some(registry) = l1_prover_registry {
                 // Hex validation already happened in Step 0; safe to unwrap the Option.
-                let (prover_id_bytes, reason_bytes) = l1_args
+                // The first slot (prover_id bytes32) is no longer passed to L1
+                // — the canonical deployed contract takes `address`, which we
+                // look up below. challenge_id bytes32 still flows through as
+                // the `reason` argument.
+                let (_prover_id_bytes, reason_bytes) = l1_args
                     .expect("l1_args must be Some when l1_slashing_enabled is true");
-                match registry.slash(prover_id_bytes, colluding_prover_count, reason_bytes).await {
+
+                // Phase 3 PR1/5: resolve operator address from PG. If the
+                // lookup or address parse fails, mark pending_retry rather
+                // than silently dropping the slash — same C-4 fail-loud
+                // pattern as the rest of this branch.
+                let prover_address = match lookup_prover_l1_address(pool, prover_id).await {
+                    Ok(addr) => addr,
+                    Err(err) => {
+                        tracing::error!(
+                            error = %err,
+                            slashing_id = %slashing_id,
+                            "L1 slash skipped — could not resolve prover_id to L1 address"
+                        );
+                        // Record the failure so operators see it and the retry
+                        // service can pick it up after the bad row is repaired.
+                        let l1_error_str = format!("operator_addr lookup failed: {}", err);
+                        if let Err(db_err) = ChallengeRepository::update_slashing_l1_status(
+                            pool,
+                            &slashing_id,
+                            "pending_retry",
+                            None,
+                            Some(&l1_error_str),
+                        ).await {
+                            tracing::error!(
+                                slashing_id = %slashing_id,
+                                error = %db_err,
+                                "Failed to persist pending_retry after operator_addr lookup failure"
+                            );
+                        }
+                        return Ok(SlashingResult {
+                            slashing_id: slashing_id.clone(),
+                            challenge_id: challenge_id.to_string(),
+                            prover_id: prover_id.to_string(),
+                            total_slash: total_slash.clone(),
+                            challenger_reward: challenger_reward.clone(),
+                            insurance_amount: insurance_amount.clone(),
+                            burn_amount: burn_amount.clone(),
+                            prover_deactivated,
+                            l1_tx_hash: None,
+                            l1_status: L1SlashStatus::PendingRetry { error: l1_error_str },
+                        });
+                    }
+                };
+
+                // Convert the already-computed slash amount (decimal wei
+                // string) into a U256 for the canonical
+                // `slash(address,uint256,bytes32)` ABI. The alternate
+                // (non-deployed) contract took colluding_count and computed
+                // the slash on-chain; the canonical contract takes the
+                // amount directly. We pass `total_slash` (= N²×10% of
+                // lock_amount, capped at 100%) — already calculated in
+                // step 1.
+                let slash_amount_u256 = U256::from_dec_str(&total_slash)
+                    .unwrap_or(U256::zero());
+
+                // colluding_count is preserved in PG (slashings.colluding_count)
+                // and emitted in tracing for forensic context, but is no
+                // longer an L1 argument.
+                let _ = colluding_prover_count;
+
+                match registry.slash(prover_address, slash_amount_u256, reason_bytes).await {
                     Ok(tx_hash) => {
                         info!(
                             l1_tx_hash = %tx_hash,
