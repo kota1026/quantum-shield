@@ -10,13 +10,7 @@ parent: docs/intelligence/strategy/2026-W19-5-architecture-audit.md
 
 ## Why this document exists
 
-QS made architectural commitments in Nov–Dec 2025 anchored on:
-- **ML-DSA-65** (FIPS 204) as the user-facing signing primitive
-- **SLH-DSA / SPHINCS+** (FIPS 205) as the emergency / dispute path
-- **SHA3-256** for all hashing
-- A **Prover Pool + Observer Challenge** layered on top, because there was no on-chain PQC primitive cheap enough to verify in the EVM directly
-
-Six months later — and on the eve of a Path A contract rebuild — the EVM landscape has shifted. EIPs 8051 / 8052 are now in draft, the NTT precompile (0x15) has shipped on devnets, EIP-8141 is being scheduled for the Hegotia hard fork, and threshold ML-DSA finally has a paper accepted at USENIX Security '26 with a published Rust crate. This audit captures what changed, what is genuinely production-ready vs hype, and what should be on the candidate list for the Path A contracts that QS did not consider in Nov 2025.
+QS's Nov–Dec 2025 architecture anchored on **ML-DSA-65** (FIPS 204) as the user-facing primitive, **SLH-DSA / SPHINCS+** (FIPS 205) as emergency-path, **SHA3-256** for hashing, and a **Prover Pool + Observer Challenge** layered on top — because no on-chain PQC primitive was cheap enough for direct EVM verification. Six months later, on the eve of a Path A contract rebuild, the EVM landscape has shifted: EIPs 8051 / 8052 are in draft, the NTT precompile (0x15) has shipped on devnets, EIP-8141 is on the Hegotia hard-fork track, and threshold ML-DSA has its first FIPS-204-compatible scheme (Mithril, USENIX Sec '26) with a published Rust crate. This audit captures what changed, what is genuinely production-ready vs hype, and what should be on the Path A candidate list that was not on the table in Nov 2025.
 
 ---
 
@@ -153,9 +147,9 @@ Primitives that should **stay off** the candidate list:
 - **Classic McEliece** — KEM only, no signature variant.
 - **YubiHSM 2** — sunset 2026-05.
 
-### Architectural conclusion (1 paragraph)
+### Architectural conclusion
 
-The Nov-2025 architecture was correct *for its constraint set*. Six months later, the constraint set has loosened on two fronts: (a) EVM-side primitives (NTT precompile, EIP-8051/8052/8141) reduce the cost of on-chain PQC verification by ~600× in the precompile case and ~13× even in the pure-Solidity case (ETHFALCON). (b) Threshold ML-DSA finally has a published, FIPS-204-compatible scheme (Mithril) that the Nov-2025 audit (Finding E in `2026-W19-5-architecture-audit.md`) marked as "structurally invalid". **The Path A rebuild should at minimum substitute Falcon-512 / EPERVIER for the ML-DSA-65 hot path, target EIP-8141 as the user entrypoint, and cite Mithril as the credible threshold-ML-DSA path for the composable-layer custodian story.** This is exactly the set of primitives that did not exist or were not production-credible when QS architecture was decided.
+The Nov-2025 architecture was correct *for its constraint set*. Six months later, two constraints have loosened: (a) EVM-side primitives (NTT 0x15, EIP-8051/8052/8141) cut on-chain PQC verify cost by ~600× as a precompile and ~13× even in pure Solidity (ETHFALCON). (b) Threshold ML-DSA now has Mithril, FIPS-204-compatible — the audit's Finding E ("structurally invalid") is now obsolete. **The Path A rebuild should at minimum substitute Falcon-512 / EPERVIER for the ML-DSA-65 hot path, target EIP-8141 as the user entrypoint, and cite Mithril as the threshold-ML-DSA path for the composable-layer custodian story** — exactly the primitives that did not exist or were not production-credible in Nov 2025.
 
 ---
 
