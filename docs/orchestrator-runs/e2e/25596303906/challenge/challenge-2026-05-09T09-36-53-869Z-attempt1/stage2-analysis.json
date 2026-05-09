@@ -1,0 +1,46 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "backend drive/verify exit=0 in 2414ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "frontend",
+    "status": "fail",
+    "observations": [],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "frontend layer fail (exit=1)",
+        "detail": "[truncated 599259 bytes]\nintegration/challenge-slashing.integration.spec.ts:286:20\",\n                        \"location\": {\n                          \"file\": \"/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e/integration/challenge-slashing.integration.spec.ts\",\n                          \"column\": 29,\n                          \"line\": 52\n                        },\n                        \"snippet\": \"\\u001b[0m \\u001b[90m 50 |\\u001b[39m     }\\u001b[33m,\\u001b[39m\\n \\u001b[90m 51 |\\u001b[39m   })\\u001b[33m;\\u001b[39m\\n\\u001b[31m\\u001b[1m>\\u001b[22m\\u001b[39m\\u001b[90m 52 |\\u001b[39m   expect(response\\u001b[33m.\\u001b[39mstatus())\\u001b[33m.\\u001b[39mtoBe(\\u001b[35m200\\u001b[39m)\\u001b[33m;\\u001b[39m\\n \\u001b[90m    |\\u001b[39m                             \\u001b[31m\\u001b[1m^\\"
+      }
+    ],
+    "confidence": 1
+  },
+  {
+    "layer": "db",
+    "status": "pass",
+    "observations": [
+      "db drive/verify exit=0 in 343ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "l1 layer fail (exit=1)",
+        "detail": "checking L1 Vault.challenges(bytes32) for lock=0xe7f99e80a347fca0f93fa6044b42194fab225afd7af7736957ef99360329a13c\non-chain lockId:          0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0, 0, 0, 0, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000\non-chain status (uint8):  0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0, 0, 0, 0, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000  (1 = PENDING)\non-chain bond"
+      }
+    ],
+    "confidence": 1
+  }
+]

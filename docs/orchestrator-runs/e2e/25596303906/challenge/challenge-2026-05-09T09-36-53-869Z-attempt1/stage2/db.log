@@ -1,0 +1,9 @@
+# db step
+# command: psql "$DATABASE_URL" -t -A -c "SELECT challenge_id, lock_id, bond, status, EXTRACT(EPOCH FROM (defense_deadline - challenged_at))/3600 AS hours_until_deadline FROM challenges WHERE challenged_at > NOW() - INTERVAL '5 minutes' ORDER BY challenged_at DESC LIMIT 1;"
+# exit: 0
+
+# STDOUT
+0x9412249518b25a890eb6764816724242|0xe7f99e80a347fca0f93fa6044b42194fab225afd7af7736957ef99360329a13c|100000000000000000|pending|47.9999130930555556
+
+
+# STDERR
