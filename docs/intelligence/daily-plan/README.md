@@ -41,3 +41,33 @@ as a human follow-up note in the briefing.
 
 Trigger an unscheduled run via the GitHub Actions UI:
 `Actions -> Daily Plan (JST 06:30) -> Run workflow`.
+
+## Authentication
+
+The workflow uses **Claude Code OAuth** (not the Anthropic API), so calls
+consume your Claude Pro/Max subscription quota instead of API credits.
+
+### One-time setup
+
+Locally, run:
+
+```bash
+claude setup-token
+```
+
+Follow the browser flow. The CLI prints a long-lived OAuth token of the
+form `sk-ant-oat01-...`. Then:
+
+1. GitHub repo → **Settings → Secrets and variables → Actions → New
+   repository secret**
+2. Name: `CLAUDE_CODE_OAUTH_TOKEN`
+3. Value: paste the token
+
+The workflow's `Install Claude Code CLI` step does
+`npm install -g @anthropic-ai/claude-code` and `claude --print` reads the
+token from the env var automatically.
+
+### Rotation
+
+If the workflow starts failing with an auth error, regenerate via
+`claude setup-token` and update the secret.
