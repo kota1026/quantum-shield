@@ -1,0 +1,153 @@
+{
+  "sequence": "seq-5",
+  "started_at": "2026-05-09T10:52:33.724Z",
+  "finished_at": "2026-05-09T10:53:05.249Z",
+  "duration_ms": 31525,
+  "plan": {
+    "sequence_id": "seq-5",
+    "sequence_name": "Prover Registration",
+    "layers": [
+      "backend",
+      "frontend",
+      "db",
+      "l1"
+    ],
+    "steps": [
+      {
+        "layer": "backend",
+        "description": "Prover registration backend Rust test (POST /v1/prover/register + DB row + L1 stake)",
+        "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq5_prover_registration -- --nocapture",
+        "expected": "Prover registration test produces provers row with operator_addr and pending_approval status",
+        "phase": "drive"
+      },
+      {
+        "layer": "frontend",
+        "description": "Playwright prover registration integration spec",
+        "command": "cd src/frontend/web && npx playwright test e2e/integration/prover-registration.integration.spec.ts --reporter=json",
+        "expected": "UI prover-registration submission produces success state and DB row",
+        "phase": "drive"
+      },
+      {
+        "layer": "db",
+        "description": "Verify provers row created during this run window with operator_addr, sphincs_pubkey populated, and a sane status",
+        "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT prover_id, operator_addr, status, length(sphincs_pubkey) FROM provers WHERE registered_at > NOW() - INTERVAL '5 minutes' ORDER BY registered_at DESC LIMIT 1;\"",
+        "expected": "one provers row from this run window, status in {pending_approval, active, registered}, sphincs_pubkey length > 0",
+        "phase": "verify"
+      },
+      {
+        "layer": "l1",
+        "description": "Verify the prover registered in this run is anchored on L1 (ProverRegistry.getProver(addr).proverAddress != 0x0 && isActive)",
+        "command": "bash -c '\nset -eo pipefail\nPROVER_ADDR=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT operator_addr FROM provers WHERE registered_at > NOW() - INTERVAL '\"'\"'5 minutes'\"'\"' ORDER BY registered_at DESC LIMIT 1;\" | tr -d \" \")\nif [ -z \"$PROVER_ADDR\" ]; then\n  echo \"FAIL: no provers row from this run window — drive step did not produce a registration\"\n  exit 1\nfi\necho \"checking L1 ProverRegistry.getProver(address) for prover=$PROVER_ADDR\"\nRAW=$(cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 \"getProver(address)((address,bytes32,bytes,uint256,uint256,bool,uint256,uint256))\" \"$PROVER_ADDR\" --rpc-url \"$L1_RPC_URL\" 2>/dev/null || echo \"\")\nif [ -z \"$RAW\" ]; then\n  echo \"FAIL: getProver call failed (RPC error or wrong ABI). Re-verify against src/l1/contracts/src/interfaces/IProverRegistry.sol:84\"\n  exit 1\nfi\n# struct order: proverAddress, sphincsPubKeyHash, sphincsPublicKey, stakedAmount, registeredAt, isActive, successfulSigns, slashedCount\nON_CHAIN_ADDR=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $1}\")\nREGISTERED_AT=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $5}\")\nIS_ACTIVE=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $6}\")\necho \"on-chain proverAddress: $ON_CHAIN_ADDR\"\necho \"on-chain registeredAt:  $REGISTERED_AT\"\necho \"on-chain isActive:      $IS_ACTIVE\"\nif [ -z \"$ON_CHAIN_ADDR\" ] || [ \"$ON_CHAIN_ADDR\" = \"0x0000000000000000000000000000000000000000\" ]; then\n  echo \"FAIL: prover $PROVER_ADDR has no on-chain entry (not registered, or wrong address)\"\n  exit 1\nfi\nif [ \"$IS_ACTIVE\" != \"true\" ]; then\n  echo \"FAIL: prover $PROVER_ADDR exists on-chain but isActive=$IS_ACTIVE (registration tx may have reverted post-write)\"\n  exit 1\nfi\necho \"PASS: prover anchored on L1 — proverAddress=$ON_CHAIN_ADDR, isActive=$IS_ACTIVE, registeredAt=$REGISTERED_AT\"\n'",
+        "expected": "PASS: getProver(operator_addr).proverAddress matches DB and isActive=true — proves registerProver tx landed on Sepolia (testnetMode=true allows stakedAmount=0)",
+        "phase": "verify"
+      }
+    ],
+    "acceptance_criteria": [
+      "Backend seq5_prover_registration tests pass (incl. test_prover_register_creates_db_row from PR2 #189)",
+      "Playwright prover-registration.integration.spec.ts passes",
+      "A new provers row exists with operator_addr populated, status in {pending_approval, active, registered}, sphincs_pubkey non-empty",
+      "On-chain getProver(operator_addr) returns matching proverAddress != 0x0 and isActive=true (registration anchored on Sepolia)",
+      "No stakedAmount lower-bound assertion under testnetMode=true (registration is free; mainnet variant tightens this in PR5)"
+    ],
+    "spec_section": "SEQUENCES.md §5 Prover Registration"
+  },
+  "plan_source": "fallback",
+  "layer_results": [
+    {
+      "layer": "backend",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 1131,
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq5_prover_registration -- --nocapture",
+      "stdout_excerpt": "\nrunning 4 tests\nSEQ#5-04 register_prover DB persistence — start\nSEQ#5-01 Prover Register: status=400, body={\n  \"code\": 1001,\n  \"message\": \"Invalid signature: HSM attestation validation failed: HSM attestation invalid: Invalid attestation format\"\n}\nSEQ#5-01 Registration returned 400 (expected: placeholder attestation rejected)\ntest seq5_prover_registration::test_prover_registration ... ok\nSEQ#5-04 Register: status=200, body={\n  \"prover_id\": \"0xc814d6c981582f7e7add724213d7d0cec1d610b0f7575886f4c56b71de3fde88\",\n  \"stake_locked\": \"1000000000000000000\",\n  \"status\": \"pending_approval\"\n}\nSEQ#5-02 Prover List: status=200, count=3\ntest seq5_prover_registration::test_prover_list ... ok\nSEQ#5-03 Prover Dashboard: status=200, prover_id=0xc814d6c981582f7e7add724213d7d0cec1d610b0f7575886f4c56b71de3fde88, body={\n  \"active_challenges\": 0,\n  \"last_activity\": 1778323955,\n  \"pending_rewards\": \"0\",\n  \"prover_id\": \"0xc814d6c981582f7e7add724213d7d0cec1d610b0f7575886f4c56b71de3fde88\",\n  \"queue_size\": 0,\n  \"signatures_24h\": 0,\n  \"slash_count\": 0,\n  \"stake_amount\": \"1000000000000000000\",\n  \"status\": \"pending_approval\",\n  \"total_earnings\": \"0\",\n  \"total_signatures\": 0,\n  \"uptime_percentage\": 99.9\n}\ntest seq5_prover_registration::test_prover_dashboard ... ok\nSEQ#5-04 GET /v1/prover/0xc814d6c981582f7e7add724213d7d0cec1d610b0f7575886f4c56b71de3fde88: status=200\nSEQ#5-04 PASSED — DB persistence verified, L1 call deferred to PR4\ntest seq5_prover_registration::test_prover_register_creates_db_row ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.60s\n\n",
+      "stderr_excerpt": "\u001b[1m\u001b[92m    Finished\u001b[0m `test` profile [optimized + debuginfo] target(s) in 0.33s\n\u001b[1m\u001b[33mwarning\u001b[0m: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0, sqlx-postgres v0.7.4\n\u001b[1m\u001b[92mnote\u001b[0m: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n\u001b[1m\u001b[92m     Running\u001b[0m tests/sequence_e2e_test.rs (/home/runner/work/quantum-shield/quantum-shield/target/debug/deps/sequence_e2e_test-40391b077d3850ab)\n"
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 29625,
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/prover-registration.integration.spec.ts --reporter=json",
+      "stdout_excerpt": "[truncated 35148 bytes]\n          \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 168,\n              \"column\": 7\n            },\n            {\n              \"title\": \"health check\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 328,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:02.668Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-aec1b4b7396c22a40a75\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 41,\n              \"column\": 7\n            },\n            {\n              \"title\": \"POST /v1/prover/register creates prover with SHA3-256 prover_id\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 9,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Prover Register] Rejected: 422 — check validation requirements\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.014Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-65a27ff238312955b429\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 46,\n              \"column\": 7\n            },\n            {\n              \"title\": \"prover registration increases Explorer activeProvers\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 13,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.037Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-dc20befd458e2df99798\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 82,\n              \"column\": 7\n            },\n            {\n              \"title\": \"duplicate prover address registration is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 4,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.060Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-6facecea3b02e23f8b47\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 115,\n              \"column\": 7\n            },\n            {\n              \"title\": \"GET /v1/prover/list returns registered provers\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 6,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Prover List] 3 provers found\\n\"\n                        },\n                        {\n                          \"text\": \"[Prover] First: 0x00000000000000000000000018ade03714b8fe61\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.074Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-e27ce2e2fa9603e51a4d\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 144,\n              \"column\": 7\n            },\n            {\n              \"title\": \"GET /v1/prover/dashboard returns prover metrics\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 5,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.089Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-f8c62e5322b0ecbb8a7d\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 168,\n              \"column\": 7\n            },\n            {\n              \"title\": \"health check\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 324,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.563Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-bc97b93325b5da1804b5\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 41,\n              \"column\": 7\n            },\n            {\n              \"title\": \"POST /v1/prover/register creates prover with SHA3-256 prover_id\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 9,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Prover Register] Rejected: 422 — check validation requirements\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.906Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-2211a6b4c3162d4d8c9c\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 46,\n              \"column\": 7\n            },\n            {\n              \"title\": \"prover registration increases Explorer activeProvers\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 12,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.929Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-e2d0a27b1f0d95ef3f85\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 82,\n              \"column\": 7\n            },\n            {\n              \"title\": \"duplicate prover address registration is rejected\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 4,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.953Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-8731435a8da80f31dabb\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 115,\n              \"column\": 7\n            },\n            {\n              \"title\": \"GET /v1/prover/list returns registered provers\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 7,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Prover List] 3 provers found\\n\"\n                        },\n                        {\n                          \"text\": \"[Prover] First: 0x00000000000000000000000018ade03714b8fe61\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.964Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-3d6ec2ac51bf55b677b5\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 144,\n              \"column\": 7\n            },\n            {\n              \"title\": \"GET /v1/prover/dashboard returns prover metrics\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 5,\n                      \"errors\": [],\n                      \"stdout\": [],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:53:03.979Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"085942f23f51e4dbfc5d-7400c321261916080b20\",\n              \"file\": \"integration/prover-registration.integration.spec.ts\",\n              \"line\": 168,\n              \"column\": 7\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"errors\": [],\n  \"stats\": {\n    \"startTime\": \"2026-05-09T10:52:37.047Z\",\n    \"duration\": 27008.453,\n    \"expected\": 30,\n    \"skipped\": 0,\n    \"unexpected\": 0,\n    \"flaky\": 0\n  }\n}\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 204,
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT prover_id, operator_addr, status, length(sphincs_pubkey) FROM provers WHERE registered_at > NOW() - INTERVAL '5 minutes' ORDER BY registered_at DESC LIMIT 1;\"",
+      "stdout_excerpt": "0xc814d6c981582f7e7add724213d7d0cec1d610b0f7575886f4c56b71de3fde88|0x00000000000000000000000018ade03714b8fe61|pending_approval|32\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "l1",
+      "status": "fail",
+      "exit_code": 1,
+      "duration_ms": 1171,
+      "command": "bash -c '\nset -eo pipefail\nPROVER_ADDR=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT operator_addr FROM provers WHERE registered_at > NOW() - INTERVAL '\"'\"'5 minutes'\"'\"' ORDER BY registered_at DESC LIMIT 1;\" | tr -d \" \")\nif [ -z \"$PROVER_ADDR\" ]; then\n  echo \"FAIL: no provers row from this run window — drive step did not produce a registration\"\n  exit 1\nfi\necho \"checking L1 ProverRegistry.getProver(address) for prover=$PROVER_ADDR\"\nRAW=$(cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 \"getProver(address)((address,bytes32,bytes,uint256,uint256,bool,uint256,uint256))\" \"$PROVER_ADDR\" --rpc-url \"$L1_RPC_URL\" 2>/dev/null || echo \"\")\nif [ -z \"$RAW\" ]; then\n  echo \"FAIL: getProver call failed (RPC error or wrong ABI). Re-verify against src/l1/contracts/src/interfaces/IProverRegistry.sol:84\"\n  exit 1\nfi\n# struct order: proverAddress, sphincsPubKeyHash, sphincsPublicKey, stakedAmount, registeredAt, isActive, successfulSigns, slashedCount\nON_CHAIN_ADDR=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $1}\")\nREGISTERED_AT=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $5}\")\nIS_ACTIVE=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $6}\")\necho \"on-chain proverAddress: $ON_CHAIN_ADDR\"\necho \"on-chain registeredAt:  $REGISTERED_AT\"\necho \"on-chain isActive:      $IS_ACTIVE\"\nif [ -z \"$ON_CHAIN_ADDR\" ] || [ \"$ON_CHAIN_ADDR\" = \"0x0000000000000000000000000000000000000000\" ]; then\n  echo \"FAIL: prover $PROVER_ADDR has no on-chain entry (not registered, or wrong address)\"\n  exit 1\nfi\nif [ \"$IS_ACTIVE\" != \"true\" ]; then\n  echo \"FAIL: prover $PROVER_ADDR exists on-chain but isActive=$IS_ACTIVE (registration tx may have reverted post-write)\"\n  exit 1\nfi\necho \"PASS: prover anchored on L1 — proverAddress=$ON_CHAIN_ADDR, isActive=$IS_ACTIVE, registeredAt=$REGISTERED_AT\"\n'",
+      "stdout_excerpt": "checking L1 ProverRegistry.getProver(address) for prover=0x00000000000000000000000018ade03714b8fe61\non-chain proverAddress: 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\non-chain registeredAt:  0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\non-chain isActive:      0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\nFAIL: prover 0x00000000000000000000000018ade03714b8fe61 exists on-chain but isActive=0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0 (registration tx may have reverted post-write)\n",
+      "stderr_excerpt": ""
+    }
+  ],
+  "layer_analyses": [
+    {
+      "layer": "backend",
+      "status": "pass",
+      "observations": [
+        "backend drive/verify exit=0 in 1131ms (no_ai deterministic)"
+      ],
+      "issues": [],
+      "confidence": 1
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "observations": [
+        "frontend drive/verify exit=0 in 29625ms (no_ai deterministic)"
+      ],
+      "issues": [],
+      "confidence": 1
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "observations": [
+        "db drive/verify exit=0 in 204ms (no_ai deterministic)"
+      ],
+      "issues": [],
+      "confidence": 1
+    },
+    {
+      "layer": "l1",
+      "status": "fail",
+      "observations": [],
+      "issues": [
+        {
+          "severity": "critical",
+          "title": "l1 layer fail (exit=1)",
+          "detail": "checking L1 ProverRegistry.getProver(address) for prover=0x00000000000000000000000018ade03714b8fe61\non-chain proverAddress: 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\non-chain registeredAt:  0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\non-chain isActive:      0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\nFAIL: prover 0x00000000000000000000000018ade03714b8fe61 exists on-chain but isActive=0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0 (regist"
+        }
+      ],
+      "confidence": 1
+    }
+  ],
+  "quality_findings": [],
+  "fixer_proposals": [],
+  "final_verdict": {
+    "verdict": "FIXABLE",
+    "summary": "1/4 layer(s) failed: l1",
+    "must_fix_before_merge": [
+      "l1: see stage2/l1.log + api-server.log (exit=1)"
+    ],
+    "fixer_recommendation": "review_required",
+    "unresolved_questions": [],
+    "confidence": 1
+  },
+  "cost_usd": 0,
+  "tokens": {
+    "input": 0,
+    "cached_input": 0,
+    "output": 0
+  }
+}

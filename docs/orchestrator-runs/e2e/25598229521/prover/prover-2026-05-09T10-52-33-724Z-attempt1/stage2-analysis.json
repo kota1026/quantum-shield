@@ -1,0 +1,42 @@
+[
+  {
+    "layer": "backend",
+    "status": "pass",
+    "observations": [
+      "backend drive/verify exit=0 in 1131ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "frontend",
+    "status": "pass",
+    "observations": [
+      "frontend drive/verify exit=0 in 29625ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "db",
+    "status": "pass",
+    "observations": [
+      "db drive/verify exit=0 in 204ms (no_ai deterministic)"
+    ],
+    "issues": [],
+    "confidence": 1
+  },
+  {
+    "layer": "l1",
+    "status": "fail",
+    "observations": [],
+    "issues": [
+      {
+        "severity": "critical",
+        "title": "l1 layer fail (exit=1)",
+        "detail": "checking L1 ProverRegistry.getProver(address) for prover=0x00000000000000000000000018ade03714b8fe61\non-chain proverAddress: 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\non-chain registeredAt:  0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\non-chain isActive:      0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0\nFAIL: prover 0x00000000000000000000000018ade03714b8fe61 exists on-chain but isActive=0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0 (regist"
+      }
+    ],
+    "confidence": 1
+  }
+]

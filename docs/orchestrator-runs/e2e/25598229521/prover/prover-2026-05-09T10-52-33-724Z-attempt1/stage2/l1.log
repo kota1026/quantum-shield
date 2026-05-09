@@ -1,0 +1,42 @@
+# l1 step
+# command: bash -c '
+set -eo pipefail
+PROVER_ADDR=$(psql "$DATABASE_URL" -t -A -c "SELECT operator_addr FROM provers WHERE registered_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY registered_at DESC LIMIT 1;" | tr -d " ")
+if [ -z "$PROVER_ADDR" ]; then
+  echo "FAIL: no provers row from this run window — drive step did not produce a registration"
+  exit 1
+fi
+echo "checking L1 ProverRegistry.getProver(address) for prover=$PROVER_ADDR"
+RAW=$(cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "getProver(address)((address,bytes32,bytes,uint256,uint256,bool,uint256,uint256))" "$PROVER_ADDR" --rpc-url "$L1_RPC_URL" 2>/dev/null || echo "")
+if [ -z "$RAW" ]; then
+  echo "FAIL: getProver call failed (RPC error or wrong ABI). Re-verify against src/l1/contracts/src/interfaces/IProverRegistry.sol:84"
+  exit 1
+fi
+# struct order: proverAddress, sphincsPubKeyHash, sphincsPublicKey, stakedAmount, registeredAt, isActive, successfulSigns, slashedCount
+ON_CHAIN_ADDR=$(echo "$RAW" | tr -d "()" | awk -F", " "{print $1}")
+REGISTERED_AT=$(echo "$RAW" | tr -d "()" | awk -F", " "{print $5}")
+IS_ACTIVE=$(echo "$RAW" | tr -d "()" | awk -F", " "{print $6}")
+echo "on-chain proverAddress: $ON_CHAIN_ADDR"
+echo "on-chain registeredAt:  $REGISTERED_AT"
+echo "on-chain isActive:      $IS_ACTIVE"
+if [ -z "$ON_CHAIN_ADDR" ] || [ "$ON_CHAIN_ADDR" = "0x0000000000000000000000000000000000000000" ]; then
+  echo "FAIL: prover $PROVER_ADDR has no on-chain entry (not registered, or wrong address)"
+  exit 1
+fi
+if [ "$IS_ACTIVE" != "true" ]; then
+  echo "FAIL: prover $PROVER_ADDR exists on-chain but isActive=$IS_ACTIVE (registration tx may have reverted post-write)"
+  exit 1
+fi
+echo "PASS: prover anchored on L1 — proverAddress=$ON_CHAIN_ADDR, isActive=$IS_ACTIVE, registeredAt=$REGISTERED_AT"
+'
+# exit: 1
+
+# STDOUT
+checking L1 ProverRegistry.getProver(address) for prover=0x00000000000000000000000018ade03714b8fe61
+on-chain proverAddress: 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0
+on-chain registeredAt:  0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0
+on-chain isActive:      0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0
+FAIL: prover 0x00000000000000000000000018ade03714b8fe61 exists on-chain but isActive=0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x, 0, 0, false, 0, 0 (registration tx may have reverted post-write)
+
+
+# STDERR

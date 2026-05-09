@@ -1,0 +1,48 @@
+{
+  "sequence_id": "seq-5",
+  "sequence_name": "Prover Registration",
+  "layers": [
+    "backend",
+    "frontend",
+    "db",
+    "l1"
+  ],
+  "steps": [
+    {
+      "layer": "backend",
+      "description": "Prover registration backend Rust test (POST /v1/prover/register + DB row + L1 stake)",
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq5_prover_registration -- --nocapture",
+      "expected": "Prover registration test produces provers row with operator_addr and pending_approval status",
+      "phase": "drive"
+    },
+    {
+      "layer": "frontend",
+      "description": "Playwright prover registration integration spec",
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/prover-registration.integration.spec.ts --reporter=json",
+      "expected": "UI prover-registration submission produces success state and DB row",
+      "phase": "drive"
+    },
+    {
+      "layer": "db",
+      "description": "Verify provers row created during this run window with operator_addr, sphincs_pubkey populated, and a sane status",
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT prover_id, operator_addr, status, length(sphincs_pubkey) FROM provers WHERE registered_at > NOW() - INTERVAL '5 minutes' ORDER BY registered_at DESC LIMIT 1;\"",
+      "expected": "one provers row from this run window, status in {pending_approval, active, registered}, sphincs_pubkey length > 0",
+      "phase": "verify"
+    },
+    {
+      "layer": "l1",
+      "description": "Verify the prover registered in this run is anchored on L1 (ProverRegistry.getProver(addr).proverAddress != 0x0 && isActive)",
+      "command": "bash -c '\nset -eo pipefail\nPROVER_ADDR=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT operator_addr FROM provers WHERE registered_at > NOW() - INTERVAL '\"'\"'5 minutes'\"'\"' ORDER BY registered_at DESC LIMIT 1;\" | tr -d \" \")\nif [ -z \"$PROVER_ADDR\" ]; then\n  echo \"FAIL: no provers row from this run window — drive step did not produce a registration\"\n  exit 1\nfi\necho \"checking L1 ProverRegistry.getProver(address) for prover=$PROVER_ADDR\"\nRAW=$(cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 \"getProver(address)((address,bytes32,bytes,uint256,uint256,bool,uint256,uint256))\" \"$PROVER_ADDR\" --rpc-url \"$L1_RPC_URL\" 2>/dev/null || echo \"\")\nif [ -z \"$RAW\" ]; then\n  echo \"FAIL: getProver call failed (RPC error or wrong ABI). Re-verify against src/l1/contracts/src/interfaces/IProverRegistry.sol:84\"\n  exit 1\nfi\n# struct order: proverAddress, sphincsPubKeyHash, sphincsPublicKey, stakedAmount, registeredAt, isActive, successfulSigns, slashedCount\nON_CHAIN_ADDR=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $1}\")\nREGISTERED_AT=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $5}\")\nIS_ACTIVE=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $6}\")\necho \"on-chain proverAddress: $ON_CHAIN_ADDR\"\necho \"on-chain registeredAt:  $REGISTERED_AT\"\necho \"on-chain isActive:      $IS_ACTIVE\"\nif [ -z \"$ON_CHAIN_ADDR\" ] || [ \"$ON_CHAIN_ADDR\" = \"0x0000000000000000000000000000000000000000\" ]; then\n  echo \"FAIL: prover $PROVER_ADDR has no on-chain entry (not registered, or wrong address)\"\n  exit 1\nfi\nif [ \"$IS_ACTIVE\" != \"true\" ]; then\n  echo \"FAIL: prover $PROVER_ADDR exists on-chain but isActive=$IS_ACTIVE (registration tx may have reverted post-write)\"\n  exit 1\nfi\necho \"PASS: prover anchored on L1 — proverAddress=$ON_CHAIN_ADDR, isActive=$IS_ACTIVE, registeredAt=$REGISTERED_AT\"\n'",
+      "expected": "PASS: getProver(operator_addr).proverAddress matches DB and isActive=true — proves registerProver tx landed on Sepolia (testnetMode=true allows stakedAmount=0)",
+      "phase": "verify"
+    }
+  ],
+  "acceptance_criteria": [
+    "Backend seq5_prover_registration tests pass (incl. test_prover_register_creates_db_row from PR2 #189)",
+    "Playwright prover-registration.integration.spec.ts passes",
+    "A new provers row exists with operator_addr populated, status in {pending_approval, active, registered}, sphincs_pubkey non-empty",
+    "On-chain getProver(operator_addr) returns matching proverAddress != 0x0 and isActive=true (registration anchored on Sepolia)",
+    "No stakedAmount lower-bound assertion under testnetMode=true (registration is free; mainnet variant tightens this in PR5)"
+  ],
+  "spec_section": "SEQUENCES.md §5 Prover Registration"
+}
