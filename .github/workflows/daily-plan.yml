@@ -59,6 +59,10 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          # W19.5 fix: github.com feeds (api.github.com/* + releases.atom)
+          # were rate-limited 403 on inaugural run — fetchText now sends
+          # Authorization: token <GITHUB_TOKEN> when this var is present.
+          GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/run-daily-plan.js
 
       - name: Configure git

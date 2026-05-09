@@ -104,32 +104,75 @@ const FEEDS = [
 
 const COMPETITOR_REPOS = [
   { axis: 'C', repo: 'theQRL/QRL' },
-  { axis: 'C', repo: 'PQShield/pqshield' },
+  // Note: 'PQShield/pqshield' (the namesake repo) is not a public GitHub
+  // repo as of W19 2026 — every fetch returns 404. PQShield's public code
+  // lives under domain-named repos (e.g. open implementations contributed
+  // upstream rather than under a `pqshield` org repo). Tracking competitor
+  // signal is now done via the PQShield blog feed in FEEDS above. If a
+  // public release-tracking repo materializes, add it back here.
   { axis: 'F', repo: 'starkware-libs/cairo' },
 ];
 
 // --- HTTP helpers ---------------------------------------------------------
 
-function fetchText(url, timeoutMs = 8000, redirectsLeft = 3) {
+// W19.5 fix (2026-05-09): inaugural run had 5/7 priority feeds FETCH_FAILED.
+// Root causes: NIST/Cloudflare/Discourse reject the bare bot UA; api.github.com
+// rate-limits unauthenticated runner IPs; and the previous helper collapsed
+// every error class into FETCH_FAILED, masking 403 vs 404 vs TIMEOUT.
+//
+// Changes:
+//   - browser-shaped User-Agent + Accept header
+//   - Authorization: token <GITHUB_TOKEN> for *.github.com when env var present
+//   - single retry with 1s sleep on network error / 5xx
+//   - return { ok, body, status } so the briefing can render concrete codes
+
+function fetchText(url, timeoutMs = 10000, redirectsLeft = 3, retriesLeft = 1) {
   return new Promise((resolve) => {
     let parsed;
     try {
       parsed = new URL(url);
     } catch {
-      return resolve({ ok: false, body: '' });
+      return resolve({ ok: false, body: '', status: 'INVALID_URL' });
     }
     const client = parsed.protocol === 'http:' ? http : https;
-    const req = client.get(url, { headers: { 'user-agent': 'quantum-shield-daily-plan/1.0' } }, (res) => {
+    const headers = {
+      'user-agent': 'Mozilla/5.0 (compatible; quantum-shield-daily-plan/1.1; +https://github.com/kota1026/quantum-shield)',
+      'accept': 'application/json, application/rss+xml, application/atom+xml, text/xml, text/html;q=0.9, */*;q=0.5',
+      'accept-language': 'en-US,en;q=0.9',
+    };
+    if (parsed.host.endsWith('github.com') && process.env.GITHUB_TOKEN) {
+      headers.authorization = `token ${process.env.GITHUB_TOKEN}`;
+    }
+
+    const retryOrFail = (status) => {
+      if (retriesLeft > 0) {
+        setTimeout(() => {
+          fetchText(url, timeoutMs, redirectsLeft, retriesLeft - 1).then(resolve);
+        }, 1000);
+      } else {
+        resolve({ ok: false, body: '', status });
+      }
+    };
+
+    const req = client.get(url, { headers }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirectsLeft > 0) {
         const next = new URL(res.headers.location, url).toString();
-        return resolve(fetchText(next, timeoutMs, redirectsLeft - 1));
+        return resolve(fetchText(next, timeoutMs, redirectsLeft - 1, retriesLeft));
       }
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => resolve({ ok: res.statusCode === 200, body: data.slice(0, 20000) }));
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          resolve({ ok: true, body: data.slice(0, 20000), status: 'HTTP 200' });
+        } else if (res.statusCode >= 500) {
+          retryOrFail(`HTTP ${res.statusCode}`);
+        } else {
+          resolve({ ok: false, body: '', status: `HTTP ${res.statusCode}` });
+        }
+      });
     });
-    req.on('error', () => resolve({ ok: false, body: '' }));
-    req.setTimeout(timeoutMs, () => { req.destroy(); resolve({ ok: false, body: '' }); });
+    req.on('error', () => retryOrFail('NETWORK_ERROR'));
+    req.setTimeout(timeoutMs, () => { req.destroy(); retryOrFail('TIMEOUT'); });
   });
 }
 
@@ -137,7 +180,7 @@ async function fetchFeeds() {
   const results = [];
   for (const feed of FEEDS) {
     const r = await fetchText(feed.url);
-    results.push({ axis: feed.axis, name: feed.name, url: feed.url, ok: r.ok, body: r.body });
+    results.push({ axis: feed.axis, name: feed.name, url: feed.url, ok: r.ok, body: r.body, status: r.status });
   }
   for (const entry of COMPETITOR_REPOS) {
     const url = `https://api.github.com/repos/${entry.repo}/releases?per_page=3`;
@@ -148,6 +191,7 @@ async function fetchFeeds() {
       url: `https://github.com/${entry.repo}/releases`,
       ok: r.ok,
       body: r.body,
+      status: r.status,
     });
   }
   return results;
@@ -219,7 +263,9 @@ function buildUserPrompt(feeds, recentPlans) {
     .filter((ax) => byAxis[ax])
     .map((ax) => {
       const items = byAxis[ax].map((f) => {
-        const status = f.ok ? 'OK' : 'FETCH_FAILED';
+        // f.status is concrete ("HTTP 403", "TIMEOUT", "NETWORK_ERROR", "HTTP 200")
+        // when emitted by the v1.1 fetcher; older runs may lack it.
+        const status = f.ok ? 'OK' : (f.status ? `FETCH_FAILED ${f.status}` : 'FETCH_FAILED');
         const snippet = f.ok ? f.body.replace(/\s+/g, ' ').slice(0, 1200) : '';
         return `#### ${f.name} (${status})\n${snippet}`;
       }).join('\n\n');
