@@ -1,0 +1,66 @@
+=== diagnostic ===
+pwd: /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator
+REPO_ROOT: /home/runner/work/quantum-shield/quantum-shield
+REPORTS_DIR: /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator/reports
+ANTHROPIC_API_KEY length: 108 (prefix: sk-ant-a...)
+DATABASE_URL: postgresql://quantum:quantum_dev@localhost:5432/quantum_shield
+L1_RPC_URL: https://ethereum-sepolia-rpc.publicnode.com
+
+=== :8080 backend reachability ===
+* Host localhost:8080 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+*   Trying [::1]:8080...
+* connect to ::1 port 8080 from ::1 port 45822 failed: Connection refused
+*   Trying 127.0.0.1:8080...
+* Connected to localhost (127.0.0.1) port 8080
+> GET /v1/health HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< content-type: application/json
+< x-frame-options: DENY
+< x-content-type-options: nosniff
+< referrer-policy: strict-origin-when-cross-origin
+< strict-transport-security: max-age=31536000; includeSubDomains
+< content-security-policy: default-src 'none'; frame-ancestors 'none'
+< permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+< cache-control: no-store, no-cache, must-revalidate
+< x-request-id: a363f37c-4991-4364-9dd5-e4c71f28e626
+< x-api-version: 0.1.0
+< x-ratelimit-remaining: 100
+< x-ratelimit-limit: 100
+(curl failed)
+
+=== node + pnpm ===
+v20.20.2
+10.33.4
+
+=== orchestrator run ===
+
+> quantum-shield-e2e-orchestrator@0.1.0 verify /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator
+> tsx src/index.ts --sequence lock
+
+
+=== lock ===
+▸ Sequence: lock (attempt 1/3)
+▸ Run dir:  /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator/reports/lock-2026-05-09T08-09-24-516Z-attempt1
+▸ Stage 0: preflight — validating L1 secret/RPC/vault before agent steps
+✓ Preflight passed: 3 checks green
+▸ Stage 1: spec-runner — loading SEQUENCES.md and producing test plan
+! spec-runner failed: Anthropic request failed: 400 {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011Careuz2T6zXNpr3mP9F5C"}; using binding fallback
+▸ Stage 2a: 2 drive step(s) in parallel
+▸ Stage 2b: 2 verify step(s) in parallel (after drive completes)
+✓ layer backend  pass (exit=0, 2275ms)
+✓ layer frontend pass (exit=0, 69335ms)
+✓ layer db       pass (exit=0, 277ms)
+✗ layer l1       fail (exit=1, 1124ms)
+▸ Stage 2: dispatching layer analyzer agents (haiku x5)
+▸ Stage 3: bug-hunter / regression-sentinel / performance-monitor (parallel)
+▸ Stage 3 findings by severity: {"critical":3}
+▸ Stage 4: fixer + cross-reviewer (parallel)
+✗ verdict: BLOCKED (confidence 0.50, $0.000)
+  report: /home/runner/work/quantum-shield/quantum-shield/src/agents/e2e-orchestrator/reports/lock-2026-05-09T08-09-24-516Z/report.md
+ ELIFECYCLE  Command failed with exit code 1.
