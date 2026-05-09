@@ -136,60 +136,88 @@ jobs:
           ACTION_COUNT=$(jq '[.actions[] | select(.mechanical == true and (.diff // "") != "")] | length' "$ACTIONS_PATH")
           echo "Mechanical actions to draft: $ACTION_COUNT"
 
+          # Each iteration is wrapped in a subshell so a failure in one action
+          # never aborts the whole step. Per-action diagnostics are printed.
           for i in $(seq 0 $((ACTION_COUNT - 1))); do
-            TITLE=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].title" "$ACTIONS_PATH")
-            SLUG=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].branch_suffix" "$ACTIONS_PATH")
-            RATIONALE=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].rationale" "$ACTIONS_PATH")
-            DIFF=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].diff" "$ACTIONS_PATH")
+            (
+              # Reset to a clean origin/main inside this subshell.
+              git checkout origin/main 2>/dev/null || true
+              git reset --hard origin/main 2>/dev/null || true
+              git clean -fdx 2>/dev/null || true
 
-            BRANCH="auto/daily-plan-${DATE}-${SLUG}"
-            if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
-              echo "Branch $BRANCH already exists — skipping action #$i"
-              continue
-            fi
+              TITLE=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].title" "$ACTIONS_PATH")
+              SLUG=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].branch_suffix" "$ACTIONS_PATH")
+              RATIONALE=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].rationale" "$ACTIONS_PATH")
+              DIFF=$(jq -r ".actions | map(select(.mechanical == true and (.diff // \"\") != \"\"))[$i].diff" "$ACTIONS_PATH")
 
-            git checkout -B "$BRANCH" origin/main
+              # Validate SLUG: must be non-empty kebab-case, no slashes/spaces.
+              if [ -z "$SLUG" ] || [ "$SLUG" = "null" ]; then
+                echo "[action $i] empty/null branch_suffix — skipping"
+                exit 0
+              fi
+              if echo "$SLUG" | grep -qE '[^a-zA-Z0-9_-]'; then
+                echo "[action $i] branch_suffix has invalid chars: $SLUG — skipping"
+                exit 0
+              fi
 
-            # Apply the diff. If it fails, log + continue rather than failing the whole job.
-            if ! printf '%s\n' "$DIFF" | git apply --whitespace=fix -; then
-              echo "[action $i] git apply failed — skipping"
-              continue
-            fi
+              BRANCH="auto/daily-plan-${DATE}-${SLUG}"
+              if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+                echo "[action $i] branch $BRANCH already exists on remote — skipping"
+                exit 0
+              fi
 
-            # Safety scan: refuse the patch if it touched protected paths.
-            CHANGED=$(git diff --name-only)
-            if echo "$CHANGED" | grep -qE '^(src/api/api/src/|src/frontend/web/src/|src/contracts/|\.claude/settings\.json$|CLAUDE\.md$|\.claude/rules/blockchain\.md$)'; then
-              echo "[action $i] patch touched protected path — aborting"
-              echo "$CHANGED"
-              git reset --hard origin/main
-              continue
-            fi
+              git checkout -B "$BRANCH" origin/main
 
-            git add -A
-            if git diff --staged --quiet; then
-              echo "[action $i] empty diff after apply — skipping"
-              continue
-            fi
+              # Apply the diff.
+              if ! printf '%s\n' "$DIFF" | git apply --whitespace=fix -; then
+                echo "[action $i] git apply failed — skipping"
+                exit 0
+              fi
 
-            git commit -m "auto: ${TITLE} (daily-plan ${DATE})"
-            for attempt in 1 2 3 4; do
-              if git push -u origin "$BRANCH"; then break; fi
-              sleep $((2 ** attempt))
-            done
+              # Safety scan: refuse the patch if it touched protected paths.
+              CHANGED=$(git diff --name-only)
+              if echo "$CHANGED" | grep -qE '^(src/api/api/src/|src/frontend/web/src/|src/contracts/|\.claude/settings\.json$|CLAUDE\.md$|\.claude/rules/blockchain\.md$)'; then
+                echo "[action $i] patch touched protected path — aborting"
+                echo "$CHANGED"
+                exit 0
+              fi
 
-            {
-              printf 'Auto-drafted by daily-plan %s.\n\n' "$DATE"
-              printf '**Action**: %s\n\n' "$TITLE"
-              printf '**Rationale**:\n%s\n\n' "$RATIONALE"
-              printf 'This PR was generated mechanically from the daily plan and is opened as a draft. Review the diff carefully — the bot follows guard rails (no source under `src/`, no contract addresses, < 80 line diff) but is not infallible.\n\n'
-              printf 'See the full briefing: `docs/intelligence/daily-plan/%s.md`.\n' "$DATE"
-            } > /tmp/action-body.md
+              git add -A
+              if git diff --staged --quiet; then
+                echo "[action $i] empty diff after apply — skipping"
+                exit 0
+              fi
 
-            gh pr create \
-              --draft \
-              --title "[daily-plan ${DATE}] ${TITLE}" \
-              --body-file /tmp/action-body.md \
-              --base main \
-              --head "$BRANCH" \
-              --label "auto-generated,daily-plan-action"
+              git commit -m "auto: ${TITLE} (daily-plan ${DATE})"
+
+              PUSHED=0
+              for attempt in 1 2 3 4; do
+                if git push -u origin "$BRANCH"; then PUSHED=1; break; fi
+                sleep $((2 ** attempt))
+              done
+              if [ "$PUSHED" -eq 0 ]; then
+                echo "[action $i] git push failed after 4 attempts — skipping"
+                exit 0
+              fi
+
+              {
+                printf 'Auto-drafted by daily-plan %s.\n\n' "$DATE"
+                printf '**Action**: %s\n\n' "$TITLE"
+                printf '**Rationale**:\n%s\n\n' "$RATIONALE"
+                printf 'This PR was generated mechanically from the daily plan and is opened as a draft. Review the diff carefully — the bot follows guard rails (no source under `src/`, no contract addresses, < 80 line diff) but is not infallible.\n\n'
+                printf 'See the full briefing: `docs/intelligence/daily-plan/%s.md`.\n' "$DATE"
+              } > /tmp/action-body.md
+
+              if ! gh pr create \
+                --draft \
+                --title "[daily-plan ${DATE}] ${TITLE}" \
+                --body-file /tmp/action-body.md \
+                --base main \
+                --head "$BRANCH" \
+                --label "auto-generated,daily-plan-action" 2>&1; then
+                echo "[action $i] gh pr create failed — branch is pushed but PR not opened"
+                exit 0
+              fi
+              echo "[action $i] draft PR opened"
+            ) || echo "[action $i] subshell exited non-zero — continuing to next action"
           done
