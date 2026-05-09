@@ -331,10 +331,18 @@ jobs:
         env:
           REPO_ROOT: ${{ github.workspace }}
           REPORTS_DIR: ${{ github.workspace }}/src/agents/e2e-orchestrator/reports
-          # Skip every Anthropic-dependent stage when the workflow_dispatch
-          # input requests it. Verdict is then a deterministic function of
-          # the Stage 2 layer exit codes (orchestrator.ts NO_AI branch).
-          NO_AI: ${{ inputs.no_ai && '1' || '' }}
+          # Skip every Anthropic-dependent stage when:
+          #   - workflow_dispatch sets `inputs.no_ai=true` (operator opt-in), OR
+          #   - the trigger is `push` or `pull_request` (auto-triggered from PR
+          #     merges or open PRs). 2026-05-09: PR merges were silently burning
+          #     ~0.08 ETH per push run on the lock leg before the AI stages
+          #     BLOCKED on Anthropic credit, draining the deployer wallet
+          #     between human-driven runs. Forcing NO_AI on push/PR makes those
+          #     auto-runs produce real deterministic verdicts AND keeps the
+          #     spent gas meaningful instead of wasted on agents that can't
+          #     respond. workflow_dispatch retains opt-in/opt-out so a manual
+          #     run can still exercise the AI path when credit is available.
+          NO_AI: ${{ (inputs.no_ai || github.event_name == 'push' || github.event_name == 'pull_request') && '1' || '' }}
         continue-on-error: true
         run: |
           set -o pipefail
