@@ -1,0 +1,10 @@
+{
+  "verdict": "FIXABLE",
+  "summary": "1/4 layer(s) failed: l1",
+  "must_fix_before_merge": [
+    "l1: see stage2/l1.log + api-server.log (exit=1)"
+  ],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [],
+  "confidence": 1
+}

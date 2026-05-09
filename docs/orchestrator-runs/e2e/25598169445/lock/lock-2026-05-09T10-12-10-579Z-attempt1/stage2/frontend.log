@@ -1,0 +1,1858 @@
+# frontend step
+# command: cd src/frontend/web && npx playwright test e2e/integration/lock.integration.spec.ts --reporter=json
+# exit: 0
+
+# STDOUT
+{
+  "config": {
+    "configFile": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts",
+    "rootDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+        "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+        "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598169445"
+      },
+      "gitCommit": {
+        "shortHash": "5270cd4",
+        "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+        "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+        "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+        "author": {
+          "name": "kota1026",
+          "email": "108375319+kota1026@users.noreply.github.com",
+          "time": 1778320351000
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "time": 1778320351000
+        },
+        "branch": "main"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598169445"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598169445"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598169445"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598169445"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598169445"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598169445"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "accessibility",
+        "name": "accessibility",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.a11y.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "integration/lock.integration.spec.ts",
+      "file": "integration/lock.integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Sequence #1: Lock — Deep Integration",
+          "file": "integration/lock.integration.spec.ts",
+          "line": 132,
+          "column": 6,
+          "specs": [
+            {
+              "title": "health check confirms backend is ready",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 336,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:42.426Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-87dc8fc33888af66962a",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/lock creates lock with valid SR_0 and lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 683,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock] lock_id=0x8a901352d644712d3950e6671eb3d44bce669b0b882696bf26f56c0903dd85ec\n"
+                        },
+                        {
+                          "text": "[Lock] sr_0=0xb177ceaedc08260ddf02819660726a507fbf09b98f47eb1915654befe0696996\n"
+                        },
+                        {
+                          "text": "[Lock] smt_proof length=17030 chars\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:42.791Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-ee1b1a8e79fbc2391ef9",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 140,
+              "column": 7
+            },
+            {
+              "title": "lock is persisted in DB and visible via GET /v1/explorer/locks",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 865,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock Persisted] lock_id=0x173189fe5c76dc3c366baba66d778454fb2db5c6c408da9785f7101f1bc776f9, status=pending\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:43.492Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-3a9d45e741b19bfef051",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 175,
+              "column": 7
+            },
+            {
+              "title": "lock increases Explorer totalLocks count",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1052,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Explorer] totalLocks: 4 -> 5\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:44.374Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-4776c449324bcf98e9df",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 203,
+              "column": 7
+            },
+            {
+              "title": "nonce reuse is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 935,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Nonce Reuse] Correctly rejected with status 409\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:45.435Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-9db0e6bedfe22dafb8fb",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 229,
+              "column": 7
+            },
+            {
+              "title": "expired lock request is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Expired] Correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:46.379Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-88863cf66885c3773312",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 248,
+              "column": 7
+            },
+            {
+              "title": "lock with missing required fields is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Missing Field] Correctly rejected with status 422\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:46.405Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-6fb1589351e17a102c6f",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 263,
+              "column": 7
+            },
+            {
+              "title": "multiple locks create distinct lock_ids and SR_0s",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3033,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Multi-Lock] 3 distinct locks created: 0x19dc4ff24f4eb35e6ba2b499bdb1055d6e94bb0454cc3afb29cebdd336ababb8, 0x4516f7f40494046d40a1245e0e014a1cc1f0c0728fefdb2f1497fb1f4293cd88, 0x60d2ce5f35059d5a1fbf2c55dc721fa255d1833fe37f8c202b4b84f2cbf556b6\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:46.419Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-048f3ad09f3bdaab26f0",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 285,
+              "column": 7
+            },
+            {
+              "title": "health check confirms backend is ready",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 337,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:50.105Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-29f694fe6f2d06ef2358",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/lock creates lock with valid SR_0 and lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1067,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock] lock_id=0x3ec34aeef879f82b44f4a0815f0635e11a42a992ef5c702a5bb9ccc8cf2e7b18\n"
+                        },
+                        {
+                          "text": "[Lock] sr_0=0x147aad901f2e6bb9e982aae570c8f9e2f92a04a01a4a88c18c6f6f603c32bf74\n"
+                        },
+                        {
+                          "text": "[Lock] smt_proof length=17030 chars\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:50.470Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-affa6387516682597418",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 140,
+              "column": 7
+            },
+            {
+              "title": "lock is persisted in DB and visible via GET /v1/explorer/locks",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1024,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock Persisted] lock_id=0xef3387b225fd9eef3dc29345377f79ff90fe777f450f4e3a9e422319c905866d, status=pending\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:51.553Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-44fc3a426c01b9b29a54",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 175,
+              "column": 7
+            },
+            {
+              "title": "lock increases Explorer totalLocks count",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1021,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Explorer] totalLocks: 11 -> 12\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:52.590Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-fbf8b93434b381c31ee8",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 203,
+              "column": 7
+            },
+            {
+              "title": "nonce reuse is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 923,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Nonce Reuse] Correctly rejected with status 409\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:53.620Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-dde7aae3e866127bf175",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 229,
+              "column": 7
+            },
+            {
+              "title": "expired lock request is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Expired] Correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:54.552Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-c8b816739f6c9889eae5",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 248,
+              "column": 7
+            },
+            {
+              "title": "lock with missing required fields is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Missing Field] Correctly rejected with status 422\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:54.574Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-e8f828d3d676098ddd73",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 263,
+              "column": 7
+            },
+            {
+              "title": "multiple locks create distinct lock_ids and SR_0s",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2874,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Multi-Lock] 3 distinct locks created: 0xd85cb10fc59ea3d599d3e9785dbd1104437e61e28244fb169f2f8e8c3400ace4, 0x1451f9f8bed64c092595e5ca5d4540b168a96d45aa9cf6b72b62c6bb3b44c0a5, 0x35a1eb4071b10fb3ceb1b5410de6677572f6ba97a14bb444d189b1dc90931c8f\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:54.588Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-17b1d3c6fcb0d8f06082",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 285,
+              "column": 7
+            },
+            {
+              "title": "health check confirms backend is ready",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 334,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:58.124Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-a94958b82f47d263041b",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/lock creates lock with valid SR_0 and lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 957,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock] lock_id=0xdc8a41ba086d07ad81d3a2f8da16ef8f398c9bfcaac5b786dda78b9aa9722b65\n"
+                        },
+                        {
+                          "text": "[Lock] sr_0=0x95caacdf3210419b7a6aefa9d68149bd1bebe2db4814193332d38359d97e8f14\n"
+                        },
+                        {
+                          "text": "[Lock] smt_proof length=17030 chars\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:58.484Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-88f9ac57fd171a5744d7",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 140,
+              "column": 7
+            },
+            {
+              "title": "lock is persisted in DB and visible via GET /v1/explorer/locks",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 856,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock Persisted] lock_id=0x863d9981dfe04b6e7f0b48994da385ee6bdf43c2d4bdc3d7595b094c2d2f7a9d, status=pending\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:12:59.458Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-8e6bbe1bed53f78e9b83",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 175,
+              "column": 7
+            },
+            {
+              "title": "lock increases Explorer totalLocks count",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 927,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Explorer] totalLocks: 18 -> 19\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:00.327Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-8d8833cd4b9ef3f7c2d0",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 203,
+              "column": 7
+            },
+            {
+              "title": "nonce reuse is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 844,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Nonce Reuse] Correctly rejected with status 409\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:01.264Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-6873c33ce0d3eb48b649",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 229,
+              "column": 7
+            },
+            {
+              "title": "expired lock request is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 18,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Expired] Correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:02.118Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-b6bda26596175bcf7c70",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 248,
+              "column": 7
+            },
+            {
+              "title": "lock with missing required fields is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Missing Field] Correctly rejected with status 422\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:02.148Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-2a7a4c9776548ab7e21d",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 263,
+              "column": 7
+            },
+            {
+              "title": "multiple locks create distinct lock_ids and SR_0s",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2901,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Multi-Lock] 3 distinct locks created: 0x84569b3fce58c84f6305e1fb8dc1e28546a96025258031dbfef7eacdf12c7ecc, 0x11f93849ee569684cd8908302dca33e6780d2e017d94b594a3e0f26c3c014a88, 0x7a02f4111709cef05565123082cce2c8d79e1acd10eaf57d1b0c47b9ed14d816\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:02.161Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-676f1d77e075dc5af639",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 285,
+              "column": 7
+            },
+            {
+              "title": "health check confirms backend is ready",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 335,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:05.714Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-ace78feb9d2fca13613c",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/lock creates lock with valid SR_0 and lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 964,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock] lock_id=0xa46ddef22b3832dc15f75e1fd20e195978512a6d712aec3e632b6c1f5c2a4a07\n"
+                        },
+                        {
+                          "text": "[Lock] sr_0=0x7d07cb485b621c8673a99058bdd9d9b276d2deaf08a9a4a4f6b9b49c1b8fc325\n"
+                        },
+                        {
+                          "text": "[Lock] smt_proof length=17030 chars\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:06.074Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-f1799e6844bb8806e843",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 140,
+              "column": 7
+            },
+            {
+              "title": "lock is persisted in DB and visible via GET /v1/explorer/locks",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 938,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock Persisted] lock_id=0x48314416d407faab197f9cdd5637f6970926787fab979f36ef461ee9c2bf545e, status=pending\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:07.055Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-bd707def9579b5374136",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 175,
+              "column": 7
+            },
+            {
+              "title": "lock increases Explorer totalLocks count",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 860,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Explorer] totalLocks: 25 -> 26\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:08.005Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-0136ac7b2e2946e9f97d",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 203,
+              "column": 7
+            },
+            {
+              "title": "nonce reuse is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1025,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Nonce Reuse] Correctly rejected with status 409\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:08.877Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-dc2e42cccf5243d59002",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 229,
+              "column": 7
+            },
+            {
+              "title": "expired lock request is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Expired] Correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:09.913Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-75a7ca2fc571cf8dbc70",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 248,
+              "column": 7
+            },
+            {
+              "title": "lock with missing required fields is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Missing Field] Correctly rejected with status 422\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:09.937Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-f0736da9f90650f32f2a",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 263,
+              "column": 7
+            },
+            {
+              "title": "multiple locks create distinct lock_ids and SR_0s",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2842,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Multi-Lock] 3 distinct locks created: 0xb9cc7b7ac4d4a6e19659ea03728cec2b7d3f793576219429c5c060fed3c8b84f, 0x22333063f596459913436f8dddcc3c099e5f8af2612d56fa22e4e8adda2ec988, 0xbe086f8d43f53b9d2ebb6d2b2ea14f1f3481ef5ae77220804de8b29f2641630f\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:09.951Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-6599e110834aab03fdeb",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 285,
+              "column": 7
+            },
+            {
+              "title": "health check confirms backend is ready",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 335,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:13.426Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-65af1f13c125590b1046",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/lock creates lock with valid SR_0 and lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1083,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock] lock_id=0x78238d6be9c2ba974b5b2867a04f503b261b90d549982857638038377b71f144\n"
+                        },
+                        {
+                          "text": "[Lock] sr_0=0x5ae4ad6f217492549c0e183a1774fa275ff52497fa64d0113143376aa2d756a6\n"
+                        },
+                        {
+                          "text": "[Lock] smt_proof length=17030 chars\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:13.787Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-1ae72b95dcbf3a3278f8",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 140,
+              "column": 7
+            },
+            {
+              "title": "lock is persisted in DB and visible via GET /v1/explorer/locks",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1099,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Lock Persisted] lock_id=0xecd0babe91f17e07218be9ea5a06bf9aaaa485485401b140a4d22403e647f2ed, status=pending\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:14.887Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-133621605b726ca98e46",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 175,
+              "column": 7
+            },
+            {
+              "title": "lock increases Explorer totalLocks count",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1010,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Explorer] totalLocks: 32 -> 33\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:16.004Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-e89eae9ab958115b5c67",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 203,
+              "column": 7
+            },
+            {
+              "title": "nonce reuse is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 973,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Nonce Reuse] Correctly rejected with status 409\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:17.025Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-df1c51ed389e9be9b8fb",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 229,
+              "column": 7
+            },
+            {
+              "title": "expired lock request is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Expired] Correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:18.009Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-83923d00673896deee40",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 248,
+              "column": 7
+            },
+            {
+              "title": "lock with missing required fields is rejected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Missing Field] Correctly rejected with status 422\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:18.038Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-653011916c07f7a1a202",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 263,
+              "column": 7
+            },
+            {
+              "title": "multiple locks create distinct lock_ids and SR_0s",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3619,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Multi-Lock] 3 distinct locks created: 0x888fe47ea2aed46fd2eb57c6565c5d1da96a6abc7a6fa349b8d1cc04ff7d6f93, 0xf9b7885a19774da06590b5834a5468cbf85afac24c3dbac5246237cab3e5a663, 0x62eff06409687a706a186e45dbc0e26b86dc896ef77bfd143386c0d4e91d96e4\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:13:18.052Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a755efc4348f41492de8-1056a23b7a8093b3e8ff",
+              "file": "integration/lock.integration.spec.ts",
+              "line": 285,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-05-09T10:12:14.122Z",
+    "duration": 67629.422,
+    "expected": 40,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
+
+
+# STDERR
