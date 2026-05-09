@@ -20,11 +20,12 @@ const fs = require('fs');
 const path = require('path');
 
 const OAUTH_TOKEN = process.env.CLAUDE_CODE_OAUTH_TOKEN;
+const API_KEY = process.env.ANTHROPIC_API_KEY;
 const SLACK_URL = process.env.SLACK_WEBHOOK_URL;
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 
-if (!OAUTH_TOKEN) {
-  console.log('CLAUDE_CODE_OAUTH_TOKEN not set — skipping');
+if (!OAUTH_TOKEN && !API_KEY) {
+  console.log('Neither CLAUDE_CODE_OAUTH_TOKEN nor ANTHROPIC_API_KEY set — skipping');
   process.exit(0);
 }
 
@@ -278,15 +279,21 @@ Rules:
 Return ONLY <json>...</json>.`;
 }
 
-// --- Claude Code CLI call -------------------------------------------------
-// We use the `claude` CLI via stdin/print mode. Authentication comes from
-// the CLAUDE_CODE_OAUTH_TOKEN env var (generated locally with
-// `claude setup-token`), which lets the workflow consume the user's
-// Pro/Max subscription quota instead of API credits.
+// --- Claude calls ---------------------------------------------------------
+// Two auth paths:
+//   1. OAuth (preferred) — `claude` CLI authenticated via CLAUDE_CODE_OAUTH_TOKEN
+//      consumes Pro/Max subscription quota; no per-token billing.
+//   2. API key (fallback) — direct https.request to api.anthropic.com,
+//      billed against ANTHROPIC_API_KEY's credit balance.
+//
+// Daily-plan tries OAuth first. If OAuth fails (rate limit, token expired,
+// CLI not installed) AND ANTHROPIC_API_KEY is set, retry via API. This
+// removes the single-vendor kill switch on the cron pipeline (W19 decision
+// #5, Devil's Advocate concern).
 
 const { spawnSync } = require('child_process');
 
-function callClaude(systemPrompt, userPrompt) {
+function callClaudeCLI(systemPrompt, userPrompt) {
   const fullPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
   const result = spawnSync(
     'claude',
@@ -307,6 +314,61 @@ function callClaude(systemPrompt, userPrompt) {
     throw new Error(`claude CLI exit ${result.status}: ${stderr || stdout || 'no output'}`);
   }
   return result.stdout;
+}
+
+function callClaudeAPI(systemPrompt, userPrompt) {
+  const body = JSON.stringify({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+  });
+  return new Promise((resolve, reject) => {
+    const req = https.request('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.error) {
+            return reject(new Error(`Anthropic API error: ${parsed.error.message}`));
+          }
+          const text = parsed.content?.[0]?.text || '';
+          resolve(text);
+        } catch (err) {
+          reject(new Error(`Failed to parse Anthropic response: ${err.message}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(120000, () => { req.destroy(new Error('API request timeout')); });
+    req.write(body);
+    req.end();
+  });
+}
+
+async function callClaude(systemPrompt, userPrompt) {
+  if (OAUTH_TOKEN) {
+    try {
+      console.log('[daily-plan] auth path: OAuth (claude CLI)');
+      return callClaudeCLI(systemPrompt, userPrompt);
+    } catch (err) {
+      if (API_KEY) {
+        console.warn(`[daily-plan] OAuth path failed (${err.message}); falling back to API key.`);
+        return await callClaudeAPI(systemPrompt, userPrompt);
+      }
+      throw err;
+    }
+  }
+  console.log('[daily-plan] auth path: API key (no OAuth token)');
+  return await callClaudeAPI(systemPrompt, userPrompt);
 }
 
 function extractJSON(text) {
@@ -362,7 +424,7 @@ function writeOutput(name, value) {
     console.log(`[daily-plan] continuity context: ${recentPlans.length} prior plans`);
 
     console.log(`[daily-plan] calling ${MODEL}...`);
-    const text = callClaude(SYSTEM_PROMPT, buildUserPrompt(feeds, recentPlans));
+    const text = await callClaude(SYSTEM_PROMPT, buildUserPrompt(feeds, recentPlans));
     const plan = extractJSON(text);
 
     if (!fs.existsSync(REPORT_DIR)) fs.mkdirSync(REPORT_DIR, { recursive: true });
