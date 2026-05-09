@@ -1,0 +1,8 @@
+{
+  "verdict": "BLOCKED",
+  "summary": "cross-reviewer did not return a parseable verdict",
+  "must_fix_before_merge": [],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [],
+  "confidence": 0.5
+}
