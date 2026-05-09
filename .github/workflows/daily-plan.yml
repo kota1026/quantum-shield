@@ -14,6 +14,16 @@ on:
   schedule:
     - cron: '30 21 * * *'  # UTC 21:30 = JST 06:30
   workflow_dispatch:
+  # Self-test trigger: any change to the workflow or its script reruns it.
+  # Doubles as a bootstrap so GitHub registers the workflow_dispatch URL
+  # without waiting for the first scheduled run (the comment-only nudge
+  # in PR #174 was insufficient — schedule+dispatch-only workflows aren't
+  # exposed by /actions/workflows/<file>.yml until at least one run exists).
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/daily-plan.yml'
+      - 'scripts/run-daily-plan.js'
 
 permissions:
   contents: write
