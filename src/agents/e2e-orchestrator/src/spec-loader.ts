@@ -324,23 +324,90 @@ echo "PASS: emergency unlock anchored on L1 — initiatedAt=$INITIATED_AT"
       },
       {
         layer: 'l1',
-        description: 'ProverRegistry stake check',
-        command: `cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "getProverCount()(uint256)" --rpc-url "$L1_RPC_URL"`,
+        // 2026-05-09 (Phase 3 PR1/5): renamed from `getProverCount()` (does
+        // not exist on the deployed canonical contract) to
+        // `getActiveProverCount()` — see
+        // src/l1/contracts/src/interfaces/IProverRegistry.sol:122-125. The
+        // prior call would have reverted with "function selector was not
+        // recognized" against the deployed Sepolia contract.
+        description: 'ProverRegistry reachability check (getActiveProverCount)',
+        command: `cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "getActiveProverCount()(uint256)" --rpc-url "$L1_RPC_URL"`,
         phase: 'verify',
       },
-      // 2026-04-28 follow-up #2 from the slashing E2E run
-      // (docs/e2e-demos/slashing-2026-04-28/report.md): the prior binding
-      // only checked `getProverCount()`, which doesn't prove the slash
-      // actually landed. Now also assert the prover's stake decreased
-      // (via stakeOf) — a non-zero return from a previously-staked prover
-      // means the slash didn't take effect. The test fixture seeds a
-      // known prover at `0x...0001`; the orchestrator verifies its post-
-      // slash stake is below the pre-slash value.
+      // 2026-05-09 (Phase 3 PR1/5 of 5): ABI alignment fix.
+      //
+      // The previous step called `stakeOf(bytes32)`, which DOES NOT EXIST on
+      // the deployed canonical `ProverRegistry`
+      // (0x08e1fc1A0d614bc132B48950760c7A291cCB8946). The deployed contract
+      // is `src/l1/contracts/src/ProverRegistry.sol`, keyed by
+      // `address proverAddress`, with `getProver(address)` returning the
+      // full `Prover` struct (which includes `stakedAmount` and
+      // `slashedCount`). On-chain verification (cast call, 2026-05-09):
+      //   - MIN_STAKE_MAINNET() = 1e18 → confirms canonical contract
+      //   - MIN_STAKE_PHASE1() reverts → alternate variant NOT deployed
+      //   - testnetMode() = true → registration is free (stakedAmount may be 0)
+      //   - authorizedSlashers(VAULT) = true → Vault can slash without admin tx
+      //
+      // Same precedent as Phase 2 PR1 (#179) which fixed the unlock binding's
+      // table/column-name latent bugs before any new flow rolled out.
+      //
+      // Strategy:
+      //   1. Read this run's prover operator address from PG
+      //      (`provers.operator_addr`, NOT `wallet_address` — see
+      //      migrations/001_initial_schema.sql:114). 5-min run-window guard
+      //      mirrors the lock/unlock bindings.
+      //   2. cast call `getProver(address)` and parse the returned tuple.
+      //      Tuple field order (canonical, see
+      //      src/l1/contracts/src/interfaces/IProverRegistry.sol:8-18):
+      //        1. proverAddress   (address)
+      //        2. sphincsPubKeyHash (bytes32)
+      //        3. sphincsPublicKey  (bytes)
+      //        4. stakedAmount    (uint256) ← used to be the imaginary stakeOf
+      //        5. registeredAt    (uint256)
+      //        6. isActive        (bool)
+      //        7. successfulSigns (uint256)
+      //        8. slashedCount    (uint256)
+      //   3. Assert proverAddress != 0x0 (struct populated → prover known
+      //      on-chain) AND slashedCount > 0 (a slash actually landed). The
+      //      latter is the real "slash anchored on L1" signal — on testnet
+      //      `stakedAmount` may be 0 by design (testnetMode=true), so a
+      //      stake-comparison check is not authoritative. Once mainnet
+      //      configuration lands, PR5 may add a tighter pre/post-stake
+      //      delta assertion.
       {
         layer: 'l1',
-        description: 'ProverRegistry slashed-stake check (assert slash actually landed)',
-        command: `cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "stakeOf(bytes32)(uint256)" 0x0000000000000000000000000000000000000000000000000000000000000001 --rpc-url "$L1_RPC_URL"`,
-        expected: 'stake of test prover < pre-slash baseline (proves slash landed on-chain, not just in DB)',
+        description: 'ProverRegistry getProver(address) check — assert slash actually landed (slashedCount > 0)',
+        command: `bash -c '
+set -eo pipefail
+PROVER_ADDR=$(psql "$DATABASE_URL" -t -A -c "SELECT operator_addr FROM provers WHERE registered_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY registered_at DESC LIMIT 1;" | tr -d " ")
+if [ -z "$PROVER_ADDR" ]; then
+  echo "FAIL: no provers row from this run window — drive step did not register a prover"
+  exit 1
+fi
+echo "checking L1 ProverRegistry.getProver(address) for prover=$PROVER_ADDR"
+RAW=$(cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "getProver(address)((address,bytes32,bytes,uint256,uint256,bool,uint256,uint256))" "$PROVER_ADDR" --rpc-url "$L1_RPC_URL" 2>/dev/null || echo "")
+if [ -z "$RAW" ]; then
+  echo "FAIL: getProver call failed (RPC error or wrong ABI). Re-verify against src/l1/contracts/src/interfaces/IProverRegistry.sol:84"
+  exit 1
+fi
+# struct order: proverAddress, sphincsPubKeyHash, sphincsPublicKey, stakedAmount, registeredAt, isActive, successfulSigns, slashedCount
+ON_CHAIN_ADDR=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$1}")
+STAKED_AMOUNT=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$4}")
+SLASHED_COUNT=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$8}")
+echo "on-chain proverAddress: $ON_CHAIN_ADDR"
+echo "on-chain stakedAmount:  $STAKED_AMOUNT"
+echo "on-chain slashedCount:  $SLASHED_COUNT"
+if [ -z "$ON_CHAIN_ADDR" ] || [ "$ON_CHAIN_ADDR" = "0x0000000000000000000000000000000000000000" ]; then
+  echo "FAIL: prover $PROVER_ADDR has no on-chain entry (not registered, or wrong address)"
+  exit 1
+fi
+if [ -z "$SLASHED_COUNT" ] || [ "$SLASHED_COUNT" = "0" ]; then
+  echo "FAIL: slashedCount=0 → no slash landed on-chain for prover $PROVER_ADDR"
+  exit 1
+fi
+echo "PASS: slash anchored on L1 — slashedCount=$SLASHED_COUNT, stakedAmount=$STAKED_AMOUNT"
+'`,
+        expected: 'PASS: getProver(operator_addr).slashedCount > 0 — proves slash() tx landed on Sepolia (testnetMode=true allows stakedAmount=0)',
         phase: 'verify',
       },
     ],
