@@ -10,6 +10,7 @@
 //! - `getLock(lockId)` — View lock details
 //! - `getUnlockRequest(lockId)` — View unlock request details
 
+use ethers::middleware::NonceManagerMiddleware;
 use ethers::prelude::*;
 use std::sync::Arc;
 use tracing::{info, instrument};
@@ -23,9 +24,24 @@ abigen!(
     event_derives(serde::Deserialize, serde::Serialize)
 );
 
+/// Middleware stack used by L1VaultService.
+///
+/// Bottom-up: `Provider<Http>` -> `SignerMiddleware` (signs txs with `LocalWallet`)
+/// -> `NonceManagerMiddleware` (tracks the next nonce client-side and atomically
+/// increments per call, so concurrent submissions get distinct nonces).
+///
+/// Without `NonceManagerMiddleware`, ethers-rs fetches the nonce from
+/// `eth_getTransactionCount` for every send. Two concurrent `deposit()` calls
+/// then receive the same nonce, race to submit, and the loser is rejected by
+/// the node with `replacement transaction underpriced` (-32000). This was
+/// observed on Sepolia in run 25588391389: the first 3 lockWithSR0 txs mined,
+/// but later parallel submissions in the same run failed with that exact error.
+pub type L1VaultMiddleware =
+    NonceManagerMiddleware<SignerMiddleware<Provider<Http>, LocalWallet>>;
+
 /// L1 Vault service wrapping the contract bindings with a signer
 pub struct L1VaultService {
-    contract: L1VaultContract<SignerMiddleware<Provider<Http>, LocalWallet>>,
+    contract: L1VaultContract<L1VaultMiddleware>,
     address: Address,
 }
 
@@ -54,12 +70,20 @@ impl L1VaultService {
             .with_chain_id(chain_id);
 
         let signer = SignerMiddleware::new((*provider).clone(), wallet);
-        let contract = L1VaultContract::new(address, Arc::new(signer));
+        let signer_address = signer.address();
+        // Wrap with NonceManagerMiddleware so concurrent tx submissions
+        // (e.g. parallel POST /v1/lock requests) get distinct, monotonically
+        // increasing nonces instead of all racing on the same node-fetched
+        // nonce. See L1VaultMiddleware docs above for the failure mode this
+        // prevents (Sepolia run 25588391389).
+        let nonce_managed = NonceManagerMiddleware::new(signer, signer_address);
+        let contract = L1VaultContract::new(address, Arc::new(nonce_managed));
 
         info!(
             vault_address = %vault_address,
             chain_id = chain_id,
-            "L1VaultService initialized"
+            signer = %signer_address,
+            "L1VaultService initialized with NonceManagerMiddleware"
         );
 
         Ok(Self { contract, address })
