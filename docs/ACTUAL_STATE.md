@@ -1,8 +1,29 @@
-# Quantum Shield - 実態調査レポート (2026-04-03 更新)
+# Quantum Shield - 実態調査レポート (2026-05-08 更新)
 
 > **目的**: コード実態と照合し、正確な現状を記録する
 > **手法**: 全レイヤーの実コードを調査。docsの記載は検証対象であり根拠としない
-> **更新履歴**: 2026-03-01 初版 / 2026-03-03 Phase 6全完了 / **2026-04-03 Public Beta Launch完了**
+> **更新履歴**: 2026-03-01 初版 / 2026-03-03 Phase 6全完了 / 2026-04-03 Public Beta Launch完了 / **2026-05-08 Phase 1 Orchestrator-driven Sepolia 自動検証達成**
+
+---
+
+## 🛰 Orchestrator-Driven Sepolia 自動検証 (2026-05-08)
+
+| 項目 | 値 |
+|---|---|
+| Run | `25588391389` (NO_AI mode, workflow_dispatch) |
+| Sequence | `lock` (Phase 1) |
+| Real Sepolia tx (lockWithSR0) | 3 件成功 |
+| Vault `totalLocked()` 推移 | 0.22 ETH → 0.73 ETH (+0.51 ETH) |
+| Vault | [`0x07012aeF87C6E423c32F2f8eaF81762f63337260`](https://sepolia.etherscan.io/address/0x07012aeF87C6E423c32F2f8eaF81762f63337260) |
+| Signer | [`0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3`](https://sepolia.etherscan.io/address/0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3) |
+
+成立した 3 件:
+
+- [`0x00edac60...30f4b09`](https://sepolia.etherscan.io/tx/0x00edac601d0033c7e82cea09903141623088466e83aae52fe02b502ff30f4b09)
+- [`0xc6e568c2...6b95af2`](https://sepolia.etherscan.io/tx/0xc6e568c20eafd994fcf7bb52396e283e79df21958f08e7d54270283fd6b95af2)
+- [`0x39373954...19ff8a6`](https://sepolia.etherscan.io/tx/0x39373954c96f496fabeda1fc7e126a6ffd7461880f3bb4eca00e4ac0319ff8a6)
+
+詳細経緯は `docs/INTEGRATION_METHODOLOGY_v2.md` の「Phase 1 — Orchestrator-Driven Sepolia 自動検証」を参照。
 
 ---
 
