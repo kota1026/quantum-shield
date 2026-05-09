@@ -1,0 +1,144 @@
+{
+  "sequence": "seq-2",
+  "started_at": "2026-05-09T10:35:49.626Z",
+  "finished_at": "2026-05-09T10:36:43.788Z",
+  "duration_ms": 54162,
+  "plan": {
+    "sequence_id": "seq-2",
+    "sequence_name": "Normal Unlock",
+    "layers": [
+      "backend",
+      "frontend",
+      "db",
+      "l1"
+    ],
+    "steps": [
+      {
+        "layer": "backend",
+        "description": "Unlock + auto-claim Rust test",
+        "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq2_unlock_normal -- --nocapture",
+        "expected": "24h time-lock honored, Auto-Claim service finalizes",
+        "phase": "drive"
+      },
+      {
+        "layer": "frontend",
+        "description": "Playwright unlock integration spec",
+        "command": "cd src/frontend/web && npx playwright test e2e/integration/unlock.integration.spec.ts --reporter=json",
+        "phase": "drive"
+      },
+      {
+        "layer": "db",
+        "description": "Verify unlock_requests row created during this run window and release_time is 24h ahead of created_at (normal unlock; emergency would be 7d)",
+        "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT unlock_id, lock_id, status, is_emergency, EXTRACT(EPOCH FROM (release_time - created_at))/3600 AS hours FROM unlock_requests WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;\"",
+        "expected": "one row from this run window, status in {pending, requested, finalized}, is_emergency=f, hours ≈ 24",
+        "phase": "verify"
+      },
+      {
+        "layer": "l1",
+        "description": "Verify the unlock request created in this run is anchored on L1 (Vault.getUnlockRequest(lockId).requestedAt > 0)",
+        "command": "bash -c '\nset -eo pipefail\nLOCK_ID=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id FROM unlock_requests WHERE created_at > NOW() - INTERVAL '\"'\"'5 minutes'\"'\"' ORDER BY created_at DESC LIMIT 1;\" | tr -d \" \")\nif [ -z \"$LOCK_ID\" ]; then\n  echo \"FAIL: no unlock_requests row from this run window — drive step did not produce a request\"\n  exit 1\nfi\necho \"checking L1 unlock request for lock=$LOCK_ID\"\nRAW=$(cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"getUnlockRequest(bytes32)((bytes32,address,uint256,bytes32,bytes32,uint256,uint256,bool,uint256,uint256,uint256,uint256,uint256))\" \"$LOCK_ID\" --rpc-url \"$L1_RPC_URL\" 2>/dev/null || echo \"\")\nif [ -z \"$RAW\" ]; then\n  echo \"FAIL: getUnlockRequest call failed (RPC error or wrong ABI)\"\n  exit 1\nfi\n# struct order: lockId, recipient, amount, stateRoot, unlockStateRoot, requestedAt, unlockableAt, isEmergency, bond, signatureCount, unlockNonce, proverRequestedAt, emergencyReadyAt\nREQUESTED_AT=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $6}\")\necho \"on-chain requestedAt: $REQUESTED_AT\"\nif [ -z \"$REQUESTED_AT\" ] || [ \"$REQUESTED_AT\" = \"0\" ]; then\n  echo \"FAIL: lock $LOCK_ID has no on-chain unlock request (requestUnlock tx not submitted or reverted)\"\n  exit 1\nfi\necho \"PASS: unlock request anchored on L1 — requestedAt=$REQUESTED_AT\"\n'",
+        "expected": "PASS: getUnlockRequest(lockId).requestedAt > 0 — proves the requestUnlock tx landed on Sepolia in this run",
+        "phase": "verify"
+      }
+    ],
+    "acceptance_criteria": [
+      "Time lock = 24 hours, sourced from config not hardcoded",
+      "Auto-claim service marks unlock as finalized after timelock",
+      "No skip_signature_verification leak in production guard"
+    ],
+    "spec_section": "SEQUENCES.md §2 Normal Unlock"
+  },
+  "plan_source": "fallback",
+  "layer_results": [
+    {
+      "layer": "backend",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 2187,
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq2_unlock_normal -- --nocapture",
+      "stdout_excerpt": "\nrunning 2 tests\nSEQ#2-02 Nonexistent lock unlock: status=404\ntest seq2_unlock_normal::test_unlock_nonexistent_lock_rejected ... ok\nSEQ#2-01 Lock created: lock_id=0x469e72a21f87466c7d851983b2bef7fd3a2ad491195364aeb2cf1c8b48ada2ad\nSEQ#2-01 Unlock response: status=200, body={\n  \"prover_signatures_collected\": 0,\n  \"prover_signatures_required\": 2,\n  \"release_time\": 1778409352,\n  \"selected_provers\": [\n    \"0x0000000000000000000000000000000000000002\",\n    \"0x0000000000000000000000000000000000000001\"\n  ],\n  \"sr_1\": \"0xed7ec6123df5220798000e2c8e9b035134fc45d2b6e39f9ee906ac984eb68ba1\",\n  \"status\": \"pending_signatures\",\n  \"time_lock_hours\": 24,\n  \"unlock_id\": \"0x8d86f0bb43a97b2536f44a9daaf9407d4bf9f8ad24a5e8a2f72cbb37d34c4c37\",\n  \"vrf_request_id\": \"0x6f77e13c03abab70ff925e301a7d4af7f80afed1830c35f6e5bc2c8cab9b1f4f\",\n  \"vrf_status\": \"fallback_used\"\n}\nSEQ#2-01 Selected provers: 2 (expected 2 from 2-of-5)\ntest seq2_unlock_normal::test_unlock_after_lock ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 38 filtered out; finished in 1.50s\n\n",
+      "stderr_excerpt": "\u001b[1m\u001b[92m    Finished\u001b[0m `test` profile [optimized + debuginfo] target(s) in 0.44s\n\u001b[1m\u001b[33mwarning\u001b[0m: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0, sqlx-postgres v0.7.4\n\u001b[1m\u001b[92mnote\u001b[0m: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n\u001b[1m\u001b[92m     Running\u001b[0m tests/sequence_e2e_test.rs (/home/runner/work/quantum-shield/quantum-shield/target/debug/deps/sequence_e2e_test-40391b077d3850ab)\n"
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 52367,
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/unlock.integration.spec.ts --reporter=json",
+      "stdout_excerpt": "[truncated 25347 bytes]\n\"unlock rejects nonexistent lock_id\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"webkit\",\n                  \"projectName\": \"webkit\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 2,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 23,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock NotFound] correctly rejected with status 404\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:32.259Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-83986e7aed510893bed2\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 186,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock rejects wrong-key signature\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"webkit\",\n                  \"projectName\": \"webkit\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 2,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 919,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock WrongKey] correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:32.298Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-0f75fc7398f1e6afe3db\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 208,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock with malformed signature length is rejected (Err vs Ok(false) split)\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"webkit\",\n                  \"projectName\": \"webkit\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 2,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 1119,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock MalformedSig] correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:33.236Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-faacc9cc47ede9c4bb81\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 234,\n              \"column\": 7\n            },\n            {\n              \"title\": \"POST /v1/unlock creates an unlock request when prover pool has provers\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 1340,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock] status=200, body={\\\"unlock_id\\\":\\\"0x799a4227f750ec8a7493c636c41ec651d4f4539abcf53dffed5bd89a67319257\\\",\\\"sr_1\\\":\\\"0xd6e3560e68f7cfa216c5c152e70adcf152111bf80e90410ffa66e38d57cd3745\\\",\\\"release_time\\\":1778409396,\\\"time_lock_hours\\\":24,\\\"prover_signatures_required\\\":2,\\\"prover_signatures_collected\\\":0,\\\"status\\\":\\\"pending_signatures\\\",\\\"v\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:35.014Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-3eea40112c46707ce14a\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 136,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock rejects nonexistent lock_id\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 36,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock NotFound] correctly rejected with status 404\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:36.384Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-f1ace13bf16f64928baf\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 186,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock rejects wrong-key signature\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 912,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock WrongKey] correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:36.442Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-1d2e80e7dba901c9763f\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 208,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock with malformed signature length is rejected (Err vs Ok(false) split)\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Chrome\",\n                  \"projectName\": \"Mobile Chrome\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 3,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 1086,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock MalformedSig] correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:37.373Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-5fa8c75952320d7c7d51\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 234,\n              \"column\": 7\n            },\n            {\n              \"title\": \"POST /v1/unlock creates an unlock request when prover pool has provers\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 1388,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock] status=200, body={\\\"unlock_id\\\":\\\"0x5ff01ba1de87b4132b6d746889f86cd99e09b5e00f114b891a48a2f9ad48af8d\\\",\\\"sr_1\\\":\\\"0xcdd41cbcdeb0edc6ac52da73fbffa088d828960073938cd9b36611f02ebb80b4\\\",\\\"release_time\\\":1778409400,\\\"time_lock_hours\\\":24,\\\"prover_signatures_required\\\":2,\\\"prover_signatures_collected\\\":0,\\\"status\\\":\\\"pending_signatures\\\",\\\"v\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:39.124Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-a38d82fb8b4a32271227\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 136,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock rejects nonexistent lock_id\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 20,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock NotFound] correctly rejected with status 404\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:40.538Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-9081ae5f17010e30503e\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 186,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock rejects wrong-key signature\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 1083,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock WrongKey] correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:40.579Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-69cfd5103b6f56d59dfd\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 208,\n              \"column\": 7\n            },\n            {\n              \"title\": \"unlock with malformed signature length is rejected (Err vs Ok(false) split)\",\n              \"ok\": true,\n              \"tags\": [],\n              \"tests\": [\n                {\n                  \"timeout\": 30000,\n                  \"annotations\": [],\n                  \"expectedStatus\": \"passed\",\n                  \"projectId\": \"Mobile Safari\",\n                  \"projectName\": \"Mobile Safari\",\n                  \"results\": [\n                    {\n                      \"workerIndex\": 4,\n                      \"parallelIndex\": 0,\n                      \"status\": \"passed\",\n                      \"duration\": 973,\n                      \"errors\": [],\n                      \"stdout\": [\n                        {\n                          \"text\": \"[Unlock MalformedSig] correctly rejected with status 400\\n\"\n                        }\n                      ],\n                      \"stderr\": [],\n                      \"retry\": 0,\n                      \"startTime\": \"2026-05-09T10:36:41.677Z\",\n                      \"annotations\": [],\n                      \"attachments\": []\n                    }\n                  ],\n                  \"status\": \"expected\"\n                }\n              ],\n              \"id\": \"9ee45772bd875943c8ab-08dc3c177a5d915fd871\",\n              \"file\": \"integration/unlock.integration.spec.ts\",\n              \"line\": 234,\n              \"column\": 7\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"errors\": [],\n  \"stats\": {\n    \"startTime\": \"2026-05-09T10:35:52.941Z\",\n    \"duration\": 49787.974,\n    \"expected\": 20,\n    \"skipped\": 0,\n    \"unexpected\": 0,\n    \"flaky\": 0\n  }\n}\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 325,
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT unlock_id, lock_id, status, is_emergency, EXTRACT(EPOCH FROM (release_time - created_at))/3600 AS hours FROM unlock_requests WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;\"",
+      "stdout_excerpt": "0x5ff01ba1de87b4132b6d746889f86cd99e09b5e00f114b891a48a2f9ad48af8d|0x600868a53571a7a16dbecf92a89266200c7dab7194088ad41a66627b4fa5bc7d|pending|f|23.9998583383333333\n",
+      "stderr_excerpt": ""
+    },
+    {
+      "layer": "l1",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 1031,
+      "command": "bash -c '\nset -eo pipefail\nLOCK_ID=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id FROM unlock_requests WHERE created_at > NOW() - INTERVAL '\"'\"'5 minutes'\"'\"' ORDER BY created_at DESC LIMIT 1;\" | tr -d \" \")\nif [ -z \"$LOCK_ID\" ]; then\n  echo \"FAIL: no unlock_requests row from this run window — drive step did not produce a request\"\n  exit 1\nfi\necho \"checking L1 unlock request for lock=$LOCK_ID\"\nRAW=$(cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"getUnlockRequest(bytes32)((bytes32,address,uint256,bytes32,bytes32,uint256,uint256,bool,uint256,uint256,uint256,uint256,uint256))\" \"$LOCK_ID\" --rpc-url \"$L1_RPC_URL\" 2>/dev/null || echo \"\")\nif [ -z \"$RAW\" ]; then\n  echo \"FAIL: getUnlockRequest call failed (RPC error or wrong ABI)\"\n  exit 1\nfi\n# struct order: lockId, recipient, amount, stateRoot, unlockStateRoot, requestedAt, unlockableAt, isEmergency, bond, signatureCount, unlockNonce, proverRequestedAt, emergencyReadyAt\nREQUESTED_AT=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $6}\")\necho \"on-chain requestedAt: $REQUESTED_AT\"\nif [ -z \"$REQUESTED_AT\" ] || [ \"$REQUESTED_AT\" = \"0\" ]; then\n  echo \"FAIL: lock $LOCK_ID has no on-chain unlock request (requestUnlock tx not submitted or reverted)\"\n  exit 1\nfi\necho \"PASS: unlock request anchored on L1 — requestedAt=$REQUESTED_AT\"\n'",
+      "stdout_excerpt": "checking L1 unlock request for lock=0x600868a53571a7a16dbecf92a89266200c7dab7194088ad41a66627b4fa5bc7d\non-chain requestedAt: 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000, 0, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0, 0, false, 0, 0, 0, 0, 0\nPASS: unlock request anchored on L1 — requestedAt=0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000, 0, 0x0000000000000000000000000000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000000000000000000000000000, 0, 0, false, 0, 0, 0, 0, 0\n",
+      "stderr_excerpt": ""
+    }
+  ],
+  "layer_analyses": [
+    {
+      "layer": "backend",
+      "status": "pass",
+      "observations": [
+        "backend drive/verify exit=0 in 2187ms (no_ai deterministic)"
+      ],
+      "issues": [],
+      "confidence": 1
+    },
+    {
+      "layer": "frontend",
+      "status": "pass",
+      "observations": [
+        "frontend drive/verify exit=0 in 52367ms (no_ai deterministic)"
+      ],
+      "issues": [],
+      "confidence": 1
+    },
+    {
+      "layer": "db",
+      "status": "pass",
+      "observations": [
+        "db drive/verify exit=0 in 325ms (no_ai deterministic)"
+      ],
+      "issues": [],
+      "confidence": 1
+    },
+    {
+      "layer": "l1",
+      "status": "pass",
+      "observations": [
+        "l1 drive/verify exit=0 in 1031ms (no_ai deterministic)"
+      ],
+      "issues": [],
+      "confidence": 1
+    }
+  ],
+  "quality_findings": [],
+  "fixer_proposals": [],
+  "final_verdict": {
+    "verdict": "PASS",
+    "summary": "All 4 layers passed (no_ai deterministic)",
+    "must_fix_before_merge": [],
+    "fixer_recommendation": "apply",
+    "unresolved_questions": [],
+    "confidence": 1
+  },
+  "cost_usd": 0,
+  "tokens": {
+    "input": 0,
+    "cached_input": 0,
+    "output": 0
+  }
+}

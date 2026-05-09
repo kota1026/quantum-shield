@@ -1,0 +1,45 @@
+{
+  "sequence_id": "seq-2",
+  "sequence_name": "Normal Unlock",
+  "layers": [
+    "backend",
+    "frontend",
+    "db",
+    "l1"
+  ],
+  "steps": [
+    {
+      "layer": "backend",
+      "description": "Unlock + auto-claim Rust test",
+      "command": "cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq2_unlock_normal -- --nocapture",
+      "expected": "24h time-lock honored, Auto-Claim service finalizes",
+      "phase": "drive"
+    },
+    {
+      "layer": "frontend",
+      "description": "Playwright unlock integration spec",
+      "command": "cd src/frontend/web && npx playwright test e2e/integration/unlock.integration.spec.ts --reporter=json",
+      "phase": "drive"
+    },
+    {
+      "layer": "db",
+      "description": "Verify unlock_requests row created during this run window and release_time is 24h ahead of created_at (normal unlock; emergency would be 7d)",
+      "command": "psql \"$DATABASE_URL\" -t -A -c \"SELECT unlock_id, lock_id, status, is_emergency, EXTRACT(EPOCH FROM (release_time - created_at))/3600 AS hours FROM unlock_requests WHERE created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC LIMIT 1;\"",
+      "expected": "one row from this run window, status in {pending, requested, finalized}, is_emergency=f, hours ≈ 24",
+      "phase": "verify"
+    },
+    {
+      "layer": "l1",
+      "description": "Verify the unlock request created in this run is anchored on L1 (Vault.getUnlockRequest(lockId).requestedAt > 0)",
+      "command": "bash -c '\nset -eo pipefail\nLOCK_ID=$(psql \"$DATABASE_URL\" -t -A -c \"SELECT lock_id FROM unlock_requests WHERE created_at > NOW() - INTERVAL '\"'\"'5 minutes'\"'\"' ORDER BY created_at DESC LIMIT 1;\" | tr -d \" \")\nif [ -z \"$LOCK_ID\" ]; then\n  echo \"FAIL: no unlock_requests row from this run window — drive step did not produce a request\"\n  exit 1\nfi\necho \"checking L1 unlock request for lock=$LOCK_ID\"\nRAW=$(cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 \"getUnlockRequest(bytes32)((bytes32,address,uint256,bytes32,bytes32,uint256,uint256,bool,uint256,uint256,uint256,uint256,uint256))\" \"$LOCK_ID\" --rpc-url \"$L1_RPC_URL\" 2>/dev/null || echo \"\")\nif [ -z \"$RAW\" ]; then\n  echo \"FAIL: getUnlockRequest call failed (RPC error or wrong ABI)\"\n  exit 1\nfi\n# struct order: lockId, recipient, amount, stateRoot, unlockStateRoot, requestedAt, unlockableAt, isEmergency, bond, signatureCount, unlockNonce, proverRequestedAt, emergencyReadyAt\nREQUESTED_AT=$(echo \"$RAW\" | tr -d \"()\" | awk -F\", \" \"{print $6}\")\necho \"on-chain requestedAt: $REQUESTED_AT\"\nif [ -z \"$REQUESTED_AT\" ] || [ \"$REQUESTED_AT\" = \"0\" ]; then\n  echo \"FAIL: lock $LOCK_ID has no on-chain unlock request (requestUnlock tx not submitted or reverted)\"\n  exit 1\nfi\necho \"PASS: unlock request anchored on L1 — requestedAt=$REQUESTED_AT\"\n'",
+      "expected": "PASS: getUnlockRequest(lockId).requestedAt > 0 — proves the requestUnlock tx landed on Sepolia in this run",
+      "phase": "verify"
+    }
+  ],
+  "acceptance_criteria": [
+    "Time lock = 24 hours, sourced from config not hardcoded",
+    "Auto-claim service marks unlock as finalized after timelock",
+    "No skip_signature_verification leak in production guard"
+  ],
+  "spec_section": "SEQUENCES.md §2 Normal Unlock"
+}

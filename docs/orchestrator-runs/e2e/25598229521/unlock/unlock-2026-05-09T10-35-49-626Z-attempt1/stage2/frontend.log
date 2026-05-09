@@ -1,0 +1,1088 @@
+# frontend step
+# command: cd src/frontend/web && npx playwright test e2e/integration/unlock.integration.spec.ts --reporter=json
+# exit: 0
+
+# STDOUT
+{
+  "config": {
+    "configFile": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/playwright.config.ts",
+    "rootDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+        "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+        "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598229521"
+      },
+      "gitCommit": {
+        "shortHash": "5270cd4",
+        "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+        "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+        "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+        "author": {
+          "name": "kota1026",
+          "email": "108375319+kota1026@users.noreply.github.com",
+          "time": 1778320351000
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "time": 1778320351000
+        },
+        "branch": "main"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598229521"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598229521"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598229521"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598229521"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598229521"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/kota1026/quantum-shield/commit/5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "commitHash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "buildHref": "https://github.com/kota1026/quantum-shield/actions/runs/25598229521"
+          },
+          "gitCommit": {
+            "shortHash": "5270cd4",
+            "hash": "5270cd4ca2d5c415b0e00e8bfbcb1f0f113e42dc",
+            "subject": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc",
+            "body": "Merge pull request #196 from kota1026/claude/fix-ci-deployment-config-iHlZc\n\nfix(seq5_prover_registration): align test payload with register_prover route",
+            "author": {
+              "name": "kota1026",
+              "email": "108375319+kota1026@users.noreply.github.com",
+              "time": 1778320351000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1778320351000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "accessibility",
+        "name": "accessibility",
+        "testDir": "/home/runner/work/quantum-shield/quantum-shield/src/frontend/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.a11y.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": false,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "integration/unlock.integration.spec.ts",
+      "file": "integration/unlock.integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Sequence #2: Normal Unlock — Deep Integration",
+          "file": "integration/unlock.integration.spec.ts",
+          "line": 135,
+          "column": 6,
+          "specs": [
+            {
+              "title": "POST /v1/unlock creates an unlock request when prover pool has provers",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1882,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock] status=200, body={\"unlock_id\":\"0xfb3910dbcb4d71798c3bad692deb499df6b1caee3be449cdee0f100655dada03\",\"sr_1\":\"0xde70739dc7fbc4a5615c9c4dc1eb0fa5d959e72f38dc21231613994761bb1beb\",\"release_time\":1778409383,\"time_lock_hours\":24,\"prover_signatures_required\":2,\"prover_signatures_collected\":0,\"status\":\"pending_signatures\",\"v\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:21.791Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-2be5cec421390460e570",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 136,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects nonexistent lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock NotFound] correctly rejected with status 404\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:23.703Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-6ba09e85a64f50204648",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects wrong-key signature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1016,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock WrongKey] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:23.745Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-b762b1c10103d5f1a6a5",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 208,
+              "column": 7
+            },
+            {
+              "title": "unlock with malformed signature length is rejected (Err vs Ok(false) split)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1075,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock MalformedSig] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:24.775Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-041caf5470314be099f5",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 234,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/unlock creates an unlock request when prover pool has provers",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1293,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock] status=200, body={\"unlock_id\":\"0xd9ac5fcd58089438af6638b9a66f42303bb29c06d46b5bfd7d960d840361dc14\",\"sr_1\":\"0xf8cdf99106670c22f6e97d00f1a59b91a1bfe0d956478d8216b12338bcbe2e11\",\"release_time\":1778409387,\"time_lock_hours\":24,\"prover_signatures_required\":2,\"prover_signatures_collected\":0,\"status\":\"pending_signatures\",\"v\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:26.501Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-02541ee664f99bb60c7e",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 136,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects nonexistent lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 28,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock NotFound] correctly rejected with status 404\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:27.823Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-6bc6b5566f14973bdc95",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects wrong-key signature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1335,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock WrongKey] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:27.871Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-b8b140aba68528155958",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 208,
+              "column": 7
+            },
+            {
+              "title": "unlock with malformed signature length is rejected (Err vs Ok(false) split)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 980,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock MalformedSig] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:29.219Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-22593d5c944dfcd305dd",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 234,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/unlock creates an unlock request when prover pool has provers",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1367,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock] status=200, body={\"unlock_id\":\"0xd2a8224764a139006b011b588923ce58a347d8e22880389f00437a851c0528dc\",\"sr_1\":\"0x9b3fb9512adfc531f6e4c715d78e51de29b210f0293189b9f01f66bdcc6c73c8\",\"release_time\":1778409392,\"time_lock_hours\":24,\"prover_signatures_required\":2,\"prover_signatures_collected\":0,\"status\":\"pending_signatures\",\"v\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:30.857Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-9fa3a07aa9195db77d7d",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 136,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects nonexistent lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock NotFound] correctly rejected with status 404\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:32.259Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-83986e7aed510893bed2",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects wrong-key signature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 919,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock WrongKey] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:32.298Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-0f75fc7398f1e6afe3db",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 208,
+              "column": 7
+            },
+            {
+              "title": "unlock with malformed signature length is rejected (Err vs Ok(false) split)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1119,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock MalformedSig] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:33.236Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-faacc9cc47ede9c4bb81",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 234,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/unlock creates an unlock request when prover pool has provers",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1340,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock] status=200, body={\"unlock_id\":\"0x799a4227f750ec8a7493c636c41ec651d4f4539abcf53dffed5bd89a67319257\",\"sr_1\":\"0xd6e3560e68f7cfa216c5c152e70adcf152111bf80e90410ffa66e38d57cd3745\",\"release_time\":1778409396,\"time_lock_hours\":24,\"prover_signatures_required\":2,\"prover_signatures_collected\":0,\"status\":\"pending_signatures\",\"v\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:35.014Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-3eea40112c46707ce14a",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 136,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects nonexistent lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 36,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock NotFound] correctly rejected with status 404\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:36.384Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-f1ace13bf16f64928baf",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects wrong-key signature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 912,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock WrongKey] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:36.442Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-1d2e80e7dba901c9763f",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 208,
+              "column": 7
+            },
+            {
+              "title": "unlock with malformed signature length is rejected (Err vs Ok(false) split)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1086,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock MalformedSig] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:37.373Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-5fa8c75952320d7c7d51",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 234,
+              "column": 7
+            },
+            {
+              "title": "POST /v1/unlock creates an unlock request when prover pool has provers",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1388,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock] status=200, body={\"unlock_id\":\"0x5ff01ba1de87b4132b6d746889f86cd99e09b5e00f114b891a48a2f9ad48af8d\",\"sr_1\":\"0xcdd41cbcdeb0edc6ac52da73fbffa088d828960073938cd9b36611f02ebb80b4\",\"release_time\":1778409400,\"time_lock_hours\":24,\"prover_signatures_required\":2,\"prover_signatures_collected\":0,\"status\":\"pending_signatures\",\"v\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:39.124Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-a38d82fb8b4a32271227",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 136,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects nonexistent lock_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 20,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock NotFound] correctly rejected with status 404\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:40.538Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-9081ae5f17010e30503e",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "unlock rejects wrong-key signature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1083,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock WrongKey] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:40.579Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-69cfd5103b6f56d59dfd",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 208,
+              "column": 7
+            },
+            {
+              "title": "unlock with malformed signature length is rejected (Err vs Ok(false) split)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 973,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Unlock MalformedSig] correctly rejected with status 400\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-09T10:36:41.677Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9ee45772bd875943c8ab-08dc3c177a5d915fd871",
+              "file": "integration/unlock.integration.spec.ts",
+              "line": 234,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-05-09T10:35:52.941Z",
+    "duration": 49787.974,
+    "expected": 20,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
+
+
+# STDERR
