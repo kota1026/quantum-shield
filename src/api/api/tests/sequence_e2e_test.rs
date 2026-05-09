@@ -1055,10 +1055,18 @@ mod seq5_prover_registration {
         // the `LOWER(operator_addr)` query in get_prover_status_by_wallet.
         let operator_addr = format!("0x{:040x}", nonce as u128);
 
+        // hsm_attestation must start with "HSM_ATT_" — that prefix is enforced
+        // by SphincsService::validate_hsm_attestation (services/sphincs_service.rs:262)
+        // whenever skip_signature_verification=false, which is exactly how the
+        // e2e-orchestrator workflow runs the backend
+        // (.github/workflows/e2e-orchestrator.yml:190 sets it to "false" for
+        // testnet hardening). Keep the dev-mode-friendly suffix so the same
+        // payload also passes when skip_signature_verification=true (only the
+        // empty-string guard at routes/prover.rs:81 applies in that path).
         let payload = json!({
             "operator_addr": operator_addr,
             "sphincs_pubkey": sphincs_pubkey,
-            "hsm_attestation": "0xhsm_attestation_dev_mode_placeholder",
+            "hsm_attestation": "HSM_ATT_dev_mode_placeholder",
             "multisig_proof": "0xmultisig_proof_dev_mode_placeholder",
             "stake_amount": "1000000000000000000" // 1 ETH (testnetMode bypasses on L1)
         });
