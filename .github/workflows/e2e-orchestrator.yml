@@ -90,6 +90,16 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      # 2026-05-09: serialize matrix legs. Run 25594074126 had two parallel
+      # legs (lock + unlock) sharing the deployer wallet — the unlock leg
+      # ran 9 seconds ahead, drained the wallet on its own seq2 lock
+      # prerequisites, and the lock leg's first lockWithSR0 then failed
+      # with `(code: -32000, message: insufficient funds for transfer)`.
+      # `max-parallel: 1` runs legs sequentially so each leg sees a
+      # predictable balance. Wall-clock is ~2× but the wallet doesn't
+      # race with itself. Future option: separate prover/observer wallets
+      # (Phase 3 may need that anyway), at which point this can be lifted.
+      max-parallel: 1
       matrix:
         sequence: ${{ fromJSON(needs.prepare.outputs.sequences) }}
     name: verify (${{ matrix.sequence }})
