@@ -93,6 +93,9 @@ jobs:
             sleep $((2 ** attempt))
           done
 
+          # Idempotent label bootstrap. gh pr create --label fails if any
+          # listed label is missing, so we ensure both exist.
+          gh label create auto-generated --color "EDEDED" --description "Created automatically by a workflow" 2>/dev/null || true
           gh label create daily-plan --color "1D76DB" --description "Daily JST 06:30 briefing" 2>/dev/null || true
 
           {
@@ -126,6 +129,7 @@ jobs:
           git fetch origin main
           git checkout origin/main
 
+          gh label create auto-generated --color "EDEDED" --description "Created automatically by a workflow" 2>/dev/null || true
           gh label create daily-plan-action --color "5319E7" --description "Auto-drafted mechanical P0 action" 2>/dev/null || true
 
           # Iterate actions where mechanical=true AND diff is non-empty.
