@@ -20,12 +20,17 @@ on:
   workflow_dispatch:
     inputs:
       sequence:
-        description: 'Sequence to verify (lock | unlock | slashing | all)'
+        description: 'Sequence to verify (lock | unlock | emergency | slashing | all). Leave blank to use the trigger-derived matrix.'
         required: false
-        default: 'lock'
+        default: ''
         type: string
       no_ai:
         description: 'Deterministic mode — skip Anthropic stages, verdict from layer exit codes only'
+        required: false
+        default: false
+        type: boolean
+      run_emergency:
+        description: 'Include the emergency-unlock sequence (default off in PR builds, on in nightly)'
         required: false
         default: false
         type: boolean
@@ -37,9 +42,48 @@ permissions:
   contents: write   # auto-commit run outputs to docs/orchestrator-runs/
 
 jobs:
+  # Compute the matrix axis once so the `verify` job can fan out per sequence.
+  # Logic (Phase 2 PR5/5):
+  #   - workflow_dispatch with explicit `inputs.sequence` set       → that single sequence (back-compat).
+  #   - schedule (nightly cron 21:17 UTC = 06:17 JST)               → [lock, unlock, emergency].
+  #   - workflow_dispatch with `run_emergency=true`                 → [lock, unlock, emergency].
+  #   - workflow_dispatch default / push / pull_request             → [lock, unlock] (push/PR builds skip emergency
+  #                                                                   to avoid burning the 0.01 ETH bond per run;
+  #                                                                   nightly absorbs that cost on schedule).
+  # Sepolia bond budget: ~0.13 ETH/nightly run (lock 0.09 + emergency 0.04). Deployer wallet sits at
+  # ~0.55 ETH after the recent faucet topup → ~4 nightly runs sustainable before another drip.
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      sequences: ${{ steps.matrix.outputs.sequences }}
+    steps:
+      - id: matrix
+        env:
+          INPUT_SEQUENCE: ${{ inputs.sequence }}
+          INPUT_RUN_EMERGENCY: ${{ inputs.run_emergency }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ -n "$INPUT_SEQUENCE" ]; then
+            SEQS="[\"$INPUT_SEQUENCE\"]"
+          elif [ "$EVENT_NAME" = "schedule" ] || [ "$INPUT_RUN_EMERGENCY" = "true" ]; then
+            SEQS='["lock","unlock","emergency"]'
+          elif [ "$EVENT_NAME" = "push" ] || [ "$EVENT_NAME" = "pull_request" ]; then
+            SEQS='["lock"]'
+          else
+            SEQS='["lock","unlock"]'
+          fi
+          echo "sequences=$SEQS" >> "$GITHUB_OUTPUT"
+          echo "Matrix sequences: $SEQS"
+
   verify:
+    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        sequence: ${{ fromJSON(needs.prepare.outputs.sequences) }}
+    name: verify (${{ matrix.sequence }})
     # 2026-05-03: target the `sepolia` GitHub Actions environment so this
     # job can read environment-scoped secrets — specifically
     # DEPLOYER_PRIVATE_KEY, which deploy-testnet.yml configured under
@@ -101,6 +145,10 @@ jobs:
       # already controls the deployer). Rotate later if the threat
       # model changes.
       QS__L1_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      # The matrix axis: one of lock | unlock | emergency. Threaded through to
+      # the orchestrator CLI (`pnpm verify --sequence "$SEQUENCE"`) and into
+      # run-info.json so each leg's auto-committed artifact is named per leg.
+      SEQUENCE: ${{ matrix.sequence }}
 
     steps:
       - uses: actions/checkout@v4
@@ -178,7 +226,7 @@ jobs:
           # main on the next CI cycle. Without this, every startup
           # diagnostic disappears into the GH Actions step log that
           # the MCP API can't fetch.
-          API_LOG_DIR="${{ github.workspace }}/docs/orchestrator-runs/e2e/${{ github.run_id }}"
+          API_LOG_DIR="${{ github.workspace }}/docs/orchestrator-runs/e2e/${{ github.run_id }}/${SEQUENCE}"
           mkdir -p "$API_LOG_DIR"
           API_LOG="$API_LOG_DIR/api-server.log"
 
@@ -235,7 +283,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          LOG_DIR="${{ github.workspace }}/docs/orchestrator-runs/e2e/${{ github.run_id }}"
+          LOG_DIR="${{ github.workspace }}/docs/orchestrator-runs/e2e/${{ github.run_id }}/${SEQUENCE}"
           mkdir -p "$LOG_DIR"
           LOG="$LOG_DIR/orchestrator-stdout.log"
 
@@ -259,7 +307,7 @@ jobs:
           } | tee "$LOG"
 
           mkdir -p reports
-          pnpm verify --sequence ${{ inputs.sequence || 'lock' }} \
+          pnpm verify --sequence "$SEQUENCE" \
             2>&1 | tee -a "$LOG"
           EXIT_CODE=${PIPESTATUS[0]}
           echo "" | tee -a "$LOG"
@@ -273,7 +321,7 @@ jobs:
         if: always()
         working-directory: src/agents/e2e-orchestrator
         run: |
-          echo "## E2E Orchestrator verdict" >> $GITHUB_STEP_SUMMARY
+          echo "## E2E Orchestrator verdict — sequence: \`$SEQUENCE\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ -d reports ]; then
             latest=$(ls -1dt reports/*/ 2>/dev/null | head -1)
@@ -298,7 +346,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-orchestrator-report
+          name: e2e-orchestrator-report-${{ matrix.sequence }}
           path: src/agents/e2e-orchestrator/reports/
           retention-days: 14
 
@@ -309,7 +357,10 @@ jobs:
         if: always() && github.event_name != 'pull_request'
         run: |
           set -e
-          DEST="docs/orchestrator-runs/e2e/${{ github.run_id }}"
+          # Per-leg subfolder so parallel matrix legs don't clobber each other's
+          # reports/ tree when racing on `git push`. Auto-rebase below absorbs
+          # benign cross-leg conflicts.
+          DEST="docs/orchestrator-runs/e2e/${{ github.run_id }}/${SEQUENCE}"
           mkdir -p "$DEST"
           if [ -d src/agents/e2e-orchestrator/reports ]; then
             cp -r src/agents/e2e-orchestrator/reports/. "$DEST/" 2>/dev/null || true
@@ -323,7 +374,7 @@ jobs:
           {
             "run_id": "${{ github.run_id }}",
             "workflow": "e2e-orchestrator",
-            "sequence": "${{ inputs.sequence || 'lock' }}",
+            "sequence": "${SEQUENCE}",
             "sha": "${{ github.sha }}",
             "trigger": "${{ github.event_name }}",
             "actor": "${{ github.actor }}",
@@ -334,7 +385,14 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/orchestrator-runs/
           # `[skip ci]` prevents the commit from re-triggering this workflow.
-          git diff --cached --quiet || git commit -m "ci(e2e-orchestrator): run ${{ github.run_id }} [skip ci]"
-          # Pull --rebase in case main moved during the long cargo build.
-          git pull --rebase origin main 2>/dev/null || true
-          git push origin HEAD:main || echo "::warning::could not push run output (likely branch protection); artifact still available"
+          git diff --cached --quiet || git commit -m "ci(e2e-orchestrator): run ${{ github.run_id }} [${SEQUENCE}] [skip ci]"
+          # Pull --rebase in case main moved during the long cargo build, or
+          # because a sibling matrix leg pushed first.
+          for attempt in 1 2 3; do
+            git pull --rebase origin main 2>/dev/null || true
+            if git push origin HEAD:main; then
+              break
+            fi
+            echo "::warning::push attempt $attempt failed (likely sibling matrix leg won the race); retrying"
+            sleep $((attempt * 3))
+          done || echo "::warning::could not push run output (likely branch protection); artifact still available"
