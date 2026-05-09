@@ -419,6 +419,236 @@ echo "PASS: slash anchored on L1 — slashedCount=$SLASHED_COUNT, stakedAmount=$
       'Distribution math holds 60/20/20 within ≤2 wei rounding loss',
     ],
   },
+  prover: {
+    id: 'seq-5',
+    name: 'Prover Registration',
+    spec_section: 'SEQUENCES.md §5 Prover Registration',
+    steps: [
+      {
+        layer: 'backend',
+        // 2026-05-09 (Phase 3 PR4/5 of 5): drives the seq5_prover_registration
+        // backend integration test that PR2 (#189) added — specifically
+        // `test_prover_register_creates_db_row` which exercises the full
+        // /v1/prover/register flow and inserts a `provers` row keyed by
+        // operator_addr. Mirrors the lock/unlock binding's drive→verify
+        // pattern.
+        description: 'Prover registration backend Rust test (POST /v1/prover/register + DB row + L1 stake)',
+        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq5_prover_registration -- --nocapture',
+        expected: 'Prover registration test produces provers row with operator_addr and pending_approval status',
+        phase: 'drive',
+      },
+      {
+        layer: 'frontend',
+        // Existing Playwright spec from before this PR — confirmed present
+        // in src/frontend/web/e2e/integration/prover-registration.integration.spec.ts
+        // at PR4 authoring time. No new spec needed.
+        description: 'Playwright prover registration integration spec',
+        command: 'cd src/frontend/web && npx playwright test e2e/integration/prover-registration.integration.spec.ts --reporter=json',
+        expected: 'UI prover-registration submission produces success state and DB row',
+        phase: 'drive',
+      },
+      {
+        layer: 'db',
+        // 2026-05-09 (Phase 3 PR4/5): mirrors the lock/unlock 5-min run-window
+        // guard (PR1 #160 / PR1 #179) so we don't latch onto a stale unit-test
+        // fixture. `provers` schema (migrations/001_initial_schema.sql:112-122):
+        //   prover_id, operator_addr, sphincs_pubkey, stake_amount, ...,
+        //   status DEFAULT 'pending_approval', registered_at DEFAULT NOW().
+        // sphincs_pubkey is BYTEA → length(...) returns byte length; SPHINCS+
+        // public keys are 32 bytes for SHAKE-128f-simple, 64 bytes for
+        // SHAKE-256f-simple, so > 0 is the floor we assert.
+        description: 'Verify provers row created during this run window with operator_addr, sphincs_pubkey populated, and a sane status',
+        command: `psql "$DATABASE_URL" -t -A -c "SELECT prover_id, operator_addr, status, length(sphincs_pubkey) FROM provers WHERE registered_at > NOW() - INTERVAL '5 minutes' ORDER BY registered_at DESC LIMIT 1;"`,
+        expected: 'one provers row from this run window, status in {pending_approval, active, registered}, sphincs_pubkey length > 0',
+        phase: 'verify',
+      },
+      {
+        layer: 'l1',
+        // 2026-05-09 (Phase 3 PR4/5): on-chain assertion that the prover is
+        // registered on Sepolia ProverRegistry. Uses the same `getProver(address)`
+        // ABI that the slashing binding (PR1 #189) standardised on. Tuple field
+        // order (canonical, see src/l1/contracts/src/interfaces/IProverRegistry.sol:8-18):
+        //   1. proverAddress    (address)
+        //   2. sphincsPubKeyHash (bytes32)
+        //   3. sphincsPublicKey  (bytes)
+        //   4. stakedAmount     (uint256)
+        //   5. registeredAt     (uint256)
+        //   6. isActive         (bool)
+        //   7. successfulSigns  (uint256)
+        //   8. slashedCount     (uint256)
+        //
+        // Authoritative "registration landed on chain" signal: proverAddress
+        // != 0x0 (struct exists). Per on-chain check 2026-05-09, testnetMode=true
+        // on the deployed ProverRegistry, so stakedAmount may legitimately be 0
+        // (registration is free); we MUST NOT assert stakedAmount > 0 here. We
+        // also assert isActive=true as a tighter gate — the canonical contract
+        // sets isActive on successful registerProver(). registeredAt > 0 is a
+        // softer cross-check.
+        description: 'Verify the prover registered in this run is anchored on L1 (ProverRegistry.getProver(addr).proverAddress != 0x0 && isActive)',
+        command: `bash -c '
+set -eo pipefail
+PROVER_ADDR=$(psql "$DATABASE_URL" -t -A -c "SELECT operator_addr FROM provers WHERE registered_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY registered_at DESC LIMIT 1;" | tr -d " ")
+if [ -z "$PROVER_ADDR" ]; then
+  echo "FAIL: no provers row from this run window — drive step did not produce a registration"
+  exit 1
+fi
+echo "checking L1 ProverRegistry.getProver(address) for prover=$PROVER_ADDR"
+RAW=$(cast call 0x08e1fc1A0d614bc132B48950760c7A291cCB8946 "getProver(address)((address,bytes32,bytes,uint256,uint256,bool,uint256,uint256))" "$PROVER_ADDR" --rpc-url "$L1_RPC_URL" 2>/dev/null || echo "")
+if [ -z "$RAW" ]; then
+  echo "FAIL: getProver call failed (RPC error or wrong ABI). Re-verify against src/l1/contracts/src/interfaces/IProverRegistry.sol:84"
+  exit 1
+fi
+# struct order: proverAddress, sphincsPubKeyHash, sphincsPublicKey, stakedAmount, registeredAt, isActive, successfulSigns, slashedCount
+ON_CHAIN_ADDR=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$1}")
+REGISTERED_AT=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$5}")
+IS_ACTIVE=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$6}")
+echo "on-chain proverAddress: $ON_CHAIN_ADDR"
+echo "on-chain registeredAt:  $REGISTERED_AT"
+echo "on-chain isActive:      $IS_ACTIVE"
+if [ -z "$ON_CHAIN_ADDR" ] || [ "$ON_CHAIN_ADDR" = "0x0000000000000000000000000000000000000000" ]; then
+  echo "FAIL: prover $PROVER_ADDR has no on-chain entry (not registered, or wrong address)"
+  exit 1
+fi
+if [ "$IS_ACTIVE" != "true" ]; then
+  echo "FAIL: prover $PROVER_ADDR exists on-chain but isActive=$IS_ACTIVE (registration tx may have reverted post-write)"
+  exit 1
+fi
+echo "PASS: prover anchored on L1 — proverAddress=$ON_CHAIN_ADDR, isActive=$IS_ACTIVE, registeredAt=$REGISTERED_AT"
+'`,
+        expected: 'PASS: getProver(operator_addr).proverAddress matches DB and isActive=true — proves registerProver tx landed on Sepolia (testnetMode=true allows stakedAmount=0)',
+        phase: 'verify',
+      },
+    ],
+    acceptance_criteria: [
+      'Backend seq5_prover_registration tests pass (incl. test_prover_register_creates_db_row from PR2 #189)',
+      'Playwright prover-registration.integration.spec.ts passes',
+      'A new provers row exists with operator_addr populated, status in {pending_approval, active, registered}, sphincs_pubkey non-empty',
+      'On-chain getProver(operator_addr) returns matching proverAddress != 0x0 and isActive=true (registration anchored on Sepolia)',
+      'No stakedAmount lower-bound assertion under testnetMode=true (registration is free; mainnet variant tightens this in PR5)',
+    ],
+  },
+  challenge: {
+    id: 'seq-4',
+    name: 'Observer Challenge',
+    spec_section: 'SEQUENCES.md §4 Observer Challenge',
+    steps: [
+      {
+        layer: 'backend',
+        // 2026-05-09 (Phase 3 PR4/5 of 5): drives the seq4_challenge backend
+        // tests. PR3 (parallel agent) is adding the full-flow test
+        // `test_challenge_submission_creates_db_row` — already present per
+        // sequence_e2e_test.rs:788. The orchestrator filter `seq4_challenge`
+        // captures all tests in the module so either set will run.
+        description: 'Observer challenge backend Rust test (POST /v1/observer/challenges + DB row + L1 challenge)',
+        command: 'cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq4_challenge -- --nocapture',
+        expected: 'Challenge submission test produces challenges row with bond >= MIN_CHALLENGE_BOND (0.1 ETH = 1e17 wei)',
+        phase: 'drive',
+      },
+      {
+        layer: 'frontend',
+        // Existing Playwright spec from before this PR — confirmed present
+        // in src/frontend/web/e2e/integration/challenge-slashing.integration.spec.ts
+        // at PR4 authoring time. The same spec drives the challenge -> slashing
+        // chain; for the challenge binding we only need the challenge half to
+        // pass. No new spec needed.
+        description: 'Playwright observer challenge integration spec (challenge-slashing covers both halves)',
+        command: 'cd src/frontend/web && npx playwright test e2e/integration/challenge-slashing.integration.spec.ts --reporter=json',
+        expected: 'UI challenge submission produces success state and DB row with bond >= MIN_CHALLENGE_BOND',
+        phase: 'drive',
+      },
+      {
+        layer: 'db',
+        // 2026-05-09 (Phase 3 PR4/5): mirrors the 5-min run-window guard
+        // pattern. `challenges` schema (migrations/001_initial_schema.sql:154-167):
+        //   challenge_id, lock_id, unlock_id, challenger, fraud_proof_hash,
+        //   bond NUMERIC(78,0), challenged_at TIMESTAMPTZ DEFAULT NOW(),
+        //   defense_deadline TIMESTAMPTZ, status VARCHAR DEFAULT 'pending'.
+        // NOTE: column is `bond` (not `bond_amount`) and `challenged_at` (not
+        // `created_at`); both differ from the unlock_requests naming.
+        // MIN_CHALLENGE_BOND = 0.1 ETH = 1e17 wei = 100000000000000000
+        // (L1Vault.sol:62 / L1VaultTestnet.sol:56). 48h defense window per
+        // SEQUENCES.md §4 Q4 strategy (c) — orchestrator verifies request
+        // phase only; resolveChallenge (onlySecurityCouncil) is deferred to
+        // PR5's nightly job.
+        description: 'Verify challenges row created during this run window with bond >= MIN_CHALLENGE_BOND and ~48h defense window',
+        command: `psql "$DATABASE_URL" -t -A -c "SELECT challenge_id, lock_id, bond, status, EXTRACT(EPOCH FROM (defense_deadline - challenged_at))/3600 AS hours_until_deadline FROM challenges WHERE challenged_at > NOW() - INTERVAL '5 minutes' ORDER BY challenged_at DESC LIMIT 1;"`,
+        expected: 'one challenges row from this run window, bond >= 100000000000000000 (= 0.1 ETH = MIN_CHALLENGE_BOND), status in {pending, submitted}, hours_until_deadline ≈ 48',
+        phase: 'verify',
+      },
+      {
+        layer: 'l1',
+        // 2026-05-09 (Phase 3 PR4/5): on-chain assertion that the challenge
+        // landed on Sepolia. Reads lock_id from this run's challenges row,
+        // calls Vault.challenges(bytes32) (auto-generated public mapping
+        // getter, see L1Vault.sol:278 / L1VaultTestnet.sol:264) and asserts
+        // status == PENDING (1).
+        //
+        // Challenge struct order (verified against L1Vault.sol:129-139 and
+        // L1VaultTestnet.sol:123-133 — IDENTICAL between mainnet and testnet
+        // variants):
+        //   1. lockId           (bytes32)
+        //   2. challenger       (address)
+        //   3. fraudProofHash   (bytes32)
+        //   4. challengedAt     (uint256)
+        //   5. status           (uint8 / ChallengeStatus enum)
+        //   6. bond             (uint256)
+        //   7. defenseDeadline  (uint256)
+        //   8. defenseProofHash (bytes32)
+        //   9. defender         (address)
+        //
+        // ChallengeStatus enum (L1Vault.sol:78 / L1VaultTestnet.sol:72):
+        //   NONE=0, PENDING=1, RESOLVED_VALID=2, RESOLVED_INVALID=3,
+        //   DEFENSE_SUBMITTED=4
+        //
+        // Q4 strategy (c): assert status=PENDING after challenge submission.
+        // The 48h defense window + onlySecurityCouncil resolveChallenge is
+        // exercised by PR5's nightly/manual matrix, not here.
+        description: 'Verify the challenge submitted in this run is anchored on L1 (Vault.challenges(lockId).status == PENDING)',
+        command: `bash -c '
+set -eo pipefail
+LOCK_ID=$(psql "$DATABASE_URL" -t -A -c "SELECT lock_id FROM challenges WHERE challenged_at > NOW() - INTERVAL '"'"'5 minutes'"'"' ORDER BY challenged_at DESC LIMIT 1;" | tr -d " ")
+if [ -z "$LOCK_ID" ]; then
+  echo "FAIL: no challenges row from this run window — drive step did not produce a challenge"
+  exit 1
+fi
+echo "checking L1 Vault.challenges(bytes32) for lock=$LOCK_ID"
+RAW=$(cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "challenges(bytes32)((bytes32,address,bytes32,uint256,uint8,uint256,uint256,bytes32,address))" "$LOCK_ID" --rpc-url "$L1_RPC_URL" 2>/dev/null || echo "")
+if [ -z "$RAW" ]; then
+  echo "FAIL: challenges(lockId) call failed (RPC error or wrong ABI). Re-verify against L1Vault.sol:129-139 — TODO(PR5) refine if struct field order differs after first Sepolia run"
+  exit 1
+fi
+# struct order: lockId, challenger, fraudProofHash, challengedAt, status (uint8), bond, defenseDeadline, defenseProofHash, defender
+ON_CHAIN_LOCK=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$1}")
+ON_CHAIN_STATUS=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$5}")
+ON_CHAIN_BOND=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$6}")
+ON_CHAIN_DEADLINE=$(echo "$RAW" | tr -d "()" | awk -F", " "{print \$7}")
+echo "on-chain lockId:          $ON_CHAIN_LOCK"
+echo "on-chain status (uint8):  $ON_CHAIN_STATUS  (1 = PENDING)"
+echo "on-chain bond:            $ON_CHAIN_BOND"
+echo "on-chain defenseDeadline: $ON_CHAIN_DEADLINE"
+if [ -z "$ON_CHAIN_LOCK" ] || [ "$ON_CHAIN_LOCK" = "0x0000000000000000000000000000000000000000000000000000000000000000" ]; then
+  echo "FAIL: lock $LOCK_ID has no on-chain challenge (Vault.challenges entry empty — submitChallenge tx not landed)"
+  exit 1
+fi
+if [ "$ON_CHAIN_STATUS" != "1" ]; then
+  echo "FAIL: on-chain ChallengeStatus=$ON_CHAIN_STATUS (expected 1=PENDING; 0=NONE means no entry, 2/3/4 means already resolved/defended)"
+  exit 1
+fi
+echo "PASS: challenge anchored on L1 — status=PENDING (1), bond=$ON_CHAIN_BOND, defenseDeadline=$ON_CHAIN_DEADLINE"
+'`,
+        expected: 'PASS: Vault.challenges(lockId).status == 1 (PENDING) — proves submitChallenge tx landed on Sepolia in this run, before the 48h defense window expires',
+        phase: 'verify',
+      },
+    ],
+    acceptance_criteria: [
+      'Backend seq4_challenge tests pass (incl. test_challenge_submission_creates_db_row at sequence_e2e_test.rs:788)',
+      'Playwright challenge-slashing.integration.spec.ts passes (challenge half)',
+      'A new challenges row exists with bond >= MIN_CHALLENGE_BOND (0.1 ETH = 1e17 wei) per L1Vault.sol:62',
+      'defense_deadline - challenged_at ≈ 48 hours (matches §4 Q4 protocol parameter)',
+      'On-chain Vault.challenges(lockId).status == 1 (PENDING) — request landed on Sepolia, defense window open',
+      'Q4 strategy (c): orchestrator asserts request phase only; resolveChallenge (onlySecurityCouncil, 48h post-deadline) is deferred to PR5 nightly matrix',
+    ],
+  },
 };
 
 export async function loadSpec(repoRoot: string): Promise<string> {
