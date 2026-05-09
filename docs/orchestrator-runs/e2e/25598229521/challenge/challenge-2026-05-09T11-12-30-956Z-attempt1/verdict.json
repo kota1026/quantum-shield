@@ -1,0 +1,11 @@
+{
+  "verdict": "FIXABLE",
+  "summary": "2/4 layer(s) failed: frontend, l1",
+  "must_fix_before_merge": [
+    "frontend: see stage2/frontend.log + api-server.log (exit=1)",
+    "l1: see stage2/l1.log + api-server.log (exit=1)"
+  ],
+  "fixer_recommendation": "review_required",
+  "unresolved_questions": [],
+  "confidence": 1
+}

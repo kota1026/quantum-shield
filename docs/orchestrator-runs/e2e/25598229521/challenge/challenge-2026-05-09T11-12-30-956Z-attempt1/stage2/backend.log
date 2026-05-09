@@ -1,0 +1,66 @@
+# backend step
+# command: cd src/api/api && SQLX_OFFLINE=true cargo test --test sequence_e2e_test seq4_challenge -- --nocapture
+# exit: 0
+
+# STDOUT
+
+running 4 tests
+SEQ#4-04 challenge submission DB persistence — start
+SEQ#4-02 Observer Dashboard: status=200, body={
+  "activeChallenges": 0,
+  "pendingUnlocksCount": 0,
+  "recentActivity": [],
+  "stats": {
+    "networkChallenges": 0,
+    "networkPendingUnlocks": 0,
+    "networkSuccessRate": 0.0,
+    "totalValueLocked": "0"
+  },
+  "successRate": 0.0,
+  "successfulChallenges": 0,
+  "totalChallenges": 0,
+  "totalEarnings": "0",
+  "unclaimedEarnings": "0"
+}
+test seq4_challenge::test_observer_dashboard_stats ... ok
+SEQ#4-03 Pending Unlocks: status=200, body={"page":1,"pageSize":20,"total":0,"unlocks":[]}
+SEQ#4-01 Challenge: status=404, body={
+  "code": 1005,
+  "message": "Lock not found: 0xdeadbeef1234567890abcdef1234567890abcdef"
+}
+SEQ#4-01 Challenge returned 404 (expected: fake lock_id has no pending unlock)
+test seq4_challenge::test_observer_pending_unlocks ... ok
+test seq4_challenge::test_observer_submit_challenge ... ok
+SEQ#4-04 Lock created: lock_id=0x7a764faf375e261f4992e176f2405339922ecc7c72b9ea9ae13560b524f6e419
+SEQ#4-04 Challenge submit: status=200, body={
+  "bond": "100000000000000000",
+  "challenge_id": "0xa442d305fddf77a18c9a8b3375b8e33f",
+  "defense_deadline": 1778497954,
+  "fraud_proof_hash": "0xc06da5c0044a03a8f7178e18d1551b950c36895f8d522623e2af155fcab4cee0",
+  "lock_id": "0x7a764faf375e261f4992e176f2405339922ecc7c72b9ea9ae13560b524f6e419",
+  "status": "pending"
+}
+SEQ#4-04 GET /v1/challenge/0x7a764faf375e261f4992e176f2405339922ecc7c72b9ea9ae13560b524f6e419: status=200, body={
+  "bond": "100000000000000000",
+  "challenge_id": "0xa442d305fddf77a18c9a8b3375b8e33f",
+  "challenged_at": 1778325154,
+  "challenger": "0x4444444444444444444444444444444444444444",
+  "defender": null,
+  "defense_deadline": 1778497954,
+  "defense_proof_hash": null,
+  "fraud_proof_hash": "0xc06da5c0044a03a8f7178e18d1551b950c36895f8d522623e2af155fcab4cee0",
+  "lock_id": "0x7a764faf375e261f4992e176f2405339922ecc7c72b9ea9ae13560b524f6e419",
+  "status": "pending"
+}
+SEQ#4-04 PASSED — request-side verified, defense+resolve deferred (Q4 strategy c)
+test seq4_challenge::test_challenge_submission_creates_db_row ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 2.78s
+
+
+
+# STDERR
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 0.43s
+[1m[33mwarning[0m: the following packages contain code that will be rejected by a future version of Rust: redis v0.24.0, sqlx-postgres v0.7.4
+[1m[92mnote[0m: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+[1m[92m     Running[0m tests/sequence_e2e_test.rs (/home/runner/work/quantum-shield/quantum-shield/target/debug/deps/sequence_e2e_test-40391b077d3850ab)
