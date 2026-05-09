@@ -19,12 +19,12 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const API_KEY = process.env.ANTHROPIC_API_KEY;
+const OAUTH_TOKEN = process.env.CLAUDE_CODE_OAUTH_TOKEN;
 const SLACK_URL = process.env.SLACK_WEBHOOK_URL;
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 
-if (!API_KEY) {
-  console.log('ANTHROPIC_API_KEY not set — skipping');
+if (!OAUTH_TOKEN) {
+  console.log('CLAUDE_CODE_OAUTH_TOKEN not set — skipping');
   process.exit(0);
 }
 
@@ -190,42 +190,35 @@ Rules:
 Return ONLY <json>...</json>.`;
 }
 
-// --- Anthropic call -------------------------------------------------------
+// --- Claude Code CLI call -------------------------------------------------
+// We use the `claude` CLI via stdin/print mode. Authentication comes from
+// the CLAUDE_CODE_OAUTH_TOKEN env var (generated locally with
+// `claude setup-token`), which lets the workflow consume the user's
+// Pro/Max subscription quota instead of API credits.
 
-function callAnthropic(systemPrompt, userPrompt) {
-  const body = JSON.stringify({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userPrompt }],
-  });
+const { spawnSync } = require('child_process');
 
-  return new Promise((resolve, reject) => {
-    const req = https.request('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-    }, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        try {
-          const parsed = JSON.parse(data);
-          if (parsed.error) return reject(new Error(`Anthropic API error: ${parsed.error.message}`));
-          const text = parsed.content?.[0]?.text || '';
-          resolve(text);
-        } catch (err) {
-          reject(new Error(`Failed to parse Anthropic response: ${err.message}`));
-        }
-      });
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
+function callClaude(systemPrompt, userPrompt) {
+  const fullPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
+  const result = spawnSync(
+    'claude',
+    ['--print', '--model', MODEL],
+    {
+      input: fullPrompt,
+      encoding: 'utf8',
+      maxBuffer: 50 * 1024 * 1024,
+      env: process.env,
+    },
+  );
+  if (result.error) {
+    throw new Error(`claude CLI spawn failed: ${result.error.message}`);
+  }
+  if (result.status !== 0) {
+    const stderr = (result.stderr || '').slice(0, 800);
+    const stdout = (result.stdout || '').slice(0, 200);
+    throw new Error(`claude CLI exit ${result.status}: ${stderr || stdout || 'no output'}`);
+  }
+  return result.stdout;
 }
 
 function extractJSON(text) {
@@ -281,7 +274,7 @@ function writeOutput(name, value) {
     console.log(`[daily-plan] continuity context: ${recentPlans.length} prior plans`);
 
     console.log(`[daily-plan] calling ${MODEL}...`);
-    const text = await callAnthropic(SYSTEM_PROMPT, buildUserPrompt(feeds, recentPlans));
+    const text = callClaude(SYSTEM_PROMPT, buildUserPrompt(feeds, recentPlans));
     const plan = extractJSON(text);
 
     if (!fs.existsSync(REPORT_DIR)) fs.mkdirSync(REPORT_DIR, { recursive: true });
