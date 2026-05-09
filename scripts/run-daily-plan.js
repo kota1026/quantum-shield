@@ -39,18 +39,66 @@ const MODEL = 'claude-sonnet-4-6';
 const MAX_TOKENS = 8192;
 
 // --- Feed sources ---------------------------------------------------------
+//
+// Tier A intel — 7 strategic axes covering the surface Quantum Shield
+// strategy can act on. Each entry carries an `axis` tag so the model can
+// score signals along the right dimension and prioritise multi-axis hits
+// (e.g. a "B + E" signal = a paying customer with grant money attached).
+//
+//   A — Quantum threat timeline (logical-qubit roadmaps, NSA/NIST deadlines)
+//   B — Demand signals (who already runs PQC in production)
+//   C — Competitors / alternatives (pure-PQC plays + MPC/TSS narrative)
+//   D — Standards & regulation (IETF / ISO / ETSI / national agencies)
+//   E — Funding & grants (EF ESP, OP RPGF, Arbitrum, Gitcoin, gov funds)
+//   F — Tech adjacency (ZK / AA / threshold / HSM / libs)
+//   G — Geopolitics & commercial (China BSN, Japan-specific, QKD vs PQC)
 
 const FEEDS = [
-  { name: 'NIST PQC News',      url: 'https://csrc.nist.gov/news/rss?CategoryId=44' },
-  { name: 'Ethereum EIPs',      url: 'https://eips.ethereum.org/all.json' },
-  { name: 'arxiv cs.CR',        url: 'https://export.arxiv.org/rss/cs.CR' },
-  { name: 'Ethereum Magicians', url: 'https://ethereum-magicians.org/c/eips/13.json' },
+  // A. Quantum threat timeline
+  { axis: 'A', name: 'NIST PQC News',          url: 'https://csrc.nist.gov/news/rss?CategoryId=44' },
+  { axis: 'A', name: 'IBM Research blog',      url: 'https://research.ibm.com/blog/feed' },
+  { axis: 'A', name: 'Google Research blog',   url: 'https://blog.research.google/feeds/posts/default' },
+
+  // B. Demand signals (production PQC + major customers)
+  { axis: 'B', name: 'Cloudflare blog',        url: 'https://blog.cloudflare.com/rss/' },
+  { axis: 'B', name: 'Apple Security blog',    url: 'https://security.apple.com/blog/atom.xml' },
+  { axis: 'B', name: 'Signal blog',            url: 'https://signal.org/blog/rss.xml' },
+  { axis: 'B', name: 'Chainlink blog',         url: 'https://blog.chain.link/rss/' },
+  { axis: 'B', name: 'AWS Security blog',      url: 'https://aws.amazon.com/blogs/security/feed/' },
+
+  // C. Competitors & alternatives
+  { axis: 'C', name: 'SandboxAQ blog',         url: 'https://www.sandboxaq.com/blog/rss' },
+  { axis: 'C', name: 'PQShield blog',          url: 'https://pqshield.com/blog/feed' },
+  { axis: 'C', name: 'Ledger blog',            url: 'https://www.ledger.com/blog/rss' },
+  { axis: 'C', name: 'Fireblocks blog',        url: 'https://www.fireblocks.com/blog/rss' },
+
+  // D. Standards & regulation
+  { axis: 'D', name: 'IETF datatracker',       url: 'https://datatracker.ietf.org/feed/recent' },
+  { axis: 'D', name: 'ENISA news',             url: 'https://www.enisa.europa.eu/news/atom' },
+  { axis: 'D', name: 'Ethereum EIPs',          url: 'https://eips.ethereum.org/all.json' },
+  { axis: 'D', name: 'Ethereum Magicians',     url: 'https://ethereum-magicians.org/c/eips/13.json' },
+
+  // E. Funding & grants
+  { axis: 'E', name: 'Ethereum Foundation blog', url: 'https://blog.ethereum.org/feed.xml' },
+  { axis: 'E', name: 'Optimism blog',          url: 'https://medium.com/feed/optimismpbc' },
+  { axis: 'E', name: 'Gitcoin blog',           url: 'https://gitcoin.co/blog/feed/' },
+
+  // F. Tech adjacency (ZK / AA / libs)
+  { axis: 'F', name: 'StarkWare blog',         url: 'https://www.starkware.co/feed/' },
+  { axis: 'F', name: 'RISC Zero blog',         url: 'https://www.risczero.com/blog/feed' },
+  { axis: 'F', name: '0xPARC blog',            url: 'https://blog.0xparc.org/atom.xml' },
+  { axis: 'F', name: 'liboqs releases',        url: 'https://github.com/open-quantum-safe/liboqs/releases.atom' },
+  { axis: 'F', name: 'arxiv cs.CR',            url: 'https://export.arxiv.org/rss/cs.CR' },
+
+  // G. Geopolitics / commercial / Japan
+  { axis: 'G', name: 'NEC R&D',                url: 'https://www.nec.com/en/global/rd/feed/index.atom' },
+  { axis: 'G', name: 'Vitalik blog',           url: 'https://vitalik.eth.limo/feed.xml' },
 ];
 
 const COMPETITOR_REPOS = [
-  'theQRL/QRL',
-  'PQShield/pqshield',
-  'starkware-libs/cairo',
+  { axis: 'C', repo: 'theQRL/QRL' },
+  { axis: 'C', repo: 'PQShield/pqshield' },
+  { axis: 'F', repo: 'starkware-libs/cairo' },
 ];
 
 // --- HTTP helpers ---------------------------------------------------------
@@ -82,11 +130,18 @@ async function fetchFeeds() {
   const results = [];
   for (const feed of FEEDS) {
     const r = await fetchText(feed.url);
-    results.push({ name: feed.name, url: feed.url, ok: r.ok, body: r.body });
+    results.push({ axis: feed.axis, name: feed.name, url: feed.url, ok: r.ok, body: r.body });
   }
-  for (const repo of COMPETITOR_REPOS) {
-    const r = await fetchText(`https://api.github.com/repos/${repo}/releases?per_page=3`);
-    results.push({ name: `GH releases: ${repo}`, url: `https://github.com/${repo}/releases`, ok: r.ok, body: r.body });
+  for (const entry of COMPETITOR_REPOS) {
+    const url = `https://api.github.com/repos/${entry.repo}/releases?per_page=3`;
+    const r = await fetchText(url);
+    results.push({
+      axis: entry.axis,
+      name: `GH releases: ${entry.repo}`,
+      url: `https://github.com/${entry.repo}/releases`,
+      ok: r.ok,
+      body: r.body,
+    });
   }
   return results;
 }
@@ -110,9 +165,21 @@ const SYSTEM_PROMPT = `You are the Daily Plan Bot for Quantum Shield (post-quant
 
 Your job each morning (JST 06:30): turn the last 24h of external signals into a PRIORITIZED UPDATE PLAN for today. Produce concrete actions, not abstract observations.
 
+The intelligence space is organized into 7 strategic axes. Each feed is tagged with one. A signal that touches MULTIPLE axes is more important than a single-axis signal of the same magnitude (e.g. B+E = a customer with grant money attached; A+D = a quantum-hardware milestone that triggers a regulatory deadline).
+
+  A. Quantum threat timeline — when will hardware reach cryptographic break? IBM/Google/Quantinuum/IonQ logical-qubit roadmaps, fault-tolerance milestones, NSA CNSA 2.0 / NIST migration deadlines.
+  B. Demand signals — who already runs PQC in production or has stated migration plans? Apple iMessage PQ3, Signal PQXDH, Cloudflare PQ TLS, AWS, major financials (Circle, BIS, SWIFT, Visa), defense, healthcare, infra (Chainlink, LayerZero, EigenLayer).
+  C. Competitors / alternatives — pure-PQC plays (QRL, SandboxAQ, PQShield, evolutionQ, Quantinuum), MPC/TSS as alternative narrative (Coinbase Custody, Fireblocks, Cubist), PQC-claiming wallets/custody (Ledger, BitGo, Anchorage), PQC-friendly chains (Algorand, Mina, Aleo, IOTA).
+  D. Standards & regulation — IETF PQC TLS/SSH/X.509 drafts, ISO/IEC JTC1 SC27, ETSI QSC, US OMB M-23-02 + DOD CMMC 2.0, EU DORA / MiCA, Japan NISC / FSA / NICT / METI / JCMVP, BSI/ENISA migration roadmaps, IEEE 1363, W3C VC + PQC.
+  E. Funding & grants — EF ESP, Optimism RetroPGF, Arbitrum Foundation, Stellar Community Fund, Gitcoin GG/GR rounds, ETHGlobal hackathon themes, DARPA / DIU / NSF SaTC / DOE-ASCR, Japan JST CREST / NEDO / JSPS, VC (a16z crypto, Paradigm, Variant, SBI, JIC).
+  F. Tech adjacency — ZK + PQC convergence (RISC Zero, SP1, StarkWare, 0xPARC, Mina, Aleo), Account Abstraction + PQ sig aggregation, threshold-PQ schemes (FROST successors), HSM PQC vendors (Thales, Utimaco, AWS CloudHSM), PQC libraries (liboqs, pqcrystals, BouncyCastle), ZKVM PQC.
+  G. Geopolitics / commercial / Japan — China BSN + SM2 successor strategy, Japanese national PQC programs (NEC, Toshiba, NTT, NICT, Fujitsu), QKD vs PQC narrative (Toshiba, ID Quantique), defense contractors (Lockheed, Raytheon, Booz Allen) PQC programs, DAO PQC voting, custody insurance pricing.
+
+Each action you propose MUST be tagged with one or more axes. Prioritize multi-axis convergences.
+
 Priority calibration:
-  P0 — must do today. Algorithm break, NIST deprecation, EIP merge that affects us, competitor shipping our exact thesis. Or trivial maintenance the bot can ship itself.
-  P1 — should do this week. New EIP draft worth analyzing, paper that may inform a feature, competitor signal worth a tracking doc.
+  P0 — must do today. Algorithm break, NIST deprecation, EIP merge that affects us, competitor shipping our exact thesis, customer-imminent grant deadline. Or trivial maintenance the bot can ship itself.
+  P1 — should do this week. New EIP draft worth analyzing, paper that may inform a feature, competitor signal worth a tracking doc, grant RFP open.
   P2 — backlog. Worth recording but no near-term action.
 
 Mechanical detection — set "mechanical": true ONLY when ALL of:
@@ -132,11 +199,25 @@ Hard constraints:
   - Output ONLY valid JSON inside <json></json> tags. No prose outside.`;
 
 function buildUserPrompt(feeds, recentPlans) {
-  const feedSummary = feeds.map((f) => {
-    const status = f.ok ? 'OK' : 'FETCH_FAILED';
-    const snippet = f.ok ? f.body.replace(/\s+/g, ' ').slice(0, 1500) : '';
-    return `### ${f.name} (${status})\n${snippet}`;
-  }).join('\n\n');
+  // Group feeds by axis so the model sees the structure, not just a flat dump.
+  const byAxis = {};
+  for (const f of feeds) {
+    const k = f.axis || '?';
+    if (!byAxis[k]) byAxis[k] = [];
+    byAxis[k].push(f);
+  }
+
+  const orderedAxes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', '?'];
+  const feedSummary = orderedAxes
+    .filter((ax) => byAxis[ax])
+    .map((ax) => {
+      const items = byAxis[ax].map((f) => {
+        const status = f.ok ? 'OK' : 'FETCH_FAILED';
+        const snippet = f.ok ? f.body.replace(/\s+/g, ' ').slice(0, 1200) : '';
+        return `#### ${f.name} (${status})\n${snippet}`;
+      }).join('\n\n');
+      return `### Axis ${ax}\n\n${items}`;
+    }).join('\n\n');
 
   const continuity = recentPlans.length === 0
     ? '(no prior daily plans)'
@@ -144,7 +225,7 @@ function buildUserPrompt(feeds, recentPlans) {
 
   return `Today is ${DATE} (JST). Generate the daily update plan.
 
-## Recent feeds (last fetch)
+## Recent feeds (last fetch, grouped by axis)
 
 ${feedSummary}
 
@@ -161,6 +242,7 @@ ${continuity}
   "actions": [
     {
       "priority": "P0" | "P1" | "P2",
+      "axes": ["A" | "B" | "C" | "D" | "E" | "F" | "G", ...],
       "title": "<short imperative title>",
       "rationale": "<why this matters today, 1-3 sentences>",
       "files": ["<repo-relative paths>"],
@@ -172,12 +254,12 @@ ${continuity}
     }
   ],
   "background": [
-    { "title": "<...>", "note": "<one-line, no action needed>" }
+    { "axes": ["..."], "title": "<...>", "note": "<one-line, no action needed>" }
   ],
   "skipped": [
-    { "title": "<...>", "reason": "<one-line>" }
+    { "axes": ["..."], "title": "<...>", "reason": "<one-line>" }
   ],
-  "markdown_report": "<full Markdown body for the briefing file>"
+  "markdown_report": "<full Markdown body for the briefing file. MUST include sections: Headline / Today's Plan (P0/P1/P2 with axis tags) / By Axis (A-G summary) / Background / Skipped / Sources>"
 }
 \`\`\`
 

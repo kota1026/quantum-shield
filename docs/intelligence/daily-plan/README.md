@@ -21,6 +21,22 @@ daily-plan/
 - **Background** — signals worth recording but with no associated action.
 - **Skipped** — low-relevance items, with rationale.
 
+Each action carries one or more **axis tags** indicating which strategic
+dimension(s) it touches. Multi-axis convergences (e.g. `B+E` = a customer
+with grant money) are weighted higher.
+
+## Strategic axes
+
+| Axis | Theme | Example signals |
+|---|---|---|
+| **A** | Quantum threat timeline | IBM logical-qubit roadmap, NSA CNSA 2.0 deadline |
+| **B** | Demand signals | Apple PQ3, Signal PQXDH, Cloudflare PQ TLS, Chainlink |
+| **C** | Competitors / alternatives | QRL, SandboxAQ, PQShield, Ledger, Fireblocks, Algorand |
+| **D** | Standards & regulation | IETF PQC drafts, ENISA, EU DORA, Japan NISC/FSA, IEEE |
+| **E** | Funding & grants | EF ESP, OP RetroPGF, Arbitrum, Gitcoin, JST CREST, NEDO |
+| **F** | Tech adjacency (ZK / AA / libs) | RISC Zero, SP1, StarkWare, 0xPARC, liboqs |
+| **G** | Geopolitics / commercial / Japan | NEC, NTT, China BSN, QKD vendors, defense contractors |
+
 ## Auto-drafted PRs
 
 When an action is marked `mechanical: true`, the workflow opens a separate
