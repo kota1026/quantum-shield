@@ -544,6 +544,91 @@ mod seq3_unlock_emergency {
             println!("SEQ#3-01 Emergency unlock returned {} (lock may need L1 confirmation first)", status);
         }
     }
+
+    /// SEQ#3-02: Emergency Unlock full flow — Lock → requestEmergencyUnlock route → DB record.
+    /// Phase 2 PR3/5. Exercises L1VaultService::request_emergency_unlock (PR #180/PR2).
+    /// Q2 strategy (c): only verify the request call; 7-day timelock + execute path is
+    /// verified at the orchestrator layer (PR4 getEmergencyUnlock on-chain check).
+    /// Bond formula MAX(0.5 ETH, amount × 5%) → with amount=0.01 ETH the floor applies.
+    #[tokio::test]
+    async fn test_emergency_unlock_full_flow() {
+        println!("SEQ#3-02 Emergency Unlock full flow — start");
+        let client = Client::new();
+        let (pk_hex, sk) = gen_dilithium_keypair();
+        let nonce = unique_nonce();
+        let chain_id: u64 = 11155111;
+        let amount = "10000000000000000"; // 0.01 ETH = MIN_LOCK_AMOUNT
+        let dest_addr = "0x3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a";
+        let expiry: u64 = 1900000000;
+
+        // Step 1: Create lock
+        let lock_sig = sign_lock_message(&sk, chain_id, "ETH", amount, dest_addr, expiry, nonce);
+        let lock_resp = client.post(format!("{}/v1/lock", API_BASE))
+            .json(&json!({"chain_id": chain_id, "asset": "ETH", "amount": amount,
+                "dest_addr": dest_addr, "expiry": expiry, "nonce": nonce,
+                "pk_dilithium": pk_hex, "sig_dilithium": lock_sig}))
+            .send().await.expect("Lock request failed");
+        let lock_body: Value = lock_resp.json().await.unwrap_or_default();
+        let lock_id = lock_body.get("lock_id").and_then(|v| v.as_str()).unwrap_or_default().to_string();
+        assert!(!lock_id.is_empty(), "SEQ#3-02 FAILED: lock creation must return lock_id");
+        println!("SEQ#3-02 Lock created: lock_id={}", lock_id);
+
+        // Step 2: Brief wait for DB landing
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+        // Step 3: Compute expected bond: MAX(0.5 ETH, amount × 5%); 5% of 0.01 ETH < floor
+        let amount_u128: u128 = amount.parse().unwrap();
+        let expected_bond: u128 = std::cmp::max(500_000_000_000_000_000u128, amount_u128 * 5 / 100);
+        let expected_bond_str = expected_bond.to_string();
+        println!("SEQ#3-02 Expected bond: {} wei", expected_bond_str);
+
+        // Step 4: Request emergency unlock with fresh dilithium signature
+        let unlock_sig = sign_unlock_message(&sk, &lock_id, dest_addr, amount);
+        let resp = client.post(format!("{}/v1/unlock/emergency", API_BASE))
+            .json(&json!({"lock_id": lock_id, "dest_addr": dest_addr,
+                "amount": amount, "sig_dilithium": unlock_sig}))
+            .send().await.expect("Emergency unlock request failed");
+        let status = resp.status().as_u16();
+        let body: Value = resp.json().await.unwrap_or_default();
+        println!("SEQ#3-02 Emergency unlock: status={}, body={}", status,
+            serde_json::to_string_pretty(&body).unwrap_or_default());
+
+        // Step 5: Assert response shape (unlock_id, status, bond_required)
+        assert!(matches!(status, 200 | 201 | 202),
+            "Emergency unlock route must accept the request, got {}", status);
+        let unlock_id = body.get("unlock_id").and_then(|v| v.as_str())
+            .expect("Response must include unlock_id").to_string();
+        assert!(!unlock_id.is_empty(), "unlock_id must be non-empty");
+        assert_eq!(body.get("status").and_then(|v| v.as_str()), Some("emergency_pending"),
+            "Status must be emergency_pending (UnlockStatus::EmergencyPending → snake_case)");
+        assert_eq!(body.get("bond_required").and_then(|v| v.as_str()),
+            Some(expected_bond_str.as_str()),
+            "Returned bond_required must equal MAX(0.5 ETH, amount × 5%)");
+
+        // Step 6: Verify DB persistence via explorer detail endpoint (no new sqlx dep
+        // in test crate; the endpoint reads is_emergency, status, bond_amount directly
+        // from unlock_requests).
+        let detail_resp = client.get(format!("{}/v1/explorer/unlocks/{}", API_BASE, unlock_id))
+            .send().await.expect("Explorer unlock detail request failed");
+        let detail_status = detail_resp.status().as_u16();
+        let detail: Value = detail_resp.json().await.unwrap_or_default();
+        println!("SEQ#3-02 Explorer detail: status={}, body={}", detail_status,
+            serde_json::to_string_pretty(&detail).unwrap_or_default());
+        assert_eq!(detail_status, 200, "Explorer detail must return 200 for created unlock");
+        assert_eq!(detail.get("unlock_type").and_then(|v| v.as_str()), Some("emergency"),
+            "DB row must have is_emergency=true (unlock_type=emergency)");
+        assert_eq!(detail.get("emergency_bond").and_then(|v| v.as_str()),
+            Some(expected_bond_str.as_str()), "DB bond_amount must equal expected bond");
+        let db_status = detail.get("status").and_then(|v| v.as_str())
+            .expect("DB row must have status");
+        assert!(matches!(db_status, "pending" | "locked" | "confirmed" | "emergency_pending"),
+            "DB status must be pending/locked/confirmed/emergency_pending, got {}", db_status);
+
+        // Step 7: Q2 strategy (c) — DO NOT wait for the 7-day timelock + L1 executeUnlock
+        // receipt. The orchestrator's getEmergencyUnlock on-chain check (Phase 2 PR4) is
+        // the L1 verdict source. This test proves the route + DB + L1 request path only.
+        println!("SEQ#3-02 PASSED — L1 receipt deferred to orchestrator (Q2 strategy c)");
+    }
 }
 
 // =============================================================================
