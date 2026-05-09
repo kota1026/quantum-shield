@@ -63,9 +63,18 @@ jobs:
           INPUT_RUN_EMERGENCY: ${{ inputs.run_emergency }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
+          # 2026-05-09: schedule no longer auto-includes "emergency". The actual
+          # MIN_BOND_WEI on `L1VaultTestnet` is 0.5 ETH (not the 0.01 ETH the PR5
+          # plan assumed) — surfaced when authoring seq3_unlock_emergency in
+          # PR #181. One nightly run with emergency therefore costs ~0.5 ETH +
+          # gas, exceeding the deployer wallet's ~0.55 ETH balance per run.
+          # Option C: emergency only fires when the operator explicitly opts
+          # in via workflow_dispatch with `run_emergency=true`. Schedule keeps
+          # lock+unlock so the daily smoke continues without bond burn. To run
+          # emergency: `gh workflow run e2e-orchestrator.yml -f run_emergency=true`.
           if [ -n "$INPUT_SEQUENCE" ]; then
             SEQS="[\"$INPUT_SEQUENCE\"]"
-          elif [ "$EVENT_NAME" = "schedule" ] || [ "$INPUT_RUN_EMERGENCY" = "true" ]; then
+          elif [ "$INPUT_RUN_EMERGENCY" = "true" ]; then
             SEQS='["lock","unlock","emergency"]'
           elif [ "$EVENT_NAME" = "push" ] || [ "$EVENT_NAME" = "pull_request" ]; then
             SEQS='["lock"]'
