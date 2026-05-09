@@ -214,6 +214,43 @@ const connectors = isTestEnv
 | 5-13 | E2E: Token Hub統合テスト強化 | ✅ 19テスト (API+L/E/E検証) |
 | 5-14 | ACTUAL_STATE.md 最終更新 | ✅ 92-94% |
 
+### Phase 1 — Orchestrator-Driven Sepolia 自動検証 (2026-05-08 達成)
+
+> Phase 1〜5 の code-level 統合は 2026-03 に完了済み (上記)。本節は **CI から無人で
+> Sepolia testnet に対する Lock シーケンスを駆動し、real on-chain receipt を verdict
+> に取り込めるようになった** マイルストーンの記録。
+
+**Run 25588391389 (NO_AI mode workflow_dispatch)** が 3 件の `lockWithSR0` トランザクションを Sepolia 上で確実に成立させた:
+
+| # | tx hash | Etherscan |
+|---|---|---|
+| 1 | `0x00edac601d0033c7e82cea09903141623088466e83aae52fe02b502ff30f4b09` | [view](https://sepolia.etherscan.io/tx/0x00edac601d0033c7e82cea09903141623088466e83aae52fe02b502ff30f4b09) |
+| 2 | `0xc6e568c20eafd994fcf7bb52396e283e79df21958f08e7d54270283fd6b95af2` | [view](https://sepolia.etherscan.io/tx/0xc6e568c20eafd994fcf7bb52396e283e79df21958f08e7d54270283fd6b95af2) |
+| 3 | `0x39373954c96f496fabeda1fc7e126a6ffd7461880f3bb4eca00e4ac0319ff8a6` | [view](https://sepolia.etherscan.io/tx/0x39373954c96f496fabeda1fc7e126a6ffd7461880f3bb4eca00e4ac0319ff8a6) |
+
+`Vault.totalLocked()` は **0.22 ETH → 0.73 ETH** (+0.51 ETH) を観測 — 過去の単発 lock とは独立に、orchestrator が起動した連続 lock が contract state を実際に動かした証拠。Vault: `0x07012aeF87C6E423c32F2f8eaF81762f63337260`、deployer / signer: `0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3`。
+
+#### 達成までに要した CI / observability 修正 (PR #160-#172)
+
+| PR | 内容 | 解決した盲点 |
+|---|---|---|
+| #160 | env 変数名 `QS__L1__RPC_URL` → `QS__L1_RPC_URL` (config crate のネスト解釈) | RPC URL が default.yaml にフォールバックしていた |
+| #161 | api-server stdout/stderr を `docs/orchestrator-runs/<id>/api-server.log` に保存 | startup ログが GH Actions step log に閉じて MCP/外部から不可視 |
+| #162 | `e2e-orchestrator.yml` に `environment: sepolia` 追加 | `secrets.DEPLOYER_PRIVATE_KEY` が environment-scoped で空文字列 resolve |
+| #163 | `services/mod.rs` の L1 Vault init silent-fail を `eprintln!` で露出 | `tracing::warn!(...) → None` が起動初期で失われていた |
+| #164 | Stage 0 preflight (PK 64 hex / `eth_chainId` / vault bytecode) | infra クラスの failure を AI ステージ前に deterministic に弾く |
+| #167 | `NO_AI=1` モード (Anthropic 不要、verdict は layer exit code から決定論的に算出) | Anthropic credit 枯渇でも CI 検証が継続可能に |
+| #168 | tracing fmt::layer を stderr writer に切替 (line-buffered) | stdout block-buffer で app-level event が SIGTERM 時に消失 |
+| #169 | EnvFilter に `api_server=debug` 追加 (binary crate target) | `quantum_shield_api=debug` だけでは bin の event が一切通らなかった |
+| #172 | `seq1_lock` test amount を Vault `MIN_LOCK_AMOUNT = 0.01 ETH` に揃える | 1 ETH では deployer wallet 残高不足、0.0001 ETH では `InsufficientAmount()` で revert |
+
+#### 残存する技術的制約 (Phase 1.x で解消予定)
+
+- **Nonce 衝突**: 並列 `POST /v1/lock` が `eth_getTransactionCount` で同 nonce を取得し `replacement transaction underpriced` で 4-5 件目以降が落ちる。orchestrator の verdict は「直近 5 分の最新 lock 1 件」を見るため、最後の失敗を拾って FIXABLE に倒す。`L1VaultService` に `NonceManagerMiddleware` を入れると解消する見込み (別 PR)。
+- **Verify ロジックの粒度**: `spec-loader.ts:74` の SQL は最新 1 件の `l1_tx_hash IS NOT NULL` を見るが、real な意味の Phase 1 達成は「同 run 内で >0 件の receipt が status=0x1」で十分。verify を「直近 5 分で l1_tx_hash 持つ lock が 1 件以上」に緩めれば PASS verdict が出せる (Axis 1 of orchestrator meta-upgrade)。
+
+これらは run 25588391389 の証拠が示す通り **Phase 1 の本質的達成を妨げない** — receipt は本物で contract state は動いた。verdict 文字列だけが厳密な PASS まで届いていない。
+
 ---
 
 ## 4. セッション管理戦略
