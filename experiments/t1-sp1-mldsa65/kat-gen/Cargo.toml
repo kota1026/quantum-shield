@@ -1,0 +1,9 @@
+[package]
+name = "kat-gen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fips204 = "0.4"
+rand_core = { version = "0.6", features = ["std"] }
+hex = "0.4"
