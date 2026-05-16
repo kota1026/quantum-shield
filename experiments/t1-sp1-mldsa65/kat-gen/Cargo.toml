@@ -1,9 +1,12 @@
 [package]
 name = "kat-gen"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
+
+[workspace]
 
 [dependencies]
 fips204 = "0.4"
 rand_core = { version = "0.6", features = ["std"] }
 hex = "0.4"
+clap = { version = "4.0", features = ["derive"] }

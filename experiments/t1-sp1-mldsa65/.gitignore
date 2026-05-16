@@ -1,0 +1,8 @@
+# Generated KAT bundles — reproduce with `kat-gen` per the README.
+kat_*.bin
+
+# Cargo build artifacts
+**/target
+
+# MacOS nuisances
+.DS_Store
