@@ -55,3 +55,10 @@ Workflow:
 _Above seed produced by hand from the 2026-03-08 → 2026-05-08 research pass.
 Future entries are produced by the `claude-updates` skill +
 `claude-updates-curator` agent and appended below._
+
+## 2026-05-20T23:15:26Z — version change detected
+
+- Previous: `2.1.133`
+- Current:  `2.1.145`
+- Action:   run `/claude-updates` to fetch release notes and propose integrations.
+- Branch:   claude/quantum-shield-updates-aXLIl

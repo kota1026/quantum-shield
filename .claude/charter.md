@@ -9,6 +9,7 @@ charter are resolved in favour of the charter.
 
 Founder: `kota1026` (solo, Japan-based, bootstrapped).
 Adopted: 2026-05-09 (W19, first agentic strategy meeting).
+Amended: 2026-05-13 (v1.1 — Principle 9 packaging added; see §1.1).
 
 ---
 
