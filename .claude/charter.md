@@ -9,7 +9,10 @@ charter are resolved in favour of the charter.
 
 Founder: `kota1026` (solo, Japan-based, bootstrapped).
 Adopted: 2026-05-09 (W19, first agentic strategy meeting).
-Amended: 2026-05-13 (v1.1 — Principle 9 packaging added; see §1.1).
+Amended: 2026-05-23 (v1.1 — Principle 9 (AVS-style packaging) added in §1.1
+and §9; Principle 10 (STOP discipline) added in §10; Cadences renumbered to
+§11; Amendments renumbered to §12. Origin: W21 charter v2 meeting +
+2026-05-23 founder ratification).
 
 ---
 

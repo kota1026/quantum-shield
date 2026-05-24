@@ -62,3 +62,17 @@ Future entries are produced by the `claude-updates` skill +
 - Current:  `2.1.145`
 - Action:   run `/claude-updates` to fetch release notes and propose integrations.
 - Branch:   claude/quantum-shield-updates-aXLIl
+
+## 2026-05-22T05:13:27Z — version change detected
+
+- Previous: `2.1.145`
+- Current:  `2.1.148`
+- Action:   run `/claude-updates` to fetch release notes and propose integrations.
+- Branch:   claude/quantum-shield-updates-aXLIl
+
+## 2026-05-24T02:44:54Z — version change detected
+
+- Previous: `2.1.148`
+- Current:  `2.1.150`
+- Action:   run `/claude-updates` to fetch release notes and propose integrations.
+- Branch:   claude/quantum-shield-updates-aXLIl
