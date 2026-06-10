@@ -37,12 +37,13 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      # v5: runners force Node 24 since 2026-06-02; v4 (node20) is deprecated.
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
 
@@ -228,3 +229,21 @@ jobs:
               echo "[action $i] draft PR opened"
             ) || echo "[action $i] subshell exited non-zero — continuing to next action"
           done
+
+      # 2026-06-10: the 2026-05-09 credit-exhaustion failure went unnoticed
+      # for a month because the Slack post lives inside run-daily-plan.js and
+      # never executes when the script itself fails. This step alerts on any
+      # job failure, independent of the script.
+      - name: Notify Slack on failure
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL unset — cannot notify"
+            exit 0
+          fi
+          curl -fsS -X POST -H 'Content-Type: application/json' \
+            --data "{\"text\":\"🚨 daily-plan FAILED: ${RUN_URL} — first suspect: Anthropic credit balance (cause of the 2026-05-09 outage).\"}" \
+            "$SLACK_WEBHOOK_URL" || echo "Slack notify itself failed — check webhook validity"
