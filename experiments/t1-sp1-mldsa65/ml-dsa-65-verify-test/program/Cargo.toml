@@ -1,0 +1,12 @@
+[package]
+version = "0.1.0"
+name = "mldsa-program"
+edition = "2021"
+
+[dependencies]
+alloy-sol-types = { workspace = true }
+sp1-zkvm = { version = "6.0.1" }
+mldsa-lib = { path = "../lib" }
+# fips204 brought in with default-features disabled to avoid getrandom/rand_core
+# dependencies that don't compile cleanly to riscv32im-succinct-zkvm-elf.
+fips204 = { version = "0.4", default-features = false, features = ["ml-dsa-65"] }
