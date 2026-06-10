@@ -44,11 +44,28 @@ before code, ≥20 differential test vectors as the contract between S1/S2.
 ### S0 — KoalaBear↔bytes serialization spec (8h) ← START HERE
 
 Deliverable: `docs/engineering/specs/koalabear-serialization.md` defining:
-- Canonical (non-Montgomery) form mandatory before hashing
+- Canonical (non-Montgomery) form mandatory before hashing.
+  **W24 crypto-research finding: Plonky3's `MontyField31` Serde impl
+  serializes Montgomery form BY DEFAULT.** Every observe path must call
+  `as_canonical_u32()` explicitly; test vectors must be generated from
+  that path, never from default Serde.
 - Endianness + width (default proposal: 4-byte little-endian, value < 0x7f000001; align to leanMultisig per pre-flight P5)
 - Digest layout: `[KoalaBear; 8]` packed in 256 bits, mapping to/from `[u8; 32]`
-- Rejection-sampling rule for sampling field elements from Keccak output
+- **Transcript message-type map**: byte prefixes distinguishing root
+  observations, OOD answers, sumcheck partial sums, PoW witnesses
+  (slop-whir separates by length only — insufficient for the PQ-sound
+  audit surface)
+- **Config-at-F-S-instantiation**: replicate the March 2026 slop fix
+  ("observe config at F-S instantiation") in KeccakIopCtx's
+  `default_challenger()` or prover/verifier transcripts diverge
+- Rejection-sampling rule pinned to an IETF-style hash-to-field
+  construction (RFC 9380 §5.2 adapted): byte grouping per attempt,
+  max-rejections-then-rehash with domain-separated counter
+  (~50% rejection rate at p = 0x7f000001; naive loops are grindable)
 - 20+ test vectors (hex in, field elements out) committed as JSON, consumed by both Rust unit tests and Foundry tests
+- **Method (qs-cto W24): vectors-first.** Write the 20 vectors + Rust/Foundry
+  dual green test (6h spike) before the spec prose; codify the winning
+  encoding afterwards.
 
 ### S1 — Sub-project I: KeccakIopCtx (40h)
 
@@ -111,7 +128,9 @@ At a sustainable 15 founder-h/week, 198h ≈ 13 weeks → **finishing ~W37
 | Theorem 4.8 list-decoding bound is conjectural | Weakens paper claim, not the build | Pre-flight P2; state assumption explicitly if so |
 | slop-whir unaudited at ship time | Audit cost on QS (~$50K incl. S1+S2 surfaces, ~1300 LOC) | Pre-flight P4; budget line in qs-cfo planning |
 | Founder time < 15h/week sustained | Schedule slip past Q4 | Weekly burn-down review in strategy meeting (qs-delivery agent) |
-| SP1 workspace fork drift | Rebase pain over 13 weeks | Pin SP1 commit at S1 start; one mid-project rebase max |
+| SP1 workspace fork drift | Rebase pain over 13 weeks | Pin SP1 commit at v6.2.4 (2026-06-08) at S1 start; one mid-project rebase max |
+| **Succinct ships first-party KeccakIopCtx before S1 completes** (W24 devils-ad) | S1 novelty collapses; RWC claim weakens to "verified what Succinct built" | Watch SP1 issue #2706 + slop commits weekly via restored daily-plan; if it lands, pivot S1 hours to S2 and reframe paper around the Solidity verifier + benchmark suite |
+| PSE/0xPARC publishes SP1+ML-DSA benchmark for EIP-8288/8292 before W28 (W24 pm) | Erases "no published benchmark" whitespace | Monitor both EIP PR threads weekly; if competitor benchmark appears, publish S1 intermediate result (N=1 cycle count) immediately |
 
 ## 4. Budget interlocks
 
@@ -119,3 +138,12 @@ At a sustainable 15 founder-h/week, 198h ≈ 13 weeks → **finishing ~W37
   (EF ESP). Audit is post-S4, pre-mainnet-claim; NOT needed for RWC paper.
 - Compute: S4 proving runs (N=64) feasible on a single large EC2 box or
   SP1 prover network; cost decision deferred to S4 entry.
+
+## 5. Burn-down ledger (qs-delivery W24 — artifact-based, no self-reporting)
+
+One line per working session. Hours count only when the artifact SHA exists.
+No artifact by Sunday = 0h that week.
+
+| Date | Sub-project | Hours | Artifact (commit SHA / file) |
+|------|-------------|-------|------------------------------|
+| — | — | 0 / 198 | plan committed 2026-06-10 (`871f530`) |
