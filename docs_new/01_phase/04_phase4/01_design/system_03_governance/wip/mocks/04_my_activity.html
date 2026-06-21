@@ -1,0 +1,312 @@
+<!--
+## File Info
+- System: Governance
+- Screen: My Activity (Votes/Proposals/Delegations tabs)
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-governance | click | 01_dashboard.html |
+| .nav-proposals | click | 02_proposals_list.html |
+| .tab-btn | click | switchTab() |
+| .vote-row | click | 02_proposal_detail.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Activity | Quantum Shield Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040; --error-dim: rgba(224, 112, 64, 0.12);
+            --pending: #8080a0; --pending-dim: rgba(128, 128, 160, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: var(--space-xl); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); text-decoration: none; color: inherit; }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: var(--space-sm) var(--space-lg); font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: var(--radius-full); transition: all 0.2s; text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; cursor: pointer; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .page-header { margin-bottom: var(--space-xl); }
+        .page-title { font-size: 32px; font-weight: 700; margin-bottom: var(--space-sm); display: flex; align-items: center; gap: var(--space-md); }
+
+        /* Stats */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-lg); }
+        .stat-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-sm); }
+        .stat-value { font-size: 28px; font-weight: 700; font-family: var(--font-mono); }
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-value.success { color: var(--success); }
+
+        /* Tabs */
+        .tabs { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); margin-bottom: var(--space-xl); width: fit-content; }
+        .tab-btn { padding: var(--space-sm) var(--space-xl); font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-full); transition: all 0.2s; background: none; border: none; display: flex; align-items: center; gap: var(--space-sm); }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .tab-count { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-header { padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); font-weight: 600; }
+
+        /* Vote History Table */
+        .vote-table { width: 100%; }
+        .vote-row { display: grid; grid-template-columns: 80px 1fr 120px 120px 150px; gap: var(--space-md); padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); align-items: center; transition: background 0.2s; cursor: pointer; text-decoration: none; color: inherit; }
+        .vote-row:hover { background: var(--bg-secondary); }
+        .vote-row:last-child { border-bottom: none; }
+        .proposal-id { font-weight: 700; color: var(--accent-gold); font-family: var(--font-mono); }
+        .proposal-title-cell { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vote-badge { display: inline-flex; align-items: center; gap: var(--space-xs); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
+        .vote-badge.for { background: var(--success-dim); color: var(--success); }
+        .vote-badge.against { background: var(--error-dim); color: var(--error); }
+        .vote-badge.abstain { background: var(--pending-dim); color: var(--pending); }
+        .power-used { font-family: var(--font-mono); font-size: 13px; }
+        .vote-date { font-size: 12px; color: var(--text-tertiary); }
+
+        /* Delegation Cards */
+        .delegation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md); padding: var(--space-xl); }
+        .delegation-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-lg); }
+        .delegator-header { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md); }
+        .delegator-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-hinomaru)); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; }
+        .delegator-info { flex: 1; }
+        .delegator-address { font-weight: 600; font-family: var(--font-mono); }
+        .delegator-date { font-size: 12px; color: var(--text-tertiary); }
+        .delegator-power { background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); text-align: center; }
+        .delegator-power-label { font-size: 10px; color: var(--text-tertiary); }
+        .delegator-power-value { font-size: 18px; font-weight: 700; color: var(--accent-gold); font-family: var(--font-mono); }
+
+        /* Empty State */
+        .empty-state { padding: var(--space-2xl); text-align: center; }
+        .empty-icon { font-size: 48px; margin-bottom: var(--space-md); opacity: 0.5; }
+        .empty-text { color: var(--text-tertiary); }
+
+        .footer { margin-top: var(--space-2xl); padding: var(--space-lg) 0; border-top: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-muted); text-align: center; }
+
+        @media (max-width: 1024px) {
+            .vote-row { grid-template-columns: 60px 1fr 100px 100px; }
+            .vote-date { display: none; }
+        }
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: var(--space-md); }
+            .nav { order: 3; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .vote-row { grid-template-columns: 1fr; gap: var(--space-sm); }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="gold-glow"></div></div>
+
+    <div class="container">
+        <header class="header">
+            <a href="01_dashboard.html" class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><span class="logo-main">Quantum Shield</span><span class="logo-sub">Governance</span></div>
+            </a>
+            <nav class="nav">
+                <a href="01_dashboard.html" class="nav-item">Dashboard</a>
+                <a href="02_proposals_list.html" class="nav-item">Proposals</a>
+                <a href="03_create_proposal.html" class="nav-item">Create</a>
+                <a href="04_my_activity.html" class="nav-item active">My Activity</a>
+            </nav>
+            <button class="wallet-btn"><span class="wallet-dot"></span>0x1a2b...3c4d</button>
+        </header>
+
+        <div class="page-header">
+            <h1 class="page-title">&#128202; My Activity</h1>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Votes Cast</div>
+                <div class="stat-value">42</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Participation Rate</div>
+                <div class="stat-value success">89%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Proposals Created</div>
+                <div class="stat-value">3</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Delegations Received</div>
+                <div class="stat-value gold">3</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('votes')">&#128499; My Votes <span class="tab-count">42</span></button>
+            <button class="tab-btn" onclick="switchTab('proposals')">&#128196; My Proposals <span class="tab-count">3</span></button>
+            <button class="tab-btn" onclick="switchTab('delegations')">&#128101; Delegations <span class="tab-count">3</span></button>
+        </div>
+
+        <!-- Votes Tab -->
+        <div class="tab-content active" id="votes-tab">
+            <div class="card">
+                <div class="card-header">Vote History</div>
+                <div class="vote-table">
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-47</div>
+                        <div class="proposal-title-cell">Increase Prover Bond Amount from 100 ETH to 150 ETH</div>
+                        <div><span class="vote-badge for">&#128077; For</span></div>
+                        <div class="power-used">125,000 veQS</div>
+                        <div class="vote-date">2026-01-10 14:32</div>
+                    </a>
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-45</div>
+                        <div class="proposal-title-cell">Upgrade STARK Verifier Contract to v2.1</div>
+                        <div><span class="vote-badge for">&#128077; For</span></div>
+                        <div class="power-used">125,000 veQS</div>
+                        <div class="vote-date">2026-01-05 09:15</div>
+                    </a>
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-44</div>
+                        <div class="proposal-title-cell">Reduce Challenge Period from 14 days to 7 days</div>
+                        <div><span class="vote-badge for">&#128077; For</span></div>
+                        <div class="power-used">120,000 veQS</div>
+                        <div class="vote-date">2025-12-20 16:45</div>
+                    </a>
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-40</div>
+                        <div class="proposal-title-cell">Decrease Minimum Lock Period from 30 days to 7 days</div>
+                        <div><span class="vote-badge against">&#128078; Against</span></div>
+                        <div class="power-used">115,000 veQS</div>
+                        <div class="vote-date">2025-12-10 11:20</div>
+                    </a>
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-38</div>
+                        <div class="proposal-title-cell">Add Emergency Pause Functionality for Security Council</div>
+                        <div><span class="vote-badge for">&#128077; For</span></div>
+                        <div class="power-used">110,000 veQS</div>
+                        <div class="vote-date">2025-11-28 08:30</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proposals Tab -->
+        <div class="tab-content" id="proposals-tab">
+            <div class="card">
+                <div class="card-header">My Proposals</div>
+                <div class="vote-table">
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-35</div>
+                        <div class="proposal-title-cell">Implement Quarterly Security Audits</div>
+                        <div><span class="vote-badge for" style="background: var(--success-dim); color: var(--success);">&#9989; Passed</span></div>
+                        <div class="power-used">-</div>
+                        <div class="vote-date">2025-11-15</div>
+                    </a>
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-28</div>
+                        <div class="proposal-title-cell">Add Dilithium Signature Verification</div>
+                        <div><span class="vote-badge for" style="background: var(--success-dim); color: var(--success);">&#9989; Passed</span></div>
+                        <div class="power-used">-</div>
+                        <div class="vote-date">2025-10-01</div>
+                    </a>
+                    <a href="02_proposal_detail.html" class="vote-row">
+                        <div class="proposal-id">QIP-22</div>
+                        <div class="proposal-title-cell">Increase Validator Rewards by 10%</div>
+                        <div><span class="vote-badge against" style="background: var(--error-dim); color: var(--error);">&#10060; Defeated</span></div>
+                        <div class="power-used">-</div>
+                        <div class="vote-date">2025-09-12</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delegations Tab -->
+        <div class="tab-content" id="delegations-tab">
+            <div class="card">
+                <div class="card-header">Delegations Received</div>
+                <div class="delegation-grid">
+                    <div class="delegation-card">
+                        <div class="delegator-header">
+                            <div class="delegator-avatar">A</div>
+                            <div class="delegator-info">
+                                <div class="delegator-address">0x456...789</div>
+                                <div class="delegator-date">Delegated since 2025-12-15</div>
+                            </div>
+                        </div>
+                        <div class="delegator-power">
+                            <div class="delegator-power-label">Delegated Power</div>
+                            <div class="delegator-power-value">12,500 veQS</div>
+                        </div>
+                    </div>
+                    <div class="delegation-card">
+                        <div class="delegator-header">
+                            <div class="delegator-avatar">B</div>
+                            <div class="delegator-info">
+                                <div class="delegator-address">0x789...abc</div>
+                                <div class="delegator-date">Delegated since 2025-11-20</div>
+                            </div>
+                        </div>
+                        <div class="delegator-power">
+                            <div class="delegator-power-label">Delegated Power</div>
+                            <div class="delegator-power-value">8,000 veQS</div>
+                        </div>
+                    </div>
+                    <div class="delegation-card">
+                        <div class="delegator-header">
+                            <div class="delegator-avatar">C</div>
+                            <div class="delegator-info">
+                                <div class="delegator-address">0xdef...123</div>
+                                <div class="delegator-date">Delegated since 2026-01-08</div>
+                            </div>
+                        </div>
+                        <div class="delegator-power">
+                            <div class="delegator-power-label">Delegated Power</div>
+                            <div class="delegator-power-value">4,500 veQS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            Your governance activity is recorded on-chain and publicly verifiable. &copy; 2026 Quantum Shield.
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.target.closest('.tab-btn').classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prover Dashboard - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!--
+    ## File Info
+    - System: Prover Portal
+    - Screen: Operations Dashboard (4-17)
+    - Created: 2026-01-10
+
+    ## Interactions Defined
+    | Element | Action | Target |
+    |---------|--------|--------|
+    | .nav-dashboard | click | 06_dashboard.html |
+    | .nav-queue | click | 07_queue.html |
+    | .nav-metrics | click | 08_metrics.html |
+    | .nav-alerts | click | 09_alerts.html |
+    | #btn-view-queue | click | 07_queue.html |
+    | #btn-view-metrics | click | 08_metrics.html |
+    | #btn-claim-rewards | click | 08_metrics.html#rewards |
+    | .logo-link | click | 01_landing.html |
+    -->
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-white: #ffffff;
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040;
+            --error-dim: rgba(224, 112, 64, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        a { color: inherit; text-decoration: none; }
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-subtle);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            padding: 0 8px;
+        }
+        .logo-hinomaru {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-circle-outer {
+            position: absolute;
+            inset: 0;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: logo-rotate 25s linear infinite;
+        }
+        .logo-hinomaru-inner {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-hinomaru-glow);
+        }
+        @keyframes logo-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-main {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .logo-sub {
+            font-size: 10px;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
+        }
+        .nav-section {
+            margin-bottom: 24px;
+        }
+        .nav-section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-tertiary);
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 12px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        .nav-item:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        .nav-item.active {
+            background: var(--accent-hinomaru-dim);
+            color: var(--accent-hinomaru-light);
+        }
+        .nav-item .icon {
+            font-size: 18px;
+        }
+        .nav-badge {
+            margin-left: auto;
+            background: var(--accent-hinomaru);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+        }
+        .nav-badge.warning {
+            background: var(--warning);
+        }
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+        }
+        .prover-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .prover-id {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .prover-tier {
+            font-size: 11px;
+            color: var(--accent-gold);
+        }
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light));
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px var(--accent-hinomaru-glow);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-hinomaru);
+            color: var(--accent-hinomaru-light);
+        }
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card:hover { border-color: var(--border-default); }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .stat-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-weight: 500;
+        }
+        .stat-badge.up { background: var(--success-dim); color: var(--success); }
+        .stat-badge.down { background: var(--error-dim); color: var(--error); }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+        .stat-value.highlight { color: var(--accent-hinomaru-light); }
+        .stat-unit {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+        .stat-sub {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 24px;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .card-action {
+            font-size: 13px;
+            color: var(--accent-gold);
+            cursor: pointer;
+        }
+        .card-action:hover {
+            text-decoration: underline;
+        }
+        .card-body {
+            padding: 20px 24px;
+        }
+        /* Queue Preview */
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .queue-item:hover {
+            background: var(--bg-elevated);
+        }
+        .queue-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-hinomaru-dim);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .queue-info {
+            flex: 1;
+        }
+        .queue-type {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .queue-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+        }
+        .queue-amount {
+            text-align: right;
+        }
+        .queue-value {
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+        .queue-time {
+            font-size: 11px;
+            color: var(--warning);
+            margin-top: 2px;
+        }
+        /* Performance Meter */
+        .perf-section {
+            margin-bottom: 20px;
+        }
+        .perf-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .perf-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .perf-value {
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+        .perf-bar {
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        .perf-fill {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width 0.5s ease;
+        }
+        .perf-fill.good { background: var(--success); }
+        .perf-fill.warning { background: var(--warning); }
+        .perf-fill.danger { background: var(--error); }
+        /* Rewards Card */
+        .rewards-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .reward-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+        .reward-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .reward-value {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+        .reward-value.claimable {
+            color: var(--success);
+        }
+        /* Alert Banner */
+        .alert-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: var(--warning-dim);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+        }
+        .alert-icon {
+            font-size: 20px;
+        }
+        .alert-content {
+            flex: 1;
+        }
+        .alert-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--warning);
+        }
+        .alert-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .alert-action {
+            padding: 8px 16px;
+            background: var(--warning);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        /* Stake Info */
+        .stake-card {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border: 1px solid var(--accent-gold);
+            margin-top: 16px;
+        }
+        .stake-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stake-icon {
+            font-size: 20px;
+        }
+        .stake-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .stake-amount {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            margin-bottom: 8px;
+        }
+        .stake-usd {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+        .stake-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        .stake-status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+        .stake-status-text {
+            font-size: 12px;
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="01_landing.html" class="logo logo-link">
+                <div class="logo-hinomaru">
+                    <div class="logo-circle-outer"></div>
+                    <div class="logo-hinomaru-inner"></div>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-main">Quantum Shield</div>
+                    <div class="logo-sub">Prover Portal</div>
+                </div>
+            </a>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Operations</div>
+                <a href="06_dashboard.html" class="nav-item active nav-dashboard">
+                    <span class="icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="07_queue.html" class="nav-item nav-queue">
+                    <span class="icon">📝</span>
+                    Signature Queue
+                    <span class="nav-badge">12</span>
+                </a>
+                <a href="08_metrics.html" class="nav-item nav-metrics">
+                    <span class="icon">📈</span>
+                    Metrics
+                </a>
+                <a href="08_metrics.html#rewards" class="nav-item">
+                    <span class="icon">💰</span>
+                    Rewards
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a href="09_alerts.html" class="nav-item nav-alerts">
+                    <span class="icon">🔔</span>
+                    Alerts
+                    <span class="nav-badge warning">2</span>
+                </a>
+                <a href="09_alerts.html#stake" class="nav-item">
+                    <span class="icon">🔐</span>
+                    Stake
+                </a>
+                <a href="10_challenge.html" class="nav-item">
+                    <span class="icon">⚔️</span>
+                    Challenges
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Account</div>
+                <a href="11_exit.html" class="nav-item">
+                    <span class="icon">🚪</span>
+                    Exit
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="prover-status">
+                    <div class="status-dot"></div>
+                    <div>
+                        <div class="prover-id">Prover #047</div>
+                        <div class="prover-tier">Tier 1 • Active</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Alert Banner -->
+            <div class="alert-banner">
+                <span class="alert-icon">⚠️</span>
+                <div class="alert-content">
+                    <div class="alert-title">SLA Warning: Response Time Approaching Threshold</div>
+                    <div class="alert-desc">Average response time: 28.2s (threshold: 30s)</div>
+                </div>
+                <a href="09_alerts.html"><button class="alert-action">View Alerts</button></a>
+            </div>
+
+            <div class="page-header">
+                <h1 class="page-title">Operations Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="location.href='08_metrics.html'">View Metrics</button>
+                    <button class="btn btn-primary" id="btn-view-queue" onclick="location.href='07_queue.html'">Process Queue</button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Pending Signatures</span>
+                    </div>
+                    <div class="stat-value highlight">12</div>
+                    <div class="stat-sub">4 urgent (< 5min)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Today's Processed</span>
+                        <span class="stat-badge up">+18%</span>
+                    </div>
+                    <div class="stat-value">847</div>
+                    <div class="stat-sub">Avg: 720/day</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Response Time</span>
+                        <span class="stat-badge down">+2.1s</span>
+                    </div>
+                    <div class="stat-value">28.2<span class="stat-unit">s</span></div>
+                    <div class="stat-sub">SLA: 30s max</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Uptime (30d)</span>
+                        <span class="stat-badge up">99.97%</span>
+                    </div>
+                    <div class="stat-value">99.97<span class="stat-unit">%</span></div>
+                    <div class="stat-sub">SLA: 99.9%</div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="main-grid">
+                <div>
+                    <!-- Signature Queue Preview -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Signature Queue</h2>
+                            <a href="07_queue.html" class="card-action">View All →</a>
+                        </div>
+                        <div class="card-body">
+                            <a href="07_queue.html#req-001" class="queue-item">
+                                <div class="queue-icon">🔓</div>
+                                <div class="queue-info">
+                                    <div class="queue-type">Unlock Request</div>
+                                    <div class="queue-meta">0x7a3f...9c2d • L1→L3</div>
+                                </div>
+                                <div class="queue-amount">
+                                    <div class="queue-value">5.25 ETH</div>
+                                    <div class="queue-time">⏱ 2m 34s</div>
+                                </div>
+                            </a>
+                            <a href="07_queue.html#req-002" class="queue-item">
+                                <div class="queue-icon">🔓</div>
+                                <div class="queue-info">
+                                    <div class="queue-type">Unlock Request</div>
+                                    <div class="queue-meta">0x8b2c...1e5a • L1→L3</div>
+                                </div>
+                                <div class="queue-amount">
+                                    <div class="queue-value">12.00 ETH</div>
+                                    <div class="queue-time">⏱ 4m 12s</div>
+                                </div>
+                            </a>
+                            <a href="07_queue.html#req-003" class="queue-item">
+                                <div class="queue-icon">🚨</div>
+                                <div class="queue-info">
+                                    <div class="queue-type">Emergency Unlock</div>
+                                    <div class="queue-meta">0x3d9f...7c4b • Emergency</div>
+                                </div>
+                                <div class="queue-amount">
+                                    <div class="queue-value">2.50 ETH</div>
+                                    <div class="queue-time">⏱ 8m 45s</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Performance Overview -->
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <h2 class="card-title">Performance Overview</h2>
+                            <a href="08_metrics.html" class="card-action" id="btn-view-metrics">Details →</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="perf-section">
+                                <div class="perf-header">
+                                    <span class="perf-label">Response Time (Avg)</span>
+                                    <span class="perf-value">28.2s / 30s</span>
+                                </div>
+                                <div class="perf-bar">
+                                    <div class="perf-fill warning" style="width: 94%"></div>
+                                </div>
+                            </div>
+                            <div class="perf-section">
+                                <div class="perf-header">
+                                    <span class="perf-label">Success Rate (24h)</span>
+                                    <span class="perf-value">99.8%</span>
+                                </div>
+                                <div class="perf-bar">
+                                    <div class="perf-fill good" style="width: 99.8%"></div>
+                                </div>
+                            </div>
+                            <div class="perf-section">
+                                <div class="perf-header">
+                                    <span class="perf-label">Uptime (30 days)</span>
+                                    <span class="perf-value">99.97%</span>
+                                </div>
+                                <div class="perf-bar">
+                                    <div class="perf-fill good" style="width: 99.97%"></div>
+                                </div>
+                            </div>
+                            <div class="perf-section">
+                                <div class="perf-header">
+                                    <span class="perf-label">HSM Health</span>
+                                    <span class="perf-value">Healthy</span>
+                                </div>
+                                <div class="perf-bar">
+                                    <div class="perf-fill good" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- Rewards Summary -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Rewards</h2>
+                            <a href="08_metrics.html#rewards" class="card-action" id="btn-claim-rewards">Claim →</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="rewards-summary">
+                                <div class="reward-item">
+                                    <div class="reward-label">Claimable</div>
+                                    <div class="reward-value claimable">4.82 ETH</div>
+                                </div>
+                                <div class="reward-item">
+                                    <div class="reward-label">Pending</div>
+                                    <div class="reward-value">1.24 ETH</div>
+                                </div>
+                                <div class="reward-item">
+                                    <div class="reward-label">This Month</div>
+                                    <div class="reward-value">12.45 ETH</div>
+                                </div>
+                                <div class="reward-item">
+                                    <div class="reward-label">All Time</div>
+                                    <div class="reward-value">156.8 ETH</div>
+                                </div>
+                            </div>
+                            <a href="08_metrics.html#rewards">
+                                <button class="btn btn-primary" style="width: 100%;">Claim 4.82 ETH</button>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Stake Info -->
+                    <div class="card stake-card">
+                        <div class="card-body">
+                            <div class="stake-header">
+                                <span class="stake-icon">🔐</span>
+                                <span class="stake-title">Your Stake</span>
+                            </div>
+                            <div class="stake-amount">150.00 ETH</div>
+                            <div class="stake-usd">≈ $412,500 USD</div>
+                            <div class="stake-status">
+                                <div class="stake-status-dot"></div>
+                                <span class="stake-status-text">No Slashing Risk • 0 Active Challenges</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="card-header">
+                            <h2 class="card-title">Today's Summary</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="rewards-summary">
+                                <div class="reward-item">
+                                    <div class="reward-label">Signatures</div>
+                                    <div class="reward-value">847</div>
+                                </div>
+                                <div class="reward-item">
+                                    <div class="reward-label">Volume</div>
+                                    <div class="reward-value">2,451 ETH</div>
+                                </div>
+                                <div class="reward-item">
+                                    <div class="reward-label">Fees Earned</div>
+                                    <div class="reward-value">0.48 ETH</div>
+                                </div>
+                                <div class="reward-item">
+                                    <div class="reward-label">Rank</div>
+                                    <div class="reward-value">#12 / 127</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!--
+## File Info
+- System: Enterprise Admin
+- Screen: Transaction Detail (7-6)
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| #btn-back | click | 05_transaction_list.html |
+| #btn-export-pdf | click | downloadPDF() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Detail - Enterprise Admin - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11; --bg-sidebar: #0c0c0f;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+        a { color: inherit; text-decoration: none; }
+        .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; }
+        .sidebar-header { padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); }
+        .logo-icon { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-ring { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: spin 20s linear infinite; }
+        .logo-core { width: 20px; height: 20px; background: var(--accent-hinomaru); border-radius: 50%; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .logo-text .logo-main { font-size: 16px; font-weight: 600; }
+        .logo-text .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-badge { margin-top: var(--space-sm); display: inline-flex; padding: 4px 10px; background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: var(--radius-sm); font-size: 10px; color: var(--accent-gold); font-weight: 600; }
+        .sidebar-nav { flex: 1; padding: var(--space-md); overflow-y: auto; }
+        .nav-section { margin-bottom: var(--space-lg); }
+        .nav-section-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 1px; text-transform: uppercase; padding: var(--space-sm) var(--space-md); }
+        .nav-item { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; margin-bottom: 2px; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-icon { width: 20px; text-align: center; }
+        .sidebar-footer { padding: var(--space-md); border-top: 1px solid var(--border-subtle); }
+        .org-info { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm); }
+        .org-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-gold)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .org-details .org-name { font-size: 13px; font-weight: 600; }
+        .org-details .org-plan { font-size: 11px; color: var(--accent-gold); }
+        .main-content { flex: 1; margin-left: 260px; min-height: 100vh; }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) var(--space-xl); background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; z-index: 50; }
+        .page-header { display: flex; align-items: center; gap: var(--space-md); }
+        .back-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
+        .back-btn:hover { border-color: var(--accent-hinomaru); color: var(--accent-hinomaru-light); }
+        .page-title { font-size: 20px; font-weight: 600; }
+        .top-actions { display: flex; align-items: center; gap: var(--space-md); }
+        .btn { display: inline-flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: var(--accent-hinomaru); color: white; }
+        .btn-secondary { background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .page-content { padding: var(--space-xl); }
+        .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-xl); }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: var(--space-xl); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+        .card-body { padding: var(--space-lg); }
+        .detail-row { display: flex; justify-content: space-between; padding: var(--space-md) 0; border-bottom: 1px solid var(--border-subtle); }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-size: 13px; color: var(--text-tertiary); }
+        .detail-value { font-size: 13px; font-weight: 500; text-align: right; }
+        .detail-value.mono { font-family: var(--font-mono); }
+        .detail-value.gold { color: var(--accent-gold); }
+        .status-badge { display: inline-flex; align-items: center; gap: var(--space-xs); padding: 6px 12px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; }
+        .status-badge.success { background: var(--success-dim); color: var(--success); }
+        .status-badge.pending { background: var(--warning-dim); color: var(--warning); }
+        .timeline { position: relative; padding-left: var(--space-xl); }
+        .timeline::before { content: ''; position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: var(--border-default); }
+        .timeline-item { position: relative; padding-bottom: var(--space-lg); }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-dot { position: absolute; left: -25px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-hinomaru); border: 2px solid var(--bg-card); }
+        .timeline-dot.complete { background: var(--success); }
+        .timeline-dot.pending { background: var(--warning); }
+        .timeline-content { background: var(--bg-secondary); border-radius: var(--radius-md); padding: var(--space-md); }
+        .timeline-title { font-size: 13px; font-weight: 600; margin-bottom: var(--space-xs); }
+        .timeline-time { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .quantum-badge { display: inline-flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-md); margin-top: var(--space-md); }
+        .quantum-badge-icon { font-size: 20px; }
+        .quantum-badge-text { font-size: 12px; }
+        .quantum-badge-text strong { display: block; color: var(--accent-hinomaru-light); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon"><div class="logo-ring"></div><div class="logo-core"></div></div>
+                <div class="logo-text"><div class="logo-main">Quantum Shield</div><div class="logo-sub">Enterprise</div></div>
+            </div>
+            <div class="sidebar-badge">ENTERPRISE EDITION</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Dashboard</div>
+                <a href="01_overview_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Overview</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Transactions</div>
+                <a href="05_transaction_list.html" class="nav-item active"><span class="nav-icon">📋</span>All Transactions</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a href="09_user_list.html" class="nav-item"><span class="nav-icon">👥</span>Users</a>
+                <a href="14_api_keys.html" class="nav-item"><span class="nav-icon">🔑</span>API Keys</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <a href="18_org_settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="org-info">
+                <div class="org-avatar">AC</div>
+                <div class="org-details"><div class="org-name">Acme Corp</div><div class="org-plan">Enterprise Plan</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="page-header">
+                <a href="05_transaction_list.html" class="back-btn" id="btn-back">←</a>
+                <h1 class="page-title">Transaction Detail</h1>
+            </div>
+            <div class="top-actions">
+                <button class="btn btn-secondary" id="btn-export-pdf">📄 Export PDF</button>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <div class="detail-grid">
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Transaction Information</h2>
+                            <span class="status-badge success">✓ Complete</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="detail-row">
+                                <span class="detail-label">TX Hash</span>
+                                <span class="detail-value mono gold">0x7a3f9d2e4b1c8f5a6d3e2b1a0c9f8e7d6c5b4a3f9d2e4b1c8f5a6d3e2b1a0c9f</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Type</span>
+                                <span class="detail-value">Lock</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Amount</span>
+                                <span class="detail-value mono" style="font-size: 16px; font-weight: 700;">5.00 ETH</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">USD Value</span>
+                                <span class="detail-value">$12,450.00</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">From Address</span>
+                                <span class="detail-value mono">0x1234...5678</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Contract Address</span>
+                                <span class="detail-value mono">0xQS01...7890</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Block Number</span>
+                                <span class="detail-value mono">19,234,567</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Gas Used</span>
+                                <span class="detail-value mono">142,567</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Gas Price</span>
+                                <span class="detail-value mono">25 Gwei</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Transaction Fee</span>
+                                <span class="detail-value mono">0.00356 ETH ($8.87)</span>
+                            </div>
+                            <div class="quantum-badge">
+                                <span class="quantum-badge-icon">🛡️</span>
+                                <div class="quantum-badge-text">
+                                    <strong>Quantum Protected</strong>
+                                    Signed with CRYSTALS-Dilithium
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Prover Attestation</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="detail-row">
+                                <span class="detail-label">Prover ID</span>
+                                <span class="detail-value mono">prover_001</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Attestation Hash</span>
+                                <span class="detail-value mono gold">0xatt...789f</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Stake Amount</span>
+                                <span class="detail-value mono">100 ETH</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Verification Time</span>
+                                <span class="detail-value mono">1.2s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Timeline</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-dot complete"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Transaction Submitted</div>
+                                        <div class="timeline-time">2026-01-11 14:32:15 JST</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot complete"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Quantum Signature Verified</div>
+                                        <div class="timeline-time">2026-01-11 14:32:16 JST</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot complete"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Prover Attestation</div>
+                                        <div class="timeline-time">2026-01-11 14:32:18 JST</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot complete"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Block Confirmation</div>
+                                        <div class="timeline-time">2026-01-11 14:32:45 JST</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot complete"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Transaction Complete</div>
+                                        <div class="timeline-time">2026-01-11 14:32:45 JST</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Audit Trail</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="detail-row">
+                                <span class="detail-label">Organization</span>
+                                <span class="detail-value">Acme Corp</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">API Key</span>
+                                <span class="detail-value mono">qs_live_...7a3f</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">IP Address</span>
+                                <span class="detail-value mono">203.0.113.42</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">User Agent</span>
+                                <span class="detail-value" style="font-size: 11px;">QS-SDK/1.2.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('btn-export-pdf').addEventListener('click', function() {
+            alert('PDF export initiated. The file will be downloaded shortly.');
+        });
+    </script>
+</body>
+</html>

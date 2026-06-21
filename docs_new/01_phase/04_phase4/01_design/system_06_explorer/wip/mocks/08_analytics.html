@@ -1,0 +1,361 @@
+<!--
+## File Info
+- System: Explorer
+- Screen: Analytics Dashboard (TVL, Volume, Performance)
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-overview | click | 01_overview.html |
+| .nav-locks | click | 03_locks.html |
+| .nav-unlocks | click | 04_unlocks.html |
+| .nav-challenges | click | 05_challenges.html |
+| .nav-provers | click | 07_provers.html |
+| .nav-analytics | click | 08_analytics.html |
+| .time-filter | click | changeTimeRange() |
+| .export-btn | click | exportData() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Explorer - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --info: #4a90d9;
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-display); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+        a { color: inherit; text-decoration: none; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 24px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; margin-bottom: 32px; }
+        .logo { display: flex; align-items: center; gap: 16px; }
+        .logo-hinomaru { width: 44px; height: 44px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 20px; height: 20px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px rgba(188, 0, 45, 0.4); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 18px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .nav { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: 8px 20px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-full); transition: all 0.2s; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+        .page-title { font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        .page-title::before { content: ''; width: 4px; height: 28px; background: var(--accent-hinomaru); border-radius: 2px; }
+        .page-actions { display: flex; gap: 12px; }
+        .time-filters { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-md); }
+        .time-filter { padding: 6px 14px; font-size: 13px; color: var(--text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; }
+        .time-filter:hover { color: var(--text-primary); }
+        .time-filter.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .export-btn { padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .export-btn:hover { color: var(--text-primary); border-color: var(--border-default); }
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+        .stat-value { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-change { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--warning); }
+        /* Chart Cards */
+        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .chart-title { font-size: 16px; font-weight: 600; }
+        .chart-legend { display: flex; gap: 16px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        /* Placeholder Charts */
+        .chart-placeholder { height: 280px; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px 0; }
+        .chart-bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 100%; }
+        .chart-bar { flex: 1; background: linear-gradient(180deg, var(--accent-hinomaru) 0%, var(--accent-gold) 100%); border-radius: 4px 4px 0 0; opacity: 0.8; transition: opacity 0.2s; }
+        .chart-bar:hover { opacity: 1; }
+        .chart-area { height: 200px; position: relative; overflow: hidden; }
+        .area-fill { position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: linear-gradient(180deg, var(--accent-gold-dim) 0%, transparent 100%); clip-path: polygon(0 100%, 5% 80%, 15% 60%, 25% 70%, 35% 50%, 45% 55%, 55% 40%, 65% 45%, 75% 30%, 85% 35%, 95% 20%, 100% 25%, 100% 100%); }
+        .area-line { position: absolute; bottom: 0; left: 0; right: 0; height: 70%; border-top: 2px solid var(--accent-gold); clip-path: polygon(0 100%, 5% 80%, 15% 60%, 25% 70%, 35% 50%, 45% 55%, 55% 40%, 65% 45%, 75% 30%, 85% 35%, 95% 20%, 100% 25%); }
+        /* Pie Chart Placeholder */
+        .pie-chart { width: 180px; height: 180px; border-radius: 50%; background: conic-gradient(var(--accent-hinomaru) 0deg 180deg, var(--accent-gold) 180deg 270deg, var(--success) 270deg 330deg, var(--info) 330deg 360deg); margin: 0 auto 20px; position: relative; }
+        .pie-chart::before { content: ''; position: absolute; inset: 30%; background: var(--bg-card); border-radius: 50%; }
+        .pie-legend { display: flex; flex-direction: column; gap: 8px; }
+        .pie-legend-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .pie-legend-label { display: flex; align-items: center; gap: 8px; }
+        .pie-legend-value { font-weight: 600; }
+        /* Performance Table */
+        .performance-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+        .performance-header { padding: 20px 24px; border-bottom: 1px solid var(--border-subtle); }
+        .performance-title { font-size: 16px; font-weight: 600; }
+        .performance-table { width: 100%; }
+        .performance-table th { text-align: left; padding: 12px 24px; font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; background: var(--bg-secondary); }
+        .performance-table td { padding: 14px 24px; font-size: 14px; border-bottom: 1px solid var(--border-subtle); }
+        .performance-table tbody tr:last-child td { border-bottom: none; }
+        .metric-good { color: var(--success); }
+        .metric-warning { color: var(--warning); }
+        @media (max-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .header { flex-wrap: wrap; gap: 16px; }
+            .nav { width: 100%; overflow-x: auto; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .page-actions { width: 100%; justify-content: space-between; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="red-glow"></div></div>
+    <div class="container">
+        <header class="header">
+            <a href="01_overview.html" class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><span class="logo-main">Quantum Shield</span><span class="logo-sub">Explorer</span></div>
+            </a>
+            <nav class="nav">
+                <a href="01_overview.html" class="nav-item">Overview</a>
+                <a href="03_locks.html" class="nav-item">Locks</a>
+                <a href="04_unlocks.html" class="nav-item">Unlocks</a>
+                <a href="05_challenges.html" class="nav-item">Challenges</a>
+                <a href="07_provers.html" class="nav-item">Provers</a>
+                <a href="08_analytics.html" class="nav-item active">Analytics</a>
+            </nav>
+        </header>
+
+        <div class="page-header">
+            <h1 class="page-title">Analytics</h1>
+            <div class="page-actions">
+                <div class="time-filters">
+                    <button class="time-filter" onclick="changeTimeRange('24h')">24H</button>
+                    <button class="time-filter active" onclick="changeTimeRange('7d')">7D</button>
+                    <button class="time-filter" onclick="changeTimeRange('30d')">30D</button>
+                    <button class="time-filter" onclick="changeTimeRange('90d')">90D</button>
+                    <button class="time-filter" onclick="changeTimeRange('1y')">1Y</button>
+                </div>
+                <button class="export-btn" onclick="exportData()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Value Locked</div>
+                <div class="stat-value gold">$847.2M</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+                    +12.4%
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Transaction Volume (7d)</div>
+                <div class="stat-value">$124.8M</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+                    +8.2%
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Unique Users (7d)</div>
+                <div class="stat-value">2,847</div>
+                <div class="stat-change positive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+                    +15.3%
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Lock Duration</div>
+                <div class="stat-value">42 days</div>
+                <div class="stat-change negative">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    -3.1%
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <!-- TVL Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Total Value Locked</span>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: var(--accent-gold);"></div>
+                            TVL
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-area">
+                    <div class="area-fill"></div>
+                    <div class="area-line"></div>
+                </div>
+            </div>
+
+            <!-- Distribution Pie -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Lock Distribution</span>
+                </div>
+                <div class="pie-chart"></div>
+                <div class="pie-legend">
+                    <div class="pie-legend-item">
+                        <span class="pie-legend-label">
+                            <div class="legend-dot" style="background: var(--accent-hinomaru);"></div>
+                            > 100 ETH
+                        </span>
+                        <span class="pie-legend-value">50%</span>
+                    </div>
+                    <div class="pie-legend-item">
+                        <span class="pie-legend-label">
+                            <div class="legend-dot" style="background: var(--accent-gold);"></div>
+                            10-100 ETH
+                        </span>
+                        <span class="pie-legend-value">25%</span>
+                    </div>
+                    <div class="pie-legend-item">
+                        <span class="pie-legend-label">
+                            <div class="legend-dot" style="background: var(--success);"></div>
+                            1-10 ETH
+                        </span>
+                        <span class="pie-legend-value">17%</span>
+                    </div>
+                    <div class="pie-legend-item">
+                        <span class="pie-legend-label">
+                            <div class="legend-dot" style="background: var(--info);"></div>
+                            < 1 ETH
+                        </span>
+                        <span class="pie-legend-value">8%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Volume Chart -->
+        <div class="chart-card" style="margin-bottom: 24px;">
+            <div class="chart-header">
+                <span class="chart-title">Daily Transaction Volume</span>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--accent-hinomaru);"></div>
+                        Lock
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--accent-gold);"></div>
+                        Unlock
+                    </div>
+                </div>
+            </div>
+            <div class="chart-placeholder">
+                <div class="chart-bars">
+                    <div class="chart-bar" style="height: 45%;"></div>
+                    <div class="chart-bar" style="height: 62%;"></div>
+                    <div class="chart-bar" style="height: 38%;"></div>
+                    <div class="chart-bar" style="height: 75%;"></div>
+                    <div class="chart-bar" style="height: 55%;"></div>
+                    <div class="chart-bar" style="height: 82%;"></div>
+                    <div class="chart-bar" style="height: 68%;"></div>
+                    <div class="chart-bar" style="height: 90%;"></div>
+                    <div class="chart-bar" style="height: 72%;"></div>
+                    <div class="chart-bar" style="height: 58%;"></div>
+                    <div class="chart-bar" style="height: 85%;"></div>
+                    <div class="chart-bar" style="height: 78%;"></div>
+                    <div class="chart-bar" style="height: 65%;"></div>
+                    <div class="chart-bar" style="height: 95%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="performance-card">
+            <div class="performance-header">
+                <span class="performance-title">System Performance</span>
+            </div>
+            <table class="performance-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Current</th>
+                        <th>24h Avg</th>
+                        <th>7d Avg</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Lock Processing Time</td>
+                        <td>1.2s</td>
+                        <td>1.4s</td>
+                        <td>1.3s</td>
+                        <td><span class="metric-good">Healthy</span></td>
+                    </tr>
+                    <tr>
+                        <td>Prover Response Time</td>
+                        <td>2.8s</td>
+                        <td>3.1s</td>
+                        <td>2.9s</td>
+                        <td><span class="metric-good">Healthy</span></td>
+                    </tr>
+                    <tr>
+                        <td>Time Lock Accuracy</td>
+                        <td>99.99%</td>
+                        <td>99.98%</td>
+                        <td>99.99%</td>
+                        <td><span class="metric-good">Healthy</span></td>
+                    </tr>
+                    <tr>
+                        <td>Challenge Resolution Rate</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td><span class="metric-good">Healthy</span></td>
+                    </tr>
+                    <tr>
+                        <td>Network Latency</td>
+                        <td>45ms</td>
+                        <td>52ms</td>
+                        <td>48ms</td>
+                        <td><span class="metric-good">Healthy</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function changeTimeRange(range) {
+            document.querySelectorAll('.time-filter').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            // In real app, would fetch new data for selected range
+            console.log('Time range changed to:', range);
+        }
+
+        function exportData() {
+            // In real app, would trigger data export
+            alert('Data export started. You will receive a download link shortly.');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!--
+## File Info
+- System: Enterprise Admin
+- Screen: Security Settings (7-19)
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-settings | click | 18_org_settings.html |
+| .settings-tab | click | switchSettingsTab() |
+| #btn-save | click | saveSettings() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Settings - Enterprise Admin - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11; --bg-sidebar: #0c0c0f;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040;
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+        a { color: inherit; text-decoration: none; }
+        .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; }
+        .sidebar-header { padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); }
+        .logo-icon { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-ring { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: spin 20s linear infinite; }
+        .logo-core { width: 20px; height: 20px; background: var(--accent-hinomaru); border-radius: 50%; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .logo-text .logo-main { font-size: 16px; font-weight: 600; }
+        .logo-text .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-badge { margin-top: var(--space-sm); display: inline-flex; padding: 4px 10px; background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: var(--radius-sm); font-size: 10px; color: var(--accent-gold); font-weight: 600; }
+        .sidebar-nav { flex: 1; padding: var(--space-md); overflow-y: auto; }
+        .nav-section { margin-bottom: var(--space-lg); }
+        .nav-section-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 1px; text-transform: uppercase; padding: var(--space-sm) var(--space-md); }
+        .nav-item { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; margin-bottom: 2px; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-icon { width: 20px; text-align: center; }
+        .sidebar-footer { padding: var(--space-md); border-top: 1px solid var(--border-subtle); }
+        .org-info { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm); }
+        .org-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-gold)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .org-details .org-name { font-size: 13px; font-weight: 600; }
+        .org-details .org-plan { font-size: 11px; color: var(--accent-gold); }
+        .main-content { flex: 1; margin-left: 260px; min-height: 100vh; }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) var(--space-xl); background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; z-index: 50; }
+        .page-title { font-size: 20px; font-weight: 600; }
+        .btn { display: inline-flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: var(--accent-hinomaru); color: white; }
+        .btn-secondary { background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .page-content { padding: var(--space-xl); }
+        .settings-layout { display: grid; grid-template-columns: 200px 1fr; gap: var(--space-xl); }
+        .settings-nav { display: flex; flex-direction: column; gap: var(--space-xs); }
+        .settings-tab { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+        .settings-tab:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .settings-tab.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: var(--space-lg); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+        .card-body { padding: var(--space-lg); }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; border-bottom: 1px solid var(--border-subtle); }
+        .setting-item:last-child { border-bottom: none; }
+        .setting-info { flex: 1; }
+        .setting-label { font-size: 14px; font-weight: 500; margin-bottom: var(--space-xs); }
+        .setting-desc { font-size: 12px; color: var(--text-tertiary); }
+        .toggle { width: 48px; height: 26px; background: var(--bg-secondary); border-radius: var(--radius-sm); position: relative; cursor: pointer; transition: background 0.2s; }
+        .toggle.on { background: var(--success); }
+        .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: white; border-radius: 4px; top: 3px; left: 3px; transition: transform 0.2s; }
+        .toggle.on::after { transform: translateX(22px); }
+        .ip-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+        .ip-item { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md); }
+        .ip-item input { flex: 1; background: none; border: none; outline: none; color: var(--text-primary); font-family: var(--font-mono); font-size: 13px; }
+        .ip-remove { color: var(--error); cursor: pointer; }
+        .add-ip { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: var(--bg-elevated); border: 1px dashed var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); cursor: pointer; font-size: 13px; }
+        .session-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+        .session-item { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md); }
+        .session-icon { font-size: 20px; }
+        .session-info { flex: 1; }
+        .session-device { font-size: 13px; font-weight: 500; }
+        .session-meta { font-size: 11px; color: var(--text-tertiary); }
+        .session-current { padding: 2px 8px; background: var(--success-dim); color: var(--success); border-radius: var(--radius-sm); font-size: 10px; font-weight: 600; }
+        .alert-box { background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: var(--space-md); display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); }
+        .alert-icon { font-size: 20px; }
+        .alert-content { flex: 1; }
+        .alert-title { font-size: 14px; font-weight: 600; color: var(--warning); }
+        .alert-desc { font-size: 12px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon"><div class="logo-ring"></div><div class="logo-core"></div></div>
+                <div class="logo-text"><div class="logo-main">Quantum Shield</div><div class="logo-sub">Enterprise</div></div>
+            </div>
+            <div class="sidebar-badge">ENTERPRISE EDITION</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Dashboard</div>
+                <a href="01_overview_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Overview</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Transactions</div>
+                <a href="05_transaction_list.html" class="nav-item"><span class="nav-icon">📋</span>All Transactions</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a href="09_user_list.html" class="nav-item"><span class="nav-icon">👥</span>Users</a>
+                <a href="14_api_keys.html" class="nav-item"><span class="nav-icon">🔑</span>API Keys</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <a href="18_org_settings.html" class="nav-item active"><span class="nav-icon">⚙️</span>Settings</a>
+                <a href="25_support_portal.html" class="nav-item"><span class="nav-icon">🎧</span>Support</a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="org-info">
+                <div class="org-avatar">AC</div>
+                <div class="org-details"><div class="org-name">Acme Corp</div><div class="org-plan">Enterprise Plan</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h1 class="page-title">Settings</h1>
+            <button class="btn btn-primary" id="btn-save">Save Changes</button>
+        </header>
+
+        <div class="page-content">
+            <div class="settings-layout">
+                <nav class="settings-nav">
+                    <a href="18_org_settings.html" class="settings-tab">Organization</a>
+                    <a href="19_security_settings.html" class="settings-tab active">Security</a>
+                    <a href="20_notification_settings.html" class="settings-tab">Notifications</a>
+                    <a href="21_limit_settings.html" class="settings-tab">Limits</a>
+                </nav>
+
+                <div class="settings-content">
+                    <div class="alert-box">
+                        <span class="alert-icon">🛡️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Security Score: 85/100</div>
+                            <div class="alert-desc">Enable IP Allowlist to improve your security score.</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Two-Factor Authentication</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">Require 2FA for all users</div>
+                                    <div class="setting-desc">All team members must enable 2FA to access the dashboard</div>
+                                </div>
+                                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">Require 2FA for API key creation</div>
+                                    <div class="setting-desc">2FA verification required when creating new API keys</div>
+                                </div>
+                                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">IP Allowlist</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">Enable IP Allowlist</div>
+                                    <div class="setting-desc">Restrict API access to specific IP addresses</div>
+                                </div>
+                                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+                            </div>
+                            <div style="margin-top: var(--space-lg);">
+                                <div class="ip-list">
+                                    <div class="ip-item">
+                                        <input type="text" value="203.0.113.0/24">
+                                        <span class="ip-remove">✕</span>
+                                    </div>
+                                    <div class="ip-item">
+                                        <input type="text" value="198.51.100.42">
+                                        <span class="ip-remove">✕</span>
+                                    </div>
+                                    <div class="add-ip">+ Add IP Address</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Session Management</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">Session timeout</div>
+                                    <div class="setting-desc">Auto logout after inactivity</div>
+                                </div>
+                                <select style="padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 13px;">
+                                    <option>15 minutes</option>
+                                    <option selected>30 minutes</option>
+                                    <option>1 hour</option>
+                                    <option>4 hours</option>
+                                </select>
+                            </div>
+                            <div style="margin-top: var(--space-lg);">
+                                <div style="font-size: 14px; font-weight: 500; margin-bottom: var(--space-md);">Active Sessions</div>
+                                <div class="session-list">
+                                    <div class="session-item">
+                                        <span class="session-icon">💻</span>
+                                        <div class="session-info">
+                                            <div class="session-device">Chrome on macOS</div>
+                                            <div class="session-meta">Tokyo, Japan • Last active: Now</div>
+                                        </div>
+                                        <span class="session-current">Current</span>
+                                    </div>
+                                    <div class="session-item">
+                                        <span class="session-icon">📱</span>
+                                        <div class="session-info">
+                                            <div class="session-device">Safari on iPhone</div>
+                                            <div class="session-meta">Tokyo, Japan • Last active: 2 hours ago</div>
+                                        </div>
+                                        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Revoke</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Audit Logging</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">Log all API requests</div>
+                                    <div class="setting-desc">Store detailed logs of all API activity</div>
+                                </div>
+                                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">Log retention period</div>
+                                    <div class="setting-desc">How long to keep audit logs</div>
+                                </div>
+                                <select style="padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 13px;">
+                                    <option>30 days</option>
+                                    <option>90 days</option>
+                                    <option selected>1 year</option>
+                                    <option>Forever</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('btn-save').addEventListener('click', function() {
+            alert('Settings saved successfully!');
+        });
+    </script>
+</body>
+</html>

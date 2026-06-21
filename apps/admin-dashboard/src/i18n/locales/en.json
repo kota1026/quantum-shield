@@ -1,0 +1,171 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "details": "Details",
+    "approve": "Approve",
+    "reject": "Reject",
+    "suspend": "Suspend",
+    "export": "Export",
+    "exportCsv": "Export CSV",
+    "noData": "No data found",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "stopped": "Stopped",
+    "continues": "Continues"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "provers": "Provers",
+    "providers": "Providers",
+    "analytics": "Analytics",
+    "emergency": "Emergency",
+    "edition": "Edition"
+  },
+  "layout": {
+    "title": "Quantum Shield",
+    "adminDashboard": "Admin Dashboard",
+    "networkStatus": "Network: Sepolia ↔ Aegis",
+    "systemActive": "System Active"
+  },
+  "dashboard": {
+    "title": "System Overview",
+    "loadingDashboard": "Loading dashboard...",
+    "tvl": "Total Value Locked",
+    "totalLocks": "Total Locks",
+    "totalUnlocks": "Total Unlocks",
+    "activeProvers": "Active Provers",
+    "l3NodeStatus": "L3 Aegis Node Status",
+    "securityParams": "Security Parameters (CP Compliant)",
+    "normalTimeLock": "Normal Time Lock (SEQ#2)",
+    "emergencyTimeLock": "Emergency Time Lock (SEQ#3)",
+    "quadraticSlashing": "Quadratic Slashing (SEQ#4)",
+    "pauseDuration": "Pause Duration (SEQ#8)",
+    "recentAlerts": "Recent Alerts",
+    "hours24": "24 hours",
+    "days7": "7 days",
+    "hours72Max": "72 hours max",
+    "slashingFormula": "N² × 10%"
+  },
+  "provers": {
+    "title": "Prover Management",
+    "registerNew": "+ Register New Prover",
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended"
+    },
+    "slashingWarning": {
+      "title": "Quadratic Slashing Active (N² × 10%)",
+      "description": "Correlated failures result in exponentially higher penalties. 1 Prover = 10%, 2 Provers = 40%, 3 Provers = 90%"
+    },
+    "table": {
+      "prover": "Prover",
+      "status": "Status",
+      "hsm": "HSM",
+      "stake": "Stake",
+      "successRate": "Success Rate",
+      "responseTime": "Response Time",
+      "actions": "Actions"
+    },
+    "noProvers": "No provers found",
+    "loadError": "Failed to load provers. Please try again.",
+    "legend": {
+      "successRate": "Success Rate ≥99% | 95-99% | <95%",
+      "responseTime": "Response ≤200ms | 200-500ms | >500ms"
+    },
+    "registration": {
+      "title": "Register New Prover",
+      "operatorAddress": "Operator Address",
+      "name": "Prover Name",
+      "stakeAmount": "Stake Amount (USD)",
+      "sphincsPublicKey": "SPHINCS+ Public Key",
+      "hsmAttestation": "HSM Attestation",
+      "legalAgreement": "I agree to the Prover Terms of Service",
+      "submit": "Register Prover",
+      "validation": {
+        "invalidAddress": "Invalid Ethereum address",
+        "nameTooShort": "Name must be at least 3 characters",
+        "minStake": "Minimum stake is $400,000",
+        "mustAcceptTerms": "You must accept the legal agreement"
+      }
+    }
+  },
+  "analytics": {
+    "title": "Analytics Dashboard",
+    "loadingAnalytics": "Loading analytics...",
+    "period": {
+      "24h": "24h",
+      "7d": "7d",
+      "30d": "30d"
+    },
+    "tvl": "Total Value Locked",
+    "tvlChart": "[TVL Chart Placeholder]",
+    "lockStats": "Lock Statistics",
+    "unlockStats": "Unlock Statistics",
+    "totalLocks": "Total Locks",
+    "totalUnlocks": "Total Unlocks",
+    "proverPerformance": "Prover Performance",
+    "proverId": "Prover ID",
+    "successRate": "Success Rate",
+    "avgResponse": "Avg Response"
+  },
+  "emergency": {
+    "title": "Emergency Management",
+    "systemPaused": "System PAUSED",
+    "systemActive": "System Active",
+    "pausedDescription": "New locks and unlocks are disabled",
+    "activeDescription": "All operations are functioning normally",
+    "maxPauseDuration": {
+      "title": "Maximum Pause Duration (SEQ#8)",
+      "description": "Emergency pause is limited to <strong>72 hours</strong>. Extension requires Token Vote approval."
+    },
+    "securityCouncil": {
+      "title": "Security Council Approval (5/9)",
+      "description": "Emergency pause requires 5 of 9 Security Council member signatures."
+    },
+    "affectedOps": {
+      "title": "Affected Operations During Pause",
+      "newLock": "New Lock",
+      "newUnlock": "New Unlock",
+      "inProgressUnlock": "In-progress Unlock",
+      "claim": "Claim",
+      "challenge": "Challenge",
+      "proverExit": "Prover Exit"
+    },
+    "actions": {
+      "title": "Emergency Actions",
+      "initiatePause": "Initiate Emergency Pause",
+      "confirmPause": "Confirm Pause",
+      "resume": "Resume Operations",
+      "confirmMessage": "Are you sure? This will disable new locks and unlocks."
+    }
+  },
+  "edition": {
+    "title": "Edition Configuration",
+    "current": "Current Edition",
+    "enterprise": "Enterprise",
+    "decentralized": "Decentralized",
+    "switchEdition": "Switch Edition",
+    "consensusType": "Consensus Type",
+    "fixed4bft": "Fixed 4BFT",
+    "dynamicPbft": "Dynamic PBFT",
+    "proverApproval": "Prover Approval Mode",
+    "contractBased": "Contract Based",
+    "foundationInvite": "Foundation Invite",
+    "councilVote": "Council Vote",
+    "stakeAuto": "Stake Auto"
+  },
+  "language": {
+    "select": "Language",
+    "en": "English",
+    "ja": "Japanese"
+  }
+}

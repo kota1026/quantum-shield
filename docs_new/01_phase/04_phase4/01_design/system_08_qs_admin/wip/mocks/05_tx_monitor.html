@@ -1,0 +1,202 @@
+<!--
+## File Info
+- System: QS Admin
+- Screen: Transaction Monitor (Lock/Unlock/Challenge)
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-tx-monitor | click | 05_tx_monitor.html |
+| .tx-row | click | showTxDetail() |
+| .tab-item | click | switchTab() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QS Admin - TX Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040; --error-dim: rgba(224, 112, 64, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', sans-serif; --font-mono: 'DM Mono', monospace;
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+        .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); position: fixed; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--accent-hinomaru); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-text { font-size: 16px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-nav { padding: 16px 12px; }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-tertiary); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-item.emergency { background: var(--accent-hinomaru); color: white; margin-top: 8px; }
+        .nav-icon { width: 20px; text-align: center; }
+
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 24px 32px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 28px; font-weight: 700; }
+        .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+        .live-indicator { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--success); }
+        .live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .tabs { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: 10px; margin-bottom: 24px; width: fit-content; }
+        .tab-item { padding: 10px 20px; border-radius: 8px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+        .tab-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+
+        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-mini { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+        .stat-mini-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+        .stat-mini-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; padding: 12px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); background: var(--bg-secondary); }
+        .data-table td { padding: 16px; border-bottom: 1px solid var(--border-subtle); font-size: 14px; }
+        .data-table tr:hover { background: var(--bg-secondary); cursor: pointer; }
+
+        .tx-hash { font-family: var(--font-mono); color: var(--accent-gold); font-size: 13px; }
+        .tx-type { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .tx-type.lock { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .tx-type.unlock { background: var(--accent-gold-dim); color: var(--accent-gold); }
+        .tx-type.emergency { background: var(--warning-dim); color: var(--warning); }
+
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 12px; }
+        .status-badge.pending { background: var(--warning-dim); color: var(--warning); }
+        .status-badge.completed { background: var(--success-dim); color: var(--success); }
+        .status-badge.timelock { background: rgba(74, 144, 217, 0.12); color: #4a90d9; }
+
+        .amount { font-family: var(--font-mono); font-weight: 600; }
+        .time { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">QS</div>
+                <div><div class="logo-text">QS Admin</div><div class="logo-sub">Internal Dashboard</div></div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Overview</div>
+                <a href="01_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Dashboard</a>
+                <a href="02_emergency.html" class="nav-item emergency"><span class="nav-icon">🚨</span>Emergency Pause</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Operations</div>
+                <a href="04_prover.html" class="nav-item"><span class="nav-icon">🔐</span>Prover Management</a>
+                <a href="05_tx_monitor.html" class="nav-item active"><span class="nav-icon">📡</span>TX Monitor</a>
+                <a href="06_nodes.html" class="nav-item"><span class="nav-icon">🖥️</span>L3 Nodes</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Transaction Monitor</h1>
+                <p class="page-subtitle">Lock/Unlock/Challenge トランザクション監視</p>
+            </div>
+            <div class="live-indicator"><span class="live-dot"></span>Live Updates</div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-item active">All Transactions</div>
+            <div class="tab-item">Locks</div>
+            <div class="tab-item">Unlocks</div>
+            <div class="tab-item">Challenges</div>
+            <div class="tab-item">Anomalies</div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-mini"><div class="stat-mini-label">Total TXs (24h)</div><div class="stat-mini-value">1,247</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Locks</div><div class="stat-mini-value">892</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Unlocks</div><div class="stat-mini-value">312</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Emergency</div><div class="stat-mini-value">43</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Challenges</div><div class="stat-mini-value" style="color: var(--success);">0</div></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Transactions</h2>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>TX Hash</th>
+                        <th>Type</th>
+                        <th>From</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="tx-row" onclick="showTxDetail()">
+                        <td><span class="tx-hash">0x7a3f...9c2d</span></td>
+                        <td><span class="tx-type lock">🔒 Lock</span></td>
+                        <td style="font-family: var(--font-mono);">0x3b1c...f8a7</td>
+                        <td><span class="amount">15.50 ETH</span></td>
+                        <td><span class="status-badge completed">✓ Completed</span></td>
+                        <td><span class="time">2 min ago</span></td>
+                    </tr>
+                    <tr class="tx-row" onclick="showTxDetail()">
+                        <td><span class="tx-hash">0x9d2e...1f4b</span></td>
+                        <td><span class="tx-type unlock">🔓 Unlock</span></td>
+                        <td style="font-family: var(--font-mono);">0x8e5d...2c3a</td>
+                        <td><span class="amount">8.20 ETH</span></td>
+                        <td><span class="status-badge timelock">⏳ 23:41:02</span></td>
+                        <td><span class="time">5 min ago</span></td>
+                    </tr>
+                    <tr class="tx-row" onclick="showTxDetail()">
+                        <td><span class="tx-hash">0x4f6a...7b8c</span></td>
+                        <td><span class="tx-type emergency">🚨 Emergency</span></td>
+                        <td style="font-family: var(--font-mono);">0x1a2b...3c4d</td>
+                        <td><span class="amount">25.00 ETH</span></td>
+                        <td><span class="status-badge pending">⏳ 6d 14:22</span></td>
+                        <td><span class="time">1 hour ago</span></td>
+                    </tr>
+                    <tr class="tx-row" onclick="showTxDetail()">
+                        <td><span class="tx-hash">0x2c3d...4e5f</span></td>
+                        <td><span class="tx-type lock">🔒 Lock</span></td>
+                        <td style="font-family: var(--font-mono);">0x5f6g...7h8i</td>
+                        <td><span class="amount">42.00 ETH</span></td>
+                        <td><span class="status-badge completed">✓ Completed</span></td>
+                        <td><span class="time">2 hours ago</span></td>
+                    </tr>
+                    <tr class="tx-row" onclick="showTxDetail()">
+                        <td><span class="tx-hash">0x6g7h...8i9j</span></td>
+                        <td><span class="tx-type unlock">🔓 Unlock</span></td>
+                        <td style="font-family: var(--font-mono);">0x9j0k...1l2m</td>
+                        <td><span class="amount">5.75 ETH</span></td>
+                        <td><span class="status-badge completed">✓ Completed</span></td>
+                        <td><span class="time">3 hours ago</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <script>function showTxDetail() { alert('TX detail modal would open here'); }</script>
+</body>
+</html>

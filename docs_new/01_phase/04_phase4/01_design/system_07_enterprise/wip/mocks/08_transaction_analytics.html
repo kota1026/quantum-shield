@@ -1,0 +1,85 @@
+<!--
+## File Info
+- System: Enterprise Admin
+- Screen: Transaction Analytics (7-8)
+- Created: 2026-01-11
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-transactions | click | 05_transaction_list.html |
+| .time-btn | click | updateChart() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Analytics - Enterprise Admin - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg-primary:#0a0a0c;--bg-secondary:#111114;--bg-card:#0e0e11;--bg-sidebar:#0c0c0f;--accent-hinomaru:#bc002d;--accent-hinomaru-dim:rgba(188,0,45,0.12);--accent-gold:#c9a962;--success:#00c896;--warning:#f0a030;--text-primary:#f8f8fa;--text-secondary:#9898a0;--text-tertiary:#606068;--border-subtle:rgba(255,255,255,0.04);--border-default:rgba(255,255,255,0.08);--font-body:'Plus Jakarta Sans',sans-serif;--font-mono:'DM Mono',monospace;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;display:flex}a{color:inherit;text-decoration:none}
+        .sidebar{width:260px;background:var(--bg-sidebar);border-right:1px solid var(--border-subtle);position:fixed;top:0;left:0;bottom:0;padding:var(--space-lg)}
+        .logo{display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-xl)}.logo-icon{width:40px;height:40px;background:var(--accent-hinomaru);border-radius:50%}.logo-text{font-size:16px;font-weight:600}
+        .nav-item{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-md);border-radius:var(--radius-md);font-size:14px;color:var(--text-secondary);margin-bottom:4px}.nav-item:hover{background:rgba(255,255,255,0.04)}.nav-item.active{background:var(--accent-hinomaru-dim);color:#e8334d}
+        .main-content{flex:1;margin-left:260px}.top-bar{display:flex;justify-content:space-between;padding:var(--space-md) var(--space-xl);background:var(--bg-secondary);border-bottom:1px solid var(--border-subtle)}.page-title{font-size:20px;font-weight:600}
+        .time-filter{display:flex;gap:4px;background:var(--bg-primary);padding:4px;border-radius:var(--radius-md)}.time-btn{padding:var(--space-sm) var(--space-md);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);cursor:pointer;border:none;background:none}.time-btn.active{background:var(--bg-card);color:var(--text-primary)}
+        .page-content{padding:var(--space-xl)}
+        .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);margin-bottom:var(--space-xl)}
+        .stat-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-lg)}.stat-label{font-size:12px;color:var(--text-tertiary);margin-bottom:4px}.stat-value{font-size:24px;font-weight:700}.stat-change{font-size:12px;color:var(--success);margin-top:4px}
+        .card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);margin-bottom:var(--space-xl)}.card-header{padding:var(--space-lg);border-bottom:1px solid var(--border-subtle)}.card-title{font-size:16px;font-weight:600}.card-body{padding:var(--space-lg)}
+        .chart-placeholder{height:250px;background:var(--bg-secondary);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)}
+        .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-lg)}
+        .breakdown-item{display:flex;justify-content:space-between;padding:var(--space-md) 0;border-bottom:1px solid var(--border-subtle)}.breakdown-item:last-child{border-bottom:none}
+        .breakdown-label{display:flex;align-items:center;gap:var(--space-sm)}.breakdown-dot{width:10px;height:10px;border-radius:50%}
+        .breakdown-value{font-family:var(--font-mono);font-weight:600}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><div class="logo-icon"></div><div class="logo-text">Quantum Shield</div></div>
+        <a href="01_overview_dashboard.html" class="nav-item">📊 Overview</a>
+        <a href="05_transaction_list.html" class="nav-item active nav-transactions">📋 Transactions</a>
+        <a href="09_user_list.html" class="nav-item">👥 Users</a>
+        <a href="18_org_settings.html" class="nav-item">⚙️ Settings</a>
+    </aside>
+    <main class="main-content">
+        <header class="top-bar">
+            <h1 class="page-title">Transaction Analytics</h1>
+            <div class="time-filter">
+                <button class="time-btn">24H</button>
+                <button class="time-btn active">7D</button>
+                <button class="time-btn">30D</button>
+                <button class="time-btn">90D</button>
+            </div>
+        </header>
+        <div class="page-content">
+            <div class="stats-row">
+                <div class="stat-card"><div class="stat-label">Total Transactions</div><div class="stat-value">12,847</div><div class="stat-change">↑ 15.3%</div></div>
+                <div class="stat-card"><div class="stat-label">Lock Operations</div><div class="stat-value">8,234</div><div class="stat-change">↑ 12.1%</div></div>
+                <div class="stat-card"><div class="stat-label">Unlock Operations</div><div class="stat-value">4,521</div><div class="stat-change">↑ 8.7%</div></div>
+                <div class="stat-card"><div class="stat-label">Avg. Processing Time</div><div class="stat-value">2.3s</div><div class="stat-change">↓ 0.5s</div></div>
+            </div>
+            <div class="card"><div class="card-header"><h2 class="card-title">Transaction Volume Over Time</h2></div><div class="card-body"><div class="chart-placeholder">[Volume Timeline Chart]</div></div></div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">By Transaction Type</h2></div>
+                    <div class="card-body">
+                        <div class="breakdown-item"><span class="breakdown-label"><span class="breakdown-dot" style="background:#00c896"></span>Lock</span><span class="breakdown-value">64.1%</span></div>
+                        <div class="breakdown-item"><span class="breakdown-label"><span class="breakdown-dot" style="background:#c9a962"></span>Unlock</span><span class="breakdown-value">35.2%</span></div>
+                        <div class="breakdown-item"><span class="breakdown-label"><span class="breakdown-dot" style="background:#bc002d"></span>Emergency</span><span class="breakdown-value">0.7%</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">By Token</h2></div>
+                    <div class="card-body">
+                        <div class="breakdown-item"><span class="breakdown-label"><span class="breakdown-dot" style="background:#627eea"></span>ETH</span><span class="breakdown-value">58.4%</span></div>
+                        <div class="breakdown-item"><span class="breakdown-label"><span class="breakdown-dot" style="background:#f7931a"></span>WBTC</span><span class="breakdown-value">28.1%</span></div>
+                        <div class="breakdown-item"><span class="breakdown-label"><span class="breakdown-dot" style="background:#2775ca"></span>USDC</span><span class="breakdown-value">13.5%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

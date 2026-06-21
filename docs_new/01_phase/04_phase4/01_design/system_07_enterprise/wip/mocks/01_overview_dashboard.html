@@ -1,0 +1,908 @@
+<!--
+## File Info
+- System: Enterprise Admin
+- Screen: Overview Dashboard (7-1)
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-overview | click | 01_overview_dashboard.html |
+| .nav-tvl | click | 02_tvl_dashboard.html |
+| .nav-volume | click | 03_volume_dashboard.html |
+| .nav-status | click | 04_status_dashboard.html |
+| .nav-tx-list | click | 05_transaction_list.html |
+| .nav-users | click | 09_user_list.html |
+| .nav-api | click | 14_api_keys.html |
+| .nav-settings | click | 18_org_settings.html |
+| .nav-reports | click | 22_monthly_report.html |
+| .nav-support | click | 25_support_portal.html |
+| #btn-view-all-tx | click | 05_transaction_list.html |
+| #btn-export | click | 07_transaction_export.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview Dashboard - Enterprise Admin - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --bg-sidebar: #0c0c0f;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040;
+            --error-dim: rgba(224, 112, 64, 0.12);
+            --info: #4a90d9;
+            --info-dim: rgba(74, 144, 217, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-emphasis: rgba(255, 255, 255, 0.12);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+        a { color: inherit; text-decoration: none; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-ring {
+            position: absolute;
+            inset: 0;
+            border: 1.5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 20s linear infinite;
+        }
+        .logo-core {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent-hinomaru-glow);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .logo-text .logo-main {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .logo-text .logo-sub {
+            font-size: 10px;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
+        }
+        .sidebar-badge {
+            margin-top: var(--space-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: 4px 10px;
+            background: var(--accent-gold-dim);
+            border: 1px solid var(--accent-gold);
+            border-radius: var(--radius-sm);
+            font-size: 10px;
+            color: var(--accent-gold);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: var(--space-md);
+            overflow-y: auto;
+        }
+        .nav-section {
+            margin-bottom: var(--space-lg);
+        }
+        .nav-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: var(--space-sm) var(--space-md);
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+        .nav-item:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+        .nav-item.active {
+            background: var(--accent-hinomaru-dim);
+            color: var(--accent-hinomaru-light);
+        }
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .nav-badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            background: var(--accent-hinomaru);
+            border-radius: var(--radius-sm);
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+        }
+        .sidebar-footer {
+            padding: var(--space-md);
+            border-top: 1px solid var(--border-subtle);
+        }
+        .org-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-sm);
+        }
+        .org-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-gold));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .org-details .org-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .org-details .org-plan {
+            font-size: 11px;
+            color: var(--accent-gold);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-md) var(--space-xl);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            width: 280px;
+        }
+        .search-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+        .search-box input::placeholder { color: var(--text-muted); }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            position: relative;
+        }
+        .icon-btn:hover {
+            border-color: var(--border-default);
+            color: var(--text-primary);
+        }
+        .icon-btn .badge-dot {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-hinomaru);
+            border-radius: 50%;
+        }
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-xs) var(--space-sm);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-hinomaru);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: var(--space-xl);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card:hover { border-color: var(--border-default); }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-sm);
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+        }
+        .stat-icon.primary { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .stat-icon.gold { background: var(--accent-gold-dim); color: var(--accent-gold); }
+        .stat-icon.success { background: var(--success-dim); color: var(--success); }
+        .stat-icon.info { background: var(--info-dim); color: var(--info); }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: var(--space-xs);
+        }
+        .stat-value .unit {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .stat-change.up { color: var(--success); }
+        .stat-change.down { color: var(--error); }
+
+        /* Grid Layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-xl);
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .card-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--accent-hinomaru);
+            color: white;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 16px var(--accent-hinomaru-glow);
+        }
+        .btn-secondary {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover {
+            border-color: var(--accent-hinomaru);
+            color: var(--accent-hinomaru-light);
+        }
+        .card-body {
+            padding: var(--space-lg);
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            text-align: left;
+            padding: var(--space-sm) var(--space-md);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .data-table td {
+            padding: var(--space-md);
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover { background: var(--bg-elevated); }
+        .tx-hash {
+            font-family: var(--font-mono);
+            color: var(--accent-gold);
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-badge.success { background: var(--success-dim); color: var(--success); }
+        .status-badge.pending { background: var(--warning-dim); color: var(--warning); }
+        .status-badge.failed { background: var(--error-dim); color: var(--error); }
+        .amount-cell {
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+
+        /* Activity List */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+        }
+        .activity-icon.lock { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .activity-icon.unlock { background: var(--accent-gold-dim); color: var(--accent-gold); }
+        .activity-icon.user { background: var(--info-dim); color: var(--info); }
+        .activity-icon.api { background: var(--success-dim); color: var(--success); }
+        .activity-content { flex: 1; }
+        .activity-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .activity-meta {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+        }
+
+        /* System Status */
+        .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-sm) 0;
+        }
+        .status-name {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .status-dot.warning { background: var(--warning); }
+        .status-dot.offline { background: var(--error); }
+
+        /* Chart Placeholder */
+        .chart-placeholder {
+            height: 200px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="logo-ring"></div>
+                    <div class="logo-core"></div>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-main">Quantum Shield</div>
+                    <div class="logo-sub">Enterprise</div>
+                </div>
+            </div>
+            <div class="sidebar-badge">ENTERPRISE EDITION</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Dashboard</div>
+                <a href="01_overview_dashboard.html" class="nav-item active nav-overview">
+                    <span class="nav-icon">📊</span>
+                    Overview
+                </a>
+                <a href="02_tvl_dashboard.html" class="nav-item nav-tvl">
+                    <span class="nav-icon">💰</span>
+                    TVL
+                </a>
+                <a href="03_volume_dashboard.html" class="nav-item nav-volume">
+                    <span class="nav-icon">📈</span>
+                    Volume
+                </a>
+                <a href="04_status_dashboard.html" class="nav-item nav-status">
+                    <span class="nav-icon">🔋</span>
+                    System Status
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Transactions</div>
+                <a href="05_transaction_list.html" class="nav-item nav-tx-list">
+                    <span class="nav-icon">📋</span>
+                    All Transactions
+                    <span class="nav-badge">247</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a href="09_user_list.html" class="nav-item nav-users">
+                    <span class="nav-icon">👥</span>
+                    Users
+                </a>
+                <a href="14_api_keys.html" class="nav-item nav-api">
+                    <span class="nav-icon">🔑</span>
+                    API Keys
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Reports</div>
+                <a href="22_monthly_report.html" class="nav-item nav-reports">
+                    <span class="nav-icon">📑</span>
+                    Reports
+                </a>
+                <a href="24_audit_log.html" class="nav-item">
+                    <span class="nav-icon">📜</span>
+                    Audit Log
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <a href="18_org_settings.html" class="nav-item nav-settings">
+                    <span class="nav-icon">⚙️</span>
+                    Settings
+                </a>
+                <a href="25_support_portal.html" class="nav-item nav-support">
+                    <span class="nav-icon">🎧</span>
+                    Support
+                </a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="org-info">
+                <div class="org-avatar">AC</div>
+                <div class="org-details">
+                    <div class="org-name">Acme Corp</div>
+                    <div class="org-plan">Enterprise Plan</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <h1 class="page-title">Overview Dashboard</h1>
+            <div class="top-actions">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Search transactions, users...">
+                </div>
+                <button class="icon-btn">
+                    🔔
+                    <span class="badge-dot"></span>
+                </button>
+                <div class="user-menu">
+                    <div class="user-avatar">佐</div>
+                    <span class="user-name">佐藤</span>
+                    <span>▾</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Total Value Locked</span>
+                        <div class="stat-icon primary">💰</div>
+                    </div>
+                    <div class="stat-value">$124.5<span class="unit">M</span></div>
+                    <span class="stat-change up">↑ 12.4% vs last month</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Monthly Volume</span>
+                        <div class="stat-icon gold">📊</div>
+                    </div>
+                    <div class="stat-value">$47.2<span class="unit">M</span></div>
+                    <span class="stat-change up">↑ 8.7% vs last month</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Total Transactions</span>
+                        <div class="stat-icon success">📋</div>
+                    </div>
+                    <div class="stat-value">12,847</div>
+                    <span class="stat-change up">↑ 247 today</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Active Users</span>
+                        <div class="stat-icon info">👥</div>
+                    </div>
+                    <div class="stat-value">1,234</div>
+                    <span class="stat-change up">↑ 56 this week</span>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Recent Transactions</h2>
+                        <div class="card-actions">
+                            <a href="07_transaction_export.html" class="btn btn-secondary" id="btn-export">
+                                📥 Export
+                            </a>
+                            <a href="05_transaction_list.html" class="btn btn-primary" id="btn-view-all-tx">
+                                View All
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>TX Hash</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><a href="06_transaction_detail.html" class="tx-hash">0x7a3f...9c2d</a></td>
+                                    <td>Lock</td>
+                                    <td class="amount-cell">5.00 ETH</td>
+                                    <td><span class="status-badge success">Complete</span></td>
+                                    <td style="color: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px;">2 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="06_transaction_detail.html" class="tx-hash">0x3b2e...1f4a</a></td>
+                                    <td>Unlock</td>
+                                    <td class="amount-cell">2.50 ETH</td>
+                                    <td><span class="status-badge pending">Pending</span></td>
+                                    <td style="color: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px;">15 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="06_transaction_detail.html" class="tx-hash">0x9d1c...8e5b</a></td>
+                                    <td>Lock</td>
+                                    <td class="amount-cell">10.00 ETH</td>
+                                    <td><span class="status-badge success">Complete</span></td>
+                                    <td style="color: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px;">32 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="06_transaction_detail.html" class="tx-hash">0x5e7d...2a9f</a></td>
+                                    <td>Emergency</td>
+                                    <td class="amount-cell">1.25 ETH</td>
+                                    <td><span class="status-badge pending">7d Lock</span></td>
+                                    <td style="color: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px;">1 hr ago</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="06_transaction_detail.html" class="tx-hash">0x2f4a...6c3e</a></td>
+                                    <td>Lock</td>
+                                    <td class="amount-cell">15.00 ETH</td>
+                                    <td><span class="status-badge success">Complete</span></td>
+                                    <td style="color: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px;">2 hr ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div style="display: flex; flex-direction: column; gap: var(--space-xl);">
+                    <!-- Recent Activity -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Recent Activity</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon lock">🔒</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">New lock transaction</div>
+                                        <div class="activity-meta">5.00 ETH • 2 min ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon user">👤</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">User invited: tanaka@acme.co</div>
+                                        <div class="activity-meta">Admin • 15 min ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon api">🔑</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">API key created</div>
+                                        <div class="activity-meta">Production • 1 hr ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon unlock">🔓</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Unlock completed</div>
+                                        <div class="activity-meta">2.50 ETH • 3 hr ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Status -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">System Status</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="status-list">
+                                <div class="status-item">
+                                    <span class="status-name">API Gateway</span>
+                                    <div class="status-indicator">
+                                        <span class="status-dot online"></span>
+                                        Operational
+                                    </div>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-name">Prover Network</span>
+                                    <div class="status-indicator">
+                                        <span class="status-dot online"></span>
+                                        127 nodes
+                                    </div>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-name">Ethereum RPC</span>
+                                    <div class="status-indicator">
+                                        <span class="status-dot online"></span>
+                                        Operational
+                                    </div>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-name">Webhooks</span>
+                                    <div class="status-indicator">
+                                        <span class="status-dot online"></span>
+                                        99.9% uptime
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Navigation active state
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (this.getAttribute('href') === '#') {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

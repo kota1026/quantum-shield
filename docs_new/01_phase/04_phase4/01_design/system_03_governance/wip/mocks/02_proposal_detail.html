@@ -1,0 +1,399 @@
+<!--
+## File Info
+- System: Governance
+- Screen: Proposal Detail + Vote Interface + Vote Success
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-governance | click | 01_dashboard.html |
+| .nav-proposals | click | 02_proposals_list.html |
+| #btn-vote-for | click | openVoteModal('for') |
+| #btn-vote-against | click | openVoteModal('against') |
+| #btn-vote-abstain | click | openVoteModal('abstain') |
+| #btn-confirm-vote | click | submitVote() |
+| .modal-close | click | closeModal() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIP-47: Increase Prover Bond | Quantum Shield Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040; --error-dim: rgba(224, 112, 64, 0.12);
+            --pending: #8080a0; --pending-dim: rgba(128, 128, 160, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: var(--space-xl); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); text-decoration: none; color: inherit; }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: var(--space-sm) var(--space-lg); font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: var(--radius-full); transition: all 0.2s; text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; cursor: pointer; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .breadcrumb { display: flex; align-items: center; gap: var(--space-sm); font-size: 13px; color: var(--text-tertiary); margin-bottom: var(--space-lg); }
+        .breadcrumb a { color: var(--accent-gold); text-decoration: none; }
+
+        .main-grid { display: grid; grid-template-columns: 1fr 360px; gap: var(--space-xl); }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: var(--space-lg); }
+        .card-header { padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); }
+        .card-body { padding: var(--space-xl); }
+
+        .proposal-header { margin-bottom: var(--space-xl); }
+        .proposal-badges { display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); flex-wrap: wrap; }
+        .badge { font-size: 11px; padding: 4px 12px; border-radius: var(--radius-full); font-weight: 600; }
+        .badge.active { background: var(--success-dim); color: var(--success); border: 1px solid var(--success); }
+        .badge.parameter { background: var(--accent-gold-dim); color: var(--accent-gold); }
+        .proposal-id { font-size: 14px; color: var(--accent-gold); font-family: var(--font-mono); font-weight: 600; margin-bottom: var(--space-sm); }
+        .proposal-title { font-size: 28px; font-weight: 700; line-height: 1.3; margin-bottom: var(--space-md); }
+        .proposal-meta { display: flex; gap: var(--space-xl); font-size: 13px; color: var(--text-secondary); flex-wrap: wrap; }
+
+        .countdown-box { background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-lg); padding: var(--space-lg); display: flex; align-items: center; gap: var(--space-lg); margin-bottom: var(--space-xl); }
+        .countdown-icon { font-size: 32px; }
+        .countdown-text { flex: 1; }
+        .countdown-label { font-size: 12px; color: var(--text-tertiary); }
+        .countdown-value { font-size: 24px; font-weight: 700; color: var(--warning); font-family: var(--font-mono); }
+
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm); }
+        .proposal-content { font-size: 15px; line-height: 1.8; color: var(--text-secondary); }
+        .proposal-content p { margin-bottom: var(--space-md); }
+        .proposal-content h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin: var(--space-lg) 0 var(--space-sm); }
+        .proposal-content ul { margin-left: var(--space-lg); margin-bottom: var(--space-md); }
+        .proposal-content li { margin-bottom: var(--space-xs); }
+        .proposal-content code { background: var(--bg-secondary); padding: 2px 6px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 13px; }
+
+        .vote-card { position: sticky; top: var(--space-xl); }
+        .vote-stats { margin-bottom: var(--space-lg); }
+        .vote-bar { height: 12px; background: var(--bg-primary); border-radius: var(--radius-full); overflow: hidden; display: flex; margin-bottom: var(--space-md); }
+        .vote-for { background: var(--success); }
+        .vote-against { background: var(--error); }
+        .vote-abstain { background: var(--pending); }
+        .vote-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); text-align: center; }
+        .vote-item { padding: var(--space-sm); background: var(--bg-secondary); border-radius: var(--radius-md); }
+        .vote-item-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: var(--space-xs); }
+        .vote-item-value { font-size: 16px; font-weight: 700; font-family: var(--font-mono); }
+        .vote-item.for .vote-item-value { color: var(--success); }
+        .vote-item.against .vote-item-value { color: var(--error); }
+        .vote-item.abstain .vote-item-value { color: var(--pending); }
+
+        .quorum-section { margin-bottom: var(--space-lg); padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-lg); }
+        .quorum-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: var(--space-sm); }
+        .quorum-bar { height: 6px; background: var(--bg-primary); border-radius: var(--radius-full); overflow: hidden; }
+        .quorum-fill { height: 100%; background: linear-gradient(90deg, var(--accent-hinomaru), var(--accent-gold)); }
+        .quorum-status { font-size: 11px; color: var(--success); margin-top: var(--space-xs); }
+
+        .your-power { background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: var(--radius-lg); padding: var(--space-md); margin-bottom: var(--space-lg); text-align: center; }
+        .your-power-label { font-size: 12px; color: var(--text-secondary); }
+        .your-power-value { font-size: 20px; font-weight: 700; color: var(--accent-gold); font-family: var(--font-mono); }
+
+        .vote-buttons { display: flex; flex-direction: column; gap: var(--space-sm); }
+        .vote-btn { display: flex; align-items: center; justify-content: center; gap: var(--space-sm); padding: var(--space-md); border-radius: var(--radius-md); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .vote-btn.for { background: var(--success-dim); color: var(--success); border-color: var(--success); }
+        .vote-btn.for:hover { background: var(--success); color: white; }
+        .vote-btn.against { background: var(--error-dim); color: var(--error); border-color: var(--error); }
+        .vote-btn.against:hover { background: var(--error); color: white; }
+        .vote-btn.abstain { background: var(--pending-dim); color: var(--pending); border-color: var(--pending); }
+        .vote-btn.abstain:hover { background: var(--pending); color: white; }
+
+        .timeline-card .card-body { padding: var(--space-lg); }
+        .timeline { position: relative; }
+        .timeline::before { content: ''; position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: var(--border-default); }
+        .timeline-item { display: flex; gap: var(--space-md); padding-bottom: var(--space-md); position: relative; }
+        .timeline-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; z-index: 1; }
+        .timeline-dot.done { background: var(--success); }
+        .timeline-dot.current { background: var(--warning); animation: pulse 2s infinite; }
+        .timeline-dot.pending { background: var(--bg-secondary); border: 2px solid var(--border-default); }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--warning-dim); } 50% { box-shadow: 0 0 0 8px transparent; } }
+        .timeline-content { flex: 1; }
+        .timeline-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .timeline-date { font-size: 11px; color: var(--text-tertiary); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); width: 100%; max-width: 480px; overflow: hidden; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--border-subtle); }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close { background: none; border: none; color: var(--text-tertiary); font-size: 24px; cursor: pointer; }
+        .modal-body { padding: var(--space-xl); }
+        .vote-confirm-icon { font-size: 48px; text-align: center; margin-bottom: var(--space-md); }
+        .vote-confirm-text { text-align: center; font-size: 16px; margin-bottom: var(--space-lg); }
+        .vote-confirm-power { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center; margin-bottom: var(--space-lg); }
+        .vote-confirm-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-xs); }
+        .vote-confirm-value { font-size: 24px; font-weight: 700; color: var(--accent-gold); font-family: var(--font-mono); }
+        .btn { display: flex; align-items: center; justify-content: center; gap: var(--space-sm); padding: var(--space-md) var(--space-lg); border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); color: white; }
+        .btn-primary:hover { box-shadow: 0 8px 20px var(--accent-hinomaru-glow); }
+        .btn-outline { background: transparent; border: 1px solid var(--border-default); color: var(--text-secondary); margin-top: var(--space-sm); }
+
+        /* Success State */
+        .success-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1001; }
+        .success-overlay.active { display: flex; }
+        .success-content { text-align: center; padding: var(--space-2xl); }
+        .success-icon { font-size: 80px; margin-bottom: var(--space-lg); animation: success-pop 0.5s ease; }
+        @keyframes success-pop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .success-title { font-size: 28px; font-weight: 700; margin-bottom: var(--space-sm); }
+        .success-subtitle { font-size: 16px; color: var(--text-secondary); margin-bottom: var(--space-xl); }
+        .success-details { background: var(--bg-card); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-xl); text-align: left; max-width: 400px; }
+        .success-row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--border-subtle); }
+        .success-row:last-child { border-bottom: none; }
+        .success-label { color: var(--text-tertiary); font-size: 13px; }
+        .success-value { font-weight: 600; font-size: 13px; }
+
+        .footer { margin-top: var(--space-2xl); padding: var(--space-lg) 0; border-top: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-muted); text-align: center; }
+
+        @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } .vote-card { position: static; } }
+        @media (max-width: 768px) { .header { flex-direction: column; gap: var(--space-md); } .nav { order: 3; } }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="gold-glow"></div></div>
+
+    <div class="container">
+        <header class="header">
+            <a href="01_dashboard.html" class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><span class="logo-main">Quantum Shield</span><span class="logo-sub">Governance</span></div>
+            </a>
+            <nav class="nav">
+                <a href="01_dashboard.html" class="nav-item">Dashboard</a>
+                <a href="02_proposals_list.html" class="nav-item active">Proposals</a>
+                <a href="03_create_proposal.html" class="nav-item">Create</a>
+                <a href="04_my_activity.html" class="nav-item">My Activity</a>
+            </nav>
+            <button class="wallet-btn"><span class="wallet-dot"></span>0x1a2b...3c4d</button>
+        </header>
+
+        <div class="breadcrumb">
+            <a href="02_proposals_list.html">Proposals</a>
+            <span>/</span>
+            <span>QIP-47</span>
+        </div>
+
+        <div class="main-grid">
+            <main>
+                <div class="proposal-header">
+                    <div class="proposal-badges">
+                        <span class="badge active">&#9679; Active</span>
+                        <span class="badge parameter">Parameter Change</span>
+                    </div>
+                    <div class="proposal-id">QIP-47</div>
+                    <h1 class="proposal-title">Increase Prover Bond Amount from 100 ETH to 150 ETH</h1>
+                    <div class="proposal-meta">
+                        <span>&#128100; Proposer: 0xabc...def</span>
+                        <span>&#128197; Created: 2026-01-08</span>
+                        <span>&#128172; 24 comments</span>
+                    </div>
+                </div>
+
+                <div class="countdown-box">
+                    <div class="countdown-icon">&#9200;</div>
+                    <div class="countdown-text">
+                        <div class="countdown-label">Voting ends in</div>
+                        <div class="countdown-value">2d 14h 32m 15s</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="section-title">&#128196; Proposal Details</h2>
+                        <div class="proposal-content">
+                            <h3>Summary</h3>
+                            <p>This proposal seeks to increase the minimum bond requirement for Provers from 100 ETH to 150 ETH to improve network security and reduce the risk of malicious behavior.</p>
+
+                            <h3>Motivation</h3>
+                            <p>As the Quantum Shield network has grown, the economic incentives for potential attacks have increased. By raising the bond requirement, we create a stronger economic disincentive for malicious behavior while maintaining accessibility for qualified Provers.</p>
+
+                            <h3>Specification</h3>
+                            <ul>
+                                <li>Current bond: <code>100 ETH</code></li>
+                                <li>Proposed bond: <code>150 ETH</code></li>
+                                <li>Effective: Immediately after Time Lock expires</li>
+                                <li>Existing Provers: Must increase bond within 30 days</li>
+                            </ul>
+
+                            <h3>Security Considerations</h3>
+                            <p>This change has been reviewed by the Security Council and is consistent with CP-3 (Security First) principles. The higher bond amount provides additional protection against coordinated attacks.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card timeline-card">
+                    <div class="card-header"><h2 class="section-title" style="margin:0;">&#128197; Timeline</h2></div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot done">&#10003;</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Proposal Created</div>
+                                    <div class="timeline-date">2026-01-08 14:30 UTC</div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot current">&#9679;</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Voting Period</div>
+                                    <div class="timeline-date">Ends 2026-01-15 14:30 UTC</div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot pending"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Time Lock (7 days)</div>
+                                    <div class="timeline-date">If passed</div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot pending"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Execution</div>
+                                    <div class="timeline-date">After Time Lock</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <aside>
+                <div class="card vote-card">
+                    <div class="card-header"><h2 class="section-title" style="margin:0;">&#128499; Cast Your Vote</h2></div>
+                    <div class="card-body">
+                        <div class="vote-stats">
+                            <div class="vote-bar">
+                                <div class="vote-for" style="width:72%;"></div>
+                                <div class="vote-against" style="width:23%;"></div>
+                                <div class="vote-abstain" style="width:5%;"></div>
+                            </div>
+                            <div class="vote-breakdown">
+                                <div class="vote-item for">
+                                    <div class="vote-item-label">&#128077; For</div>
+                                    <div class="vote-item-value">72%</div>
+                                </div>
+                                <div class="vote-item against">
+                                    <div class="vote-item-label">&#128078; Against</div>
+                                    <div class="vote-item-value">23%</div>
+                                </div>
+                                <div class="vote-item abstain">
+                                    <div class="vote-item-label">&#129335; Abstain</div>
+                                    <div class="vote-item-value">5%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quorum-section">
+                            <div class="quorum-header">
+                                <span style="color:var(--text-tertiary)">Quorum (4% required)</span>
+                                <span style="color:var(--accent-gold)">6.5% reached</span>
+                            </div>
+                            <div class="quorum-bar"><div class="quorum-fill" style="width:100%;"></div></div>
+                            <div class="quorum-status">&#9989; Quorum reached</div>
+                        </div>
+
+                        <div class="your-power">
+                            <div class="your-power-label">Your Voting Power</div>
+                            <div class="your-power-value">125,000 veQS</div>
+                        </div>
+
+                        <div class="vote-buttons">
+                            <button class="vote-btn for" id="btn-vote-for" onclick="openVoteModal('for')">&#128077; Vote For</button>
+                            <button class="vote-btn against" id="btn-vote-against" onclick="openVoteModal('against')">&#128078; Vote Against</button>
+                            <button class="vote-btn abstain" id="btn-vote-abstain" onclick="openVoteModal('abstain')">&#129335; Abstain</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="footer">
+            Governance participation is voluntary. All proposals subject to 7-day Time Lock and Council veto rights. &copy; 2026 Quantum Shield.
+        </footer>
+    </div>
+
+    <!-- Vote Confirmation Modal -->
+    <div class="modal-overlay" id="voteModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Confirm Your Vote</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="vote-confirm-icon" id="voteIcon">&#128077;</div>
+                <div class="vote-confirm-text">You are voting <strong id="voteChoice">For</strong> on QIP-47</div>
+                <div class="vote-confirm-power">
+                    <div class="vote-confirm-label">Voting Power</div>
+                    <div class="vote-confirm-value">125,000 veQS</div>
+                </div>
+                <button class="btn btn-primary" id="btn-confirm-vote" onclick="submitVote()">&#9997; Sign & Submit Vote</button>
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-content">
+            <div class="success-icon">&#127881;</div>
+            <div class="success-title">Vote Submitted!</div>
+            <div class="success-subtitle">Your vote has been recorded on-chain</div>
+            <div class="success-details">
+                <div class="success-row"><span class="success-label">Proposal</span><span class="success-value">QIP-47</span></div>
+                <div class="success-row"><span class="success-label">Your Vote</span><span class="success-value" id="successVote">For</span></div>
+                <div class="success-row"><span class="success-label">Voting Power</span><span class="success-value">125,000 veQS</span></div>
+                <div class="success-row"><span class="success-label">Tx Hash</span><span class="success-value" style="color:var(--accent-gold)">0x7a8b...9c0d</span></div>
+            </div>
+            <a href="02_proposals_list.html" class="btn btn-primary">Back to Proposals</a>
+        </div>
+    </div>
+
+    <script>
+        let currentVote = '';
+        function openVoteModal(vote) {
+            currentVote = vote;
+            const icons = { for: '&#128077;', against: '&#128078;', abstain: '&#129335;' };
+            const labels = { for: 'For', against: 'Against', abstain: 'Abstain' };
+            document.getElementById('voteIcon').innerHTML = icons[vote];
+            document.getElementById('voteChoice').textContent = labels[vote];
+            document.getElementById('voteModal').classList.add('active');
+        }
+        function closeModal() {
+            document.getElementById('voteModal').classList.remove('active');
+        }
+        function submitVote() {
+            closeModal();
+            document.getElementById('successVote').textContent = currentVote.charAt(0).toUpperCase() + currentVote.slice(1);
+            document.getElementById('successOverlay').classList.add('active');
+        }
+    </script>
+</body>
+</html>

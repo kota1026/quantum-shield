@@ -1,0 +1,359 @@
+<!--
+## File Info
+- System: Governance
+- Screen: Create Proposal (Step 1-3 + Submit)
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-governance | click | 01_dashboard.html |
+| .nav-proposals | click | 02_proposals_list.html |
+| .type-card | click | selectType() |
+| #btn-next | click | nextStep() |
+| #btn-back | click | prevStep() |
+| #btn-submit | click | submitProposal() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Proposal | Quantum Shield Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040; --error-dim: rgba(224, 112, 64, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-display: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-full: 9999px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .gold-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse, var(--accent-gold-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: var(--space-xl); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); text-decoration: none; color: inherit; }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-circle-outer::before { content: ''; position: absolute; top: -3px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .nav { display: flex; gap: var(--space-xs); background: var(--bg-secondary); padding: var(--space-xs); border-radius: var(--radius-full); border: 1px solid var(--border-subtle); }
+        .nav-item { padding: var(--space-sm) var(--space-lg); font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: var(--radius-full); transition: all 0.2s; text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; cursor: pointer; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .page-header { text-align: center; margin-bottom: var(--space-2xl); }
+        .page-title { font-size: 32px; font-weight: 700; margin-bottom: var(--space-sm); }
+        .page-subtitle { color: var(--text-secondary); }
+
+        /* Stepper */
+        .stepper { display: flex; justify-content: center; gap: var(--space-xl); margin-bottom: var(--space-2xl); }
+        .step { display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
+        .step-number { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; transition: all 0.3s; }
+        .step.active .step-number { background: var(--accent-hinomaru); color: white; }
+        .step.done .step-number { background: var(--success); color: white; }
+        .step.pending .step-number { background: var(--bg-secondary); color: var(--text-tertiary); border: 2px solid var(--border-default); }
+        .step-label { font-size: 12px; color: var(--text-tertiary); }
+        .step.active .step-label { color: var(--text-primary); font-weight: 500; }
+        .step-connector { width: 80px; height: 2px; background: var(--border-default); margin-top: 20px; }
+        .step-connector.done { background: var(--success); }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-body { padding: var(--space-xl); }
+
+        /* Step Content */
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+
+        /* Step 1: Type Selection */
+        .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .type-card { background: var(--bg-secondary); border: 2px solid var(--border-default); border-radius: var(--radius-lg); padding: var(--space-xl); text-align: center; cursor: pointer; transition: all 0.2s; }
+        .type-card:hover { border-color: var(--accent-gold); }
+        .type-card.selected { border-color: var(--accent-hinomaru); background: var(--accent-hinomaru-dim); }
+        .type-icon { font-size: 36px; margin-bottom: var(--space-md); }
+        .type-name { font-size: 16px; font-weight: 600; margin-bottom: var(--space-sm); }
+        .type-desc { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-md); }
+        .type-quorum { font-size: 11px; padding: 4px 8px; background: var(--accent-gold-dim); color: var(--accent-gold); border-radius: var(--radius-full); display: inline-block; }
+
+        .requirement-box { background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-lg); padding: var(--space-lg); display: flex; gap: var(--space-md); }
+        .requirement-icon { font-size: 24px; }
+        .requirement-text { flex: 1; }
+        .requirement-title { font-weight: 600; margin-bottom: var(--space-xs); }
+        .requirement-desc { font-size: 13px; color: var(--text-secondary); }
+        .your-veqs { color: var(--success); font-weight: 600; }
+
+        /* Step 2: Details */
+        .form-group { margin-bottom: var(--space-lg); }
+        .form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: var(--space-sm); }
+        .form-input { width: 100%; padding: var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 15px; font-family: inherit; }
+        .form-input:focus { outline: none; border-color: var(--accent-hinomaru); }
+        .form-textarea { min-height: 200px; resize: vertical; line-height: 1.6; }
+        .form-hint { font-size: 11px; color: var(--text-tertiary); margin-top: var(--space-xs); }
+        .char-count { text-align: right; font-size: 11px; color: var(--text-tertiary); }
+
+        /* Step 3: Preview */
+        .preview-section { margin-bottom: var(--space-lg); }
+        .preview-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-xs); }
+        .preview-value { font-size: 15px; padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md); }
+        .preview-content { white-space: pre-wrap; line-height: 1.6; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .summary-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: var(--space-md); }
+        .summary-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: var(--space-xs); }
+        .summary-value { font-size: 14px; font-weight: 600; }
+
+        .warning-box { background: var(--error-dim); border: 1px solid var(--error); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl); }
+        .warning-title { font-weight: 600; color: var(--error); margin-bottom: var(--space-sm); }
+        .warning-text { font-size: 13px; color: var(--text-secondary); }
+
+        /* Buttons */
+        .btn-row { display: flex; gap: var(--space-md); justify-content: space-between; margin-top: var(--space-xl); }
+        .btn { display: flex; align-items: center; justify-content: center; gap: var(--space-sm); padding: var(--space-md) var(--space-xl); border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); color: white; }
+        .btn-primary:hover { box-shadow: 0 8px 20px var(--accent-hinomaru-glow); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .btn-outline:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        .footer { margin-top: var(--space-2xl); padding: var(--space-lg) 0; border-top: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-muted); text-align: center; }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: var(--space-md); }
+            .nav { order: 3; }
+            .type-grid { grid-template-columns: 1fr; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .stepper { gap: var(--space-md); }
+            .step-connector { width: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="gold-glow"></div></div>
+
+    <div class="container">
+        <header class="header">
+            <a href="01_dashboard.html" class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><span class="logo-main">Quantum Shield</span><span class="logo-sub">Governance</span></div>
+            </a>
+            <nav class="nav">
+                <a href="01_dashboard.html" class="nav-item">Dashboard</a>
+                <a href="02_proposals_list.html" class="nav-item">Proposals</a>
+                <a href="03_create_proposal.html" class="nav-item active">Create</a>
+                <a href="04_my_activity.html" class="nav-item">My Activity</a>
+            </nav>
+            <button class="wallet-btn"><span class="wallet-dot"></span>0x1a2b...3c4d</button>
+        </header>
+
+        <div class="page-header">
+            <h1 class="page-title">&#10133; Create Proposal</h1>
+            <p class="page-subtitle">Submit a new governance proposal for community voting</p>
+        </div>
+
+        <div class="stepper">
+            <div class="step active" id="step1-indicator">
+                <div class="step-number">1</div>
+                <div class="step-label">Type</div>
+            </div>
+            <div class="step-connector" id="connector1"></div>
+            <div class="step pending" id="step2-indicator">
+                <div class="step-number">2</div>
+                <div class="step-label">Details</div>
+            </div>
+            <div class="step-connector" id="connector2"></div>
+            <div class="step pending" id="step3-indicator">
+                <div class="step-number">3</div>
+                <div class="step-label">Preview</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- Step 1: Type Selection -->
+                <div class="step-content active" id="step1">
+                    <h2 style="margin-bottom: var(--space-lg);">Select Proposal Type</h2>
+                    <div class="type-grid">
+                        <div class="type-card" onclick="selectType(this, 'parameter')">
+                            <div class="type-icon">&#9881;</div>
+                            <div class="type-name">Parameter Change</div>
+                            <div class="type-desc">Modify protocol parameters like bond amounts, fees, or time periods</div>
+                            <div class="type-quorum">Quorum: 4%</div>
+                        </div>
+                        <div class="type-card" onclick="selectType(this, 'upgrade')">
+                            <div class="type-icon">&#128640;</div>
+                            <div class="type-name">Contract Upgrade</div>
+                            <div class="type-desc">Upgrade smart contracts or add new protocol functionality</div>
+                            <div class="type-quorum">Quorum: 8%</div>
+                        </div>
+                        <div class="type-card" onclick="selectType(this, 'council')">
+                            <div class="type-icon">&#128101;</div>
+                            <div class="type-name">Council Change</div>
+                            <div class="type-desc">Add or remove Security Council or Purpose Committee members</div>
+                            <div class="type-quorum">Quorum: 15%</div>
+                        </div>
+                    </div>
+
+                    <div class="requirement-box">
+                        <div class="requirement-icon">&#128274;</div>
+                        <div class="requirement-text">
+                            <div class="requirement-title">Proposal Requirement</div>
+                            <div class="requirement-desc">
+                                You need at least <strong>10,000 veQS</strong> to create a proposal.<br>
+                                Your balance: <span class="your-veqs">125,000 veQS &#9989;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <a href="01_dashboard.html" class="btn btn-outline">Cancel</a>
+                        <button class="btn btn-primary" id="btn-next-1" onclick="nextStep(1)" disabled>Next: Add Details &#8594;</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Details -->
+                <div class="step-content" id="step2">
+                    <h2 style="margin-bottom: var(--space-lg);">Proposal Details</h2>
+
+                    <div class="form-group">
+                        <label class="form-label">Title *</label>
+                        <input type="text" class="form-input" id="proposal-title" placeholder="Enter a clear, descriptive title" maxlength="100" oninput="updateCharCount()">
+                        <div class="char-count"><span id="title-count">0</span>/100</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Summary *</label>
+                        <textarea class="form-input form-textarea" id="proposal-summary" placeholder="Describe your proposal in detail. Include:&#10;- Motivation&#10;- Specification&#10;- Security considerations" maxlength="5000"></textarea>
+                        <div class="form-hint">Markdown formatting is supported</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Forum Discussion Link (Optional)</label>
+                        <input type="url" class="form-input" id="forum-link" placeholder="https://forum.quantumshield.io/t/...">
+                        <div class="form-hint">Link to prior discussion on the governance forum</div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-outline" onclick="prevStep(2)">&#8592; Back</button>
+                        <button class="btn btn-primary" onclick="nextStep(2)">Next: Preview &#8594;</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Preview -->
+                <div class="step-content" id="step3">
+                    <h2 style="margin-bottom: var(--space-lg);">Review & Submit</h2>
+
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">Proposal Type</div>
+                            <div class="summary-value" id="preview-type">Parameter Change</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Required Quorum</div>
+                            <div class="summary-value" style="color: var(--accent-gold);">4% (500,000 veQS)</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Voting Period</div>
+                            <div class="summary-value">7 days</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Time Lock</div>
+                            <div class="summary-value">7 days after passing</div>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">Title</div>
+                        <div class="preview-value" id="preview-title">Increase Prover Bond Amount from 100 ETH to 150 ETH</div>
+                    </div>
+
+                    <div class="preview-section">
+                        <div class="preview-label">Description</div>
+                        <div class="preview-value preview-content" id="preview-summary">This proposal seeks to increase the minimum bond requirement for Provers from 100 ETH to 150 ETH to improve network security...</div>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-title">&#9888; Important Notice</div>
+                        <div class="warning-text">
+                            Once submitted, this proposal cannot be edited or cancelled. The proposal will be subject to community voting for 7 days, followed by a 7-day Time Lock if passed. Security Council and Purpose Committee may exercise veto rights per CP-3.
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-outline" onclick="prevStep(3)">&#8592; Back</button>
+                        <button class="btn btn-primary" id="btn-submit" onclick="submitProposal()">&#9997; Sign & Submit Proposal</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            All proposals subject to 7-day Time Lock and Council veto rights. &copy; 2026 Quantum Shield.
+        </footer>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedType = null;
+
+        function selectType(card, type) {
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedType = type;
+            document.getElementById('btn-next-1').disabled = false;
+        }
+
+        function nextStep(step) {
+            document.getElementById('step' + step).classList.remove('active');
+            document.getElementById('step' + (step + 1)).classList.add('active');
+            document.getElementById('step' + step + '-indicator').classList.remove('active');
+            document.getElementById('step' + step + '-indicator').classList.add('done');
+            document.getElementById('step' + (step + 1) + '-indicator').classList.remove('pending');
+            document.getElementById('step' + (step + 1) + '-indicator').classList.add('active');
+            if (step < 3) document.getElementById('connector' + step).classList.add('done');
+            currentStep = step + 1;
+
+            if (step === 2) {
+                document.getElementById('preview-title').textContent = document.getElementById('proposal-title').value || 'Untitled Proposal';
+                document.getElementById('preview-summary').textContent = document.getElementById('proposal-summary').value || 'No description provided';
+            }
+        }
+
+        function prevStep(step) {
+            document.getElementById('step' + step).classList.remove('active');
+            document.getElementById('step' + (step - 1)).classList.add('active');
+            document.getElementById('step' + step + '-indicator').classList.remove('active');
+            document.getElementById('step' + step + '-indicator').classList.add('pending');
+            document.getElementById('step' + (step - 1) + '-indicator').classList.remove('done');
+            document.getElementById('step' + (step - 1) + '-indicator').classList.add('active');
+            if (step > 1) document.getElementById('connector' + (step - 1)).classList.remove('done');
+            currentStep = step - 1;
+        }
+
+        function updateCharCount() {
+            const count = document.getElementById('proposal-title').value.length;
+            document.getElementById('title-count').textContent = count;
+        }
+
+        function submitProposal() {
+            alert('Proposal submitted successfully!\n\nYour proposal QIP-48 has been created and is now open for voting.');
+            window.location.href = '02_proposals_list.html';
+        }
+    </script>
+</body>
+</html>

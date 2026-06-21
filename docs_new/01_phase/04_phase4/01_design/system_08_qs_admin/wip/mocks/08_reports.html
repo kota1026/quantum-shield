@@ -1,0 +1,123 @@
+<!--
+## File Info
+- System: QS Admin
+- Screen: Reports (Daily, Weekly, Monthly, Revenue)
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-reports | click | 08_reports.html |
+| .report-card | click | viewReport() |
+| #btn-export | click | exportReport() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QS Admin - Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-card: #0e0e11; --bg-elevated: #18181c; --accent-hinomaru: #bc002d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-light: #e8334d; --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.12); --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12); --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068; --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08); --font-body: 'Plus Jakarta Sans', sans-serif; --font-mono: 'DM Mono', monospace; --sidebar-width: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+        .sidebar { width: var(--sidebar-width); background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); position: fixed; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--accent-hinomaru); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-text { font-size: 16px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-nav { padding: 16px 12px; }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-tertiary); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-item.emergency { background: var(--accent-hinomaru); color: white; margin-top: 8px; }
+        .nav-icon { width: 20px; text-align: center; }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 24px 32px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 28px; font-weight: 700; }
+        .page-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+        .btn-secondary { padding: 12px 24px; background: var(--bg-secondary); border: 1px solid var(--border-default); color: var(--text-secondary); border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-secondary:hover { border-color: var(--accent-hinomaru); color: var(--text-primary); }
+        .reports-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
+        .report-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 24px; cursor: pointer; transition: all 0.2s; }
+        .report-card:hover { border-color: var(--border-default); transform: translateY(-2px); }
+        .report-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 16px; }
+        .report-icon.daily { background: var(--accent-hinomaru-dim); }
+        .report-icon.weekly { background: var(--accent-gold-dim); }
+        .report-icon.monthly { background: var(--success-dim); }
+        .report-icon.revenue { background: rgba(74, 144, 217, 0.12); }
+        .report-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .report-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+        .report-meta { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+        .card-body { padding: 20px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .summary-item { text-align: center; padding: 20px; background: var(--bg-secondary); border-radius: 10px; }
+        .summary-value { font-size: 28px; font-weight: 700; font-family: var(--font-mono); margin-bottom: 4px; }
+        .summary-value.up { color: var(--success); }
+        .summary-label { font-size: 12px; color: var(--text-tertiary); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo"><div class="logo-icon">QS</div><div><div class="logo-text">QS Admin</div><div class="logo-sub">Internal Dashboard</div></div></div></div>
+        <nav class="sidebar-nav">
+            <div class="nav-section"><div class="nav-section-label">Overview</div><a href="01_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Dashboard</a><a href="02_emergency.html" class="nav-item emergency"><span class="nav-icon">🚨</span>Emergency</a></div>
+            <div class="nav-section"><div class="nav-section-label">System</div><a href="07_staff.html" class="nav-item"><span class="nav-icon">👤</span>Staff</a><a href="08_reports.html" class="nav-item active"><span class="nav-icon">📈</span>Reports</a><a href="09_audit.html" class="nav-item"><span class="nav-icon">📋</span>Audit Log</a></div>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="page-header">
+            <div><h1 class="page-title">Reports</h1><p class="page-subtitle">システムレポート・分析</p></div>
+            <button class="btn-secondary" id="btn-export" onclick="exportReport()">📥 Export All</button>
+        </div>
+        <div class="reports-grid">
+            <div class="report-card" onclick="viewReport()">
+                <div class="report-icon daily">📊</div>
+                <div class="report-title">Daily Report</div>
+                <div class="report-desc">過去24時間のトランザクション、TVL、Proverパフォーマンス</div>
+                <div class="report-meta">Last generated: Today 00:00 UTC</div>
+            </div>
+            <div class="report-card" onclick="viewReport()">
+                <div class="report-icon weekly">📈</div>
+                <div class="report-title">Weekly Report</div>
+                <div class="report-desc">週次サマリー、トレンド分析、異常検知</div>
+                <div class="report-meta">Last generated: 2026-01-06</div>
+            </div>
+            <div class="report-card" onclick="viewReport()">
+                <div class="report-icon monthly">📉</div>
+                <div class="report-title">Monthly Report</div>
+                <div class="report-desc">月次レビュー、成長指標、セキュリティ監査</div>
+                <div class="report-meta">Last generated: 2025-12-31</div>
+            </div>
+            <div class="report-card" onclick="viewReport()">
+                <div class="report-icon revenue">💰</div>
+                <div class="report-title">Revenue Report</div>
+                <div class="report-desc">手数料収入、Enterprise契約、コスト分析</div>
+                <div class="report-meta">Last generated: 2025-12-31</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2 class="card-title">Today's Summary</h2></div>
+            <div class="card-body">
+                <div class="summary-grid">
+                    <div class="summary-item"><div class="summary-value">1,247</div><div class="summary-label">Total Transactions</div></div>
+                    <div class="summary-item"><div class="summary-value up">+$12.4M</div><div class="summary-label">TVL Change</div></div>
+                    <div class="summary-item"><div class="summary-value">99.87%</div><div class="summary-label">Avg Prover SLA</div></div>
+                    <div class="summary-item"><div class="summary-value">0</div><div class="summary-label">Security Incidents</div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        function viewReport() { alert('Report viewer would open here'); }
+        function exportReport() { alert('Export dialog would open here'); }
+    </script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!--
+## File Info
+- System: Observer/Challenger
+- Screen: Challenge Form + Challenge Confirm
+- Created: 2026-01-10
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-dashboard | click | 01_dashboard.html |
+| .nav-pending | click | 01_pending.html |
+| .btn-back | click | 01_suspicious.html |
+| #btn-submit-challenge | click | showConfirmModal() |
+| #btn-confirm-challenge | click | 02_challenge_progress.html |
+| #btn-cancel | click | closeModal() |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Challenge - Observer - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c; --bg-secondary: #111114; --bg-elevated: #18181c; --bg-card: #0e0e11;
+            --accent-hinomaru: #bc002d; --accent-hinomaru-light: #e8334d; --accent-hinomaru-dim: rgba(188, 0, 45, 0.12); --accent-hinomaru-glow: rgba(188, 0, 45, 0.4);
+            --accent-gold: #c9a962; --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896; --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030; --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040; --error-dim: rgba(224, 112, 64, 0.12);
+            --text-primary: #f8f8fa; --text-secondary: #9898a0; --text-tertiary: #606068;
+            --border-subtle: rgba(255, 255, 255, 0.04); --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-full: 9999px;
+            --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-body); background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        .premium-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .red-glow { position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, var(--accent-hinomaru-dim), transparent 60%); opacity: 0.5; }
+        .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: var(--space-xl); }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md) 0; margin-bottom: var(--space-xl); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); }
+        .logo-hinomaru { width: 48px; height: 48px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-circle-outer { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: logo-rotate 25s linear infinite; }
+        .logo-hinomaru-inner { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; box-shadow: 0 0 20px var(--accent-hinomaru-glow); }
+        @keyframes logo-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 20px; font-weight: 600; }
+        .logo-sub { font-size: 10px; color: var(--accent-gold); letter-spacing: 2px; text-transform: uppercase; }
+        .wallet-btn { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-lg); background: var(--accent-hinomaru-dim); border: 1px solid var(--accent-hinomaru); border-radius: var(--radius-full); color: var(--accent-hinomaru-light); font-size: 14px; font-weight: 500; cursor: pointer; }
+        .wallet-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+
+        .btn-back { display: inline-flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 14px; cursor: pointer; text-decoration: none; margin-bottom: var(--space-lg); }
+        .btn-back:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .page-title { font-size: 28px; font-weight: 700; margin-bottom: var(--space-xl); }
+
+        /* Card */
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-lg); }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm); }
+        .section-number { width: 24px; height: 24px; background: var(--accent-hinomaru); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+
+        /* Target Info */
+        .target-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-lg); margin-bottom: var(--space-lg); }
+        .info-item { }
+        .info-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: var(--space-xs); }
+        .info-value { font-size: 16px; font-weight: 600; }
+        .info-value.mono { font-family: var(--font-mono); font-size: 14px; }
+        .info-value.warning { color: var(--warning); }
+
+        /* Form */
+        .form-group { margin-bottom: var(--space-lg); }
+        .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: var(--space-sm); }
+        .form-hint { font-size: 12px; color: var(--text-tertiary); margin-top: var(--space-xs); }
+        .form-input, .form-textarea { width: 100%; padding: var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; font-family: inherit; }
+        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--accent-hinomaru); box-shadow: 0 0 0 3px var(--accent-hinomaru-dim); }
+        .form-textarea { min-height: 120px; resize: vertical; }
+
+        /* Evidence Section */
+        .evidence-section { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+        .evidence-title { font-size: 14px; font-weight: 600; margin-bottom: var(--space-md); }
+        .evidence-item { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) 0; border-bottom: 1px solid var(--border-subtle); }
+        .evidence-item:last-child { border-bottom: none; }
+        .evidence-checkbox { width: 18px; height: 18px; accent-color: var(--accent-hinomaru); }
+        .evidence-text { font-size: 13px; }
+        .btn-add-evidence { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: transparent; border: 1px dashed var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; cursor: pointer; margin-top: var(--space-md); }
+
+        /* Bond Calculation */
+        .bond-section { background: var(--warning-dim); border: 1px solid var(--warning); border-radius: var(--radius-lg); padding: var(--space-lg); }
+        .bond-title { font-size: 14px; font-weight: 600; color: var(--warning); margin-bottom: var(--space-md); }
+        .bond-calculation { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-md); }
+        .bond-amount { font-size: 24px; font-weight: 700; color: var(--warning); }
+        .bond-note { font-size: 12px; color: var(--text-tertiary); margin-top: var(--space-sm); }
+
+        /* Actions */
+        .form-actions { display: flex; gap: var(--space-md); margin-top: var(--space-xl); }
+        .btn-primary { flex: 1; padding: var(--space-md) var(--space-xl); background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-hinomaru-light)); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-hinomaru-glow); }
+        .btn-secondary { padding: var(--space-md) var(--space-xl); background: transparent; border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 16px; cursor: pointer; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: var(--space-xl); max-width: 500px; width: 90%; }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: var(--space-lg); text-align: center; }
+        .modal-summary { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+        .summary-row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--border-subtle); font-size: 14px; }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: var(--text-secondary); }
+        .summary-value { font-weight: 600; }
+        .summary-value.warning { color: var(--warning); }
+        .modal-warning { background: var(--error-dim); border: 1px solid var(--error); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-lg); font-size: 13px; color: var(--error); }
+        .checkbox-confirm { display: flex; align-items: flex-start; gap: var(--space-md); margin-bottom: var(--space-lg); }
+        .checkbox-confirm input { margin-top: 4px; accent-color: var(--accent-hinomaru); }
+        .checkbox-confirm label { font-size: 13px; color: var(--text-secondary); }
+        .modal-actions { display: flex; gap: var(--space-md); }
+    </style>
+</head>
+<body>
+    <div class="premium-bg"><div class="red-glow"></div></div>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-hinomaru"><div class="logo-circle-outer"></div><div class="logo-hinomaru-inner"></div></div>
+                <div class="logo-text"><div class="logo-main">Quantum Shield</div><div class="logo-sub">Observer Portal</div></div>
+            </div>
+            <button class="wallet-btn"><span class="wallet-dot"></span> 0x7a3f...9c2d</button>
+        </header>
+
+        <a href="01_suspicious.html" class="btn-back">← Back to Suspicious</a>
+        <h1 class="page-title">Submit Challenge</h1>
+
+        <!-- Target Transaction -->
+        <div class="card">
+            <div class="card-title"><span class="section-number">1</span> Target Transaction</div>
+            <div class="target-info">
+                <div class="info-item">
+                    <div class="info-label">Target Address</div>
+                    <div class="info-value mono">0x4b7c8a2e1f9d3c6b5a4e7f8d9c1b2a3e4f5d6c7b</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Amount</div>
+                    <div class="info-value">45.00 ETH</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Unlock Type</div>
+                    <div class="info-value warning">Emergency Unlock</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Time Remaining</div>
+                    <div class="info-value mono warning">6d 14:22:18</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">TX Hash</div>
+                    <div class="info-value mono">0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Risk Score</div>
+                    <div class="info-value" style="color: var(--error);">87 / 100 (High Risk)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evidence -->
+        <div class="card">
+            <div class="card-title"><span class="section-number">2</span> Evidence & Reason</div>
+
+            <div class="evidence-section">
+                <div class="evidence-title">Select Applicable Risk Factors</div>
+                <div class="evidence-item">
+                    <input type="checkbox" class="evidence-checkbox" checked>
+                    <span class="evidence-text">First-time emergency unlock from this address</span>
+                </div>
+                <div class="evidence-item">
+                    <input type="checkbox" class="evidence-checkbox" checked>
+                    <span class="evidence-text">Amount is in top 5% of all unlock requests</span>
+                </div>
+                <div class="evidence-item">
+                    <input type="checkbox" class="evidence-checkbox" checked>
+                    <span class="evidence-text">Account age is less than 30 days</span>
+                </div>
+                <div class="evidence-item">
+                    <input type="checkbox" class="evidence-checkbox">
+                    <span class="evidence-text">Address associated with known suspicious activity</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Additional Evidence</label>
+                <textarea class="form-textarea" placeholder="Provide any additional evidence or context for your challenge...">This appears to be a compromised account attempting emergency unlock. The account was created 12 days ago, made a single large deposit, and is now attempting emergency withdrawal at an unusual time (3:42 AM local time). The deposit transaction originated from a mixer contract.</textarea>
+                <div class="form-hint">Include transaction hashes, on-chain evidence, or other relevant information.</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Supporting Links (Optional)</label>
+                <input type="text" class="form-input" placeholder="https://etherscan.io/tx/...">
+                <button class="btn-add-evidence">+ Add Another Link</button>
+            </div>
+        </div>
+
+        <!-- Bond Calculation -->
+        <div class="card">
+            <div class="card-title"><span class="section-number">3</span> Challenge Bond</div>
+            <div class="bond-section">
+                <div class="bond-title">Required Bond Amount</div>
+                <div class="bond-calculation">
+                    Bond = MAX(0.1 ETH, Unlock Amount × 1%)<br>
+                    = MAX(0.1 ETH, 45.00 ETH × 1%)<br>
+                    = MAX(0.1 ETH, 0.45 ETH)
+                </div>
+                <div class="bond-amount">0.45 ETH</div>
+                <div class="bond-note">
+                    ⚠️ If your challenge is unsuccessful, you will lose this bond.<br>
+                    ✓ If successful, bond is returned + you receive a portion of the Prover's stake.
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button class="btn-secondary" onclick="location.href='01_suspicious.html'">Cancel</button>
+            <button class="btn-primary" id="btn-submit-challenge" onclick="showConfirmModal()">
+                Submit Challenge (0.45 ETH)
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal">
+            <div class="modal-title">Confirm Challenge Submission</div>
+
+            <div class="modal-summary">
+                <div class="summary-row">
+                    <span class="summary-label">Target</span>
+                    <span class="summary-value" style="font-family: var(--font-mono); font-size: 13px;">0x4b7c...9e1f</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Unlock Amount</span>
+                    <span class="summary-value">45.00 ETH</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Bond Required</span>
+                    <span class="summary-value warning">0.45 ETH</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Defense Period</span>
+                    <span class="summary-value">72 hours</span>
+                </div>
+            </div>
+
+            <div class="modal-warning">
+                ⚠️ <strong>Warning:</strong> If your challenge fails, you will lose your 0.45 ETH bond. Only submit challenges with strong evidence.
+            </div>
+
+            <div class="checkbox-confirm">
+                <input type="checkbox" id="confirm-check">
+                <label for="confirm-check">I understand that my bond (0.45 ETH) will be forfeited if this challenge is unsuccessful. I have provided accurate evidence and believe this transaction is fraudulent.</label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btn-cancel" onclick="closeModal()" style="flex: 1;">Cancel</button>
+                <a href="02_challenge_progress.html" style="flex: 1; text-decoration: none;">
+                    <button class="btn-primary" id="btn-confirm-challenge" style="width: 100%;">Confirm & Submit</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('active');
+        }
+        function closeModal() {
+            document.getElementById('confirm-modal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

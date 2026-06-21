@@ -1,0 +1,341 @@
+<!--
+## File Info
+- System: Enterprise Admin
+- Screen: User List (7-9)
+- Created: 2026-01-11
+
+## Interactions Defined
+| Element | Action | Target |
+|---------|--------|--------|
+| .nav-users | click | 09_user_list.html |
+| .user-row | click | 10_user_detail.html |
+| #btn-add-user | click | 11_user_create.html |
+| #btn-roles | click | 12_role_management.html |
+| #btn-invite | click | 13_invite_user.html |
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User List - Enterprise Admin - Quantum Shield</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #111114;
+            --bg-elevated: #18181c;
+            --bg-card: #0e0e11;
+            --bg-sidebar: #0c0c0f;
+            --accent-hinomaru: #bc002d;
+            --accent-hinomaru-light: #e8334d;
+            --accent-hinomaru-dim: rgba(188, 0, 45, 0.12);
+            --accent-gold: #c9a962;
+            --accent-gold-dim: rgba(201, 169, 98, 0.1);
+            --success: #00c896;
+            --success-dim: rgba(0, 200, 150, 0.12);
+            --warning: #f0a030;
+            --warning-dim: rgba(240, 160, 48, 0.12);
+            --error: #e07040;
+            --info: #4a90d9;
+            --info-dim: rgba(74, 144, 217, 0.12);
+            --text-primary: #f8f8fa;
+            --text-secondary: #9898a0;
+            --text-tertiary: #606068;
+            --text-muted: #404048;
+            --border-subtle: rgba(255, 255, 255, 0.04);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --font-body: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+        a { color: inherit; text-decoration: none; }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+        }
+        .sidebar-header { padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .logo { display: flex; align-items: center; gap: var(--space-md); }
+        .logo-icon { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .logo-ring { position: absolute; inset: 0; border: 1.5px solid var(--accent-gold); border-radius: 50%; animation: spin 20s linear infinite; }
+        .logo-core { width: 20px; height: 20px; background: var(--accent-hinomaru); border-radius: 50%; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .logo-text .logo-main { font-size: 16px; font-weight: 600; }
+        .logo-text .logo-sub { font-size: 10px; color: var(--accent-gold); }
+        .sidebar-badge { margin-top: var(--space-sm); display: inline-flex; padding: 4px 10px; background: var(--accent-gold-dim); border: 1px solid var(--accent-gold); border-radius: var(--radius-sm); font-size: 10px; color: var(--accent-gold); font-weight: 600; }
+        .sidebar-nav { flex: 1; padding: var(--space-md); overflow-y: auto; }
+        .nav-section { margin-bottom: var(--space-lg); }
+        .nav-section-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 1px; text-transform: uppercase; padding: var(--space-sm) var(--space-md); }
+        .nav-item { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; margin-bottom: 2px; }
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .nav-icon { width: 20px; text-align: center; }
+        .sidebar-footer { padding: var(--space-md); border-top: 1px solid var(--border-subtle); }
+        .org-info { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm); }
+        .org-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent-hinomaru), var(--accent-gold)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .org-details .org-name { font-size: 13px; font-weight: 600; }
+        .org-details .org-plan { font-size: 11px; color: var(--accent-gold); }
+
+        .main-content { flex: 1; margin-left: 260px; min-height: 100vh; }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) var(--space-xl); background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; z-index: 50; }
+        .page-title { font-size: 20px; font-weight: 600; }
+        .top-actions { display: flex; align-items: center; gap: var(--space-md); }
+        .btn { display: inline-flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: var(--accent-hinomaru); color: white; }
+        .btn-secondary { background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--text-secondary); }
+        .btn-secondary:hover { border-color: var(--accent-hinomaru); color: var(--accent-hinomaru-light); }
+
+        .page-content { padding: var(--space-xl); }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-lg); }
+        .stat-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-xs); }
+        .stat-value { font-size: 24px; font-weight: 700; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-lg); border-bottom: 1px solid var(--border-subtle); }
+        .card-title { font-size: 16px; font-weight: 600; }
+
+        .search-box { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); width: 240px; }
+        .search-box input { flex: 1; background: none; border: none; outline: none; color: var(--text-primary); font-size: 13px; }
+
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; padding: var(--space-md); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; border-bottom: 1px solid var(--border-subtle); background: var(--bg-secondary); }
+        .data-table td { padding: var(--space-md); font-size: 13px; border-bottom: 1px solid var(--border-subtle); }
+        .data-table tr:hover { background: var(--bg-elevated); cursor: pointer; }
+
+        .user-cell { display: flex; align-items: center; gap: var(--space-md); }
+        .user-avatar { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+        .user-avatar.admin { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .user-avatar.member { background: var(--info-dim); color: var(--info); }
+        .user-avatar.viewer { background: var(--accent-gold-dim); color: var(--accent-gold); }
+        .user-info .user-name { font-weight: 500; }
+        .user-info .user-email { font-size: 12px; color: var(--text-tertiary); }
+
+        .role-badge { display: inline-flex; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; }
+        .role-badge.admin { background: var(--accent-hinomaru-dim); color: var(--accent-hinomaru-light); }
+        .role-badge.member { background: var(--info-dim); color: var(--info); }
+        .role-badge.viewer { background: var(--accent-gold-dim); color: var(--accent-gold); }
+
+        .status-badge { display: inline-flex; align-items: center; gap: var(--space-xs); padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; }
+        .status-badge.active { background: var(--success-dim); color: var(--success); }
+        .status-badge.pending { background: var(--warning-dim); color: var(--warning); }
+
+        .pagination { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border-subtle); }
+        .pagination-info { font-size: 13px; color: var(--text-tertiary); }
+        .pagination-controls { display: flex; gap: var(--space-sm); }
+        .pagination-btn { padding: var(--space-sm) var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; cursor: pointer; }
+        .pagination-btn.active { background: var(--accent-hinomaru); border-color: var(--accent-hinomaru); color: white; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon"><div class="logo-ring"></div><div class="logo-core"></div></div>
+                <div class="logo-text"><div class="logo-main">Quantum Shield</div><div class="logo-sub">Enterprise</div></div>
+            </div>
+            <div class="sidebar-badge">ENTERPRISE EDITION</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Dashboard</div>
+                <a href="01_overview_dashboard.html" class="nav-item"><span class="nav-icon">📊</span>Overview</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Transactions</div>
+                <a href="05_transaction_list.html" class="nav-item"><span class="nav-icon">📋</span>All Transactions</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a href="09_user_list.html" class="nav-item active nav-users"><span class="nav-icon">👥</span>Users</a>
+                <a href="14_api_keys.html" class="nav-item"><span class="nav-icon">🔑</span>API Keys</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Reports</div>
+                <a href="22_monthly_report.html" class="nav-item"><span class="nav-icon">📑</span>Reports</a>
+                <a href="24_audit_log.html" class="nav-item"><span class="nav-icon">📜</span>Audit Log</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <a href="18_org_settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+                <a href="25_support_portal.html" class="nav-item"><span class="nav-icon">🎧</span>Support</a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="org-info">
+                <div class="org-avatar">AC</div>
+                <div class="org-details"><div class="org-name">Acme Corp</div><div class="org-plan">Enterprise Plan</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h1 class="page-title">User Management</h1>
+            <div class="top-actions">
+                <a href="12_role_management.html" class="btn btn-secondary" id="btn-roles">🛡️ Manage Roles</a>
+                <a href="13_invite_user.html" class="btn btn-secondary" id="btn-invite">✉️ Invite</a>
+                <a href="11_user_create.html" class="btn btn-primary" id="btn-add-user">+ Add User</a>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value">24</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Admins</div>
+                    <div class="stat-value">3</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Members</div>
+                    <div class="stat-value">18</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pending Invites</div>
+                    <div class="stat-value">3</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Team Members</h2>
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Search users...">
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>2FA</th>
+                            <th>Last Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="location.href='10_user_detail.html'">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar admin">佐</div>
+                                    <div class="user-info">
+                                        <div class="user-name">佐藤 太郎</div>
+                                        <div class="user-email">sato@acme.co.jp</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="role-badge admin">Admin</span></td>
+                            <td><span class="status-badge active">Active</span></td>
+                            <td style="color: var(--success);">✓ Enabled</td>
+                            <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">2 min ago</td>
+                            <td><a href="10_user_detail.html" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a></td>
+                        </tr>
+                        <tr onclick="location.href='10_user_detail.html'">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar admin">田</div>
+                                    <div class="user-info">
+                                        <div class="user-name">田中 花子</div>
+                                        <div class="user-email">tanaka@acme.co.jp</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="role-badge admin">Admin</span></td>
+                            <td><span class="status-badge active">Active</span></td>
+                            <td style="color: var(--success);">✓ Enabled</td>
+                            <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">1 hr ago</td>
+                            <td><a href="10_user_detail.html" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a></td>
+                        </tr>
+                        <tr onclick="location.href='10_user_detail.html'">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar member">鈴</div>
+                                    <div class="user-info">
+                                        <div class="user-name">鈴木 一郎</div>
+                                        <div class="user-email">suzuki@acme.co.jp</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="role-badge member">Member</span></td>
+                            <td><span class="status-badge active">Active</span></td>
+                            <td style="color: var(--success);">✓ Enabled</td>
+                            <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">3 hr ago</td>
+                            <td><a href="10_user_detail.html" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a></td>
+                        </tr>
+                        <tr onclick="location.href='10_user_detail.html'">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar viewer">高</div>
+                                    <div class="user-info">
+                                        <div class="user-name">高橋 二郎</div>
+                                        <div class="user-email">takahashi@acme.co.jp</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="role-badge viewer">Viewer</span></td>
+                            <td><span class="status-badge active">Active</span></td>
+                            <td style="color: var(--text-tertiary);">✗ Disabled</td>
+                            <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">Yesterday</td>
+                            <td><a href="10_user_detail.html" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Edit</a></td>
+                        </tr>
+                        <tr onclick="location.href='10_user_detail.html'">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar member">山</div>
+                                    <div class="user-info">
+                                        <div class="user-name">山本 三郎</div>
+                                        <div class="user-email">yamamoto@acme.co.jp</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="role-badge member">Member</span></td>
+                            <td><span class="status-badge pending">Invited</span></td>
+                            <td style="color: var(--text-muted);">-</td>
+                            <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">Pending</td>
+                            <td><button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">Resend</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <span class="pagination-info">Showing 1-5 of 24 users</span>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" disabled>← Previous</button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">Next →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
