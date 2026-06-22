@@ -167,7 +167,9 @@
 // For simplicity, assuming index 0 path verification
 ```
 
-→ Merkle パス登りが **leaf index 0 を仮定**しており、**現状は正しい SPHINCS+ 検証器ではない**。これは AI 支援レビューが即座に検出する類の正確性バグであり、「手実装暗号 × AI 発見容易性」リスクの実例。**T2/T3 で本番運用する前に必修の修正対象。**
+→ Merkle パス登りが **leaf index 0 を仮定**しており、各層で常に `hash(root, sibling)` を固定順に計算する（葉位置に応じた左右の入れ替えがない）。さらに `_verifyHypertree`（L316-345）は digest から `idx_tree / idx_leaf` を一切抽出せず、各 XMSS 層に渡すのは `layer` のみ。
+
+結果として**現状は正しい SPHINCS+ / SLH-DSA 検証器ではない**：(a) 実署名の大半（index ≠ 全層 0）を誤って棄却し（liveness 欠陥）、(b) 葉位置と root の束縛が壊れるため、仮に gas だけ最適化して本番投入すると **健全性（soundness）バグ＝パス偽造面**になりうる。これは AI 支援レビューが即座に検出する類の正確性バグであり、「手実装暗号 × AI 発見容易性」リスクの実例。**詳細・修正方針は付録 A 参照。T2/T3 で本番運用する前に必修の修正対象。**
 
 ### 5.3 防御プログラム（提案）
 
@@ -236,6 +238,49 @@
 - 紛争パスでの SPHINCS- 採用が、規制上「実効的な信頼の根が非 FIPS」と解釈されるリスクの法的整理。
 - フル検証フル gas の実測（foundry allowlist 追加後）。
 - `_verifySimplified` 経路が本番で有効化されていないことの保証（暗号検証なしパスの誤用防止）。
+
+---
+
+## 付録 A — 追跡対象欠陥: SPHINCSVerifier の Merkle パス index 処理
+
+> **欠陥 ID**: QS-SEC-SPHINCS-001
+> **重大度**: 高（T2/T3 本番前に必修）／ 現状は実行不可（§2.2）のため即時被害はないが、**ハイブリッド検証 ① を実装する際の前提障害**
+> **対象**: `src/l1/contracts/src/SPHINCSVerifier.sol`
+> **種別**: 正確性（liveness）＋ 潜在的健全性（soundness）
+
+### A.1 症状
+
+| 箇所 | 問題 |
+|------|------|
+| `_climbMerkleTree`（L537-558） | 各高さで常に `SHAKE256(0x06, seed, layer, height, root, sibling)` を**固定順**で計算。葉位置ビットによる `(root,sibling)` ↔ `(sibling,root)` の入れ替えがない（= 全層 index 0 を仮定） |
+| `_verifyXMSSLayer`（L438-466） | leaf index を引数に取らず、`_climbMerkleTree` にも渡していない |
+| `_verifyHypertree`（L316-345） | digest から `idx_tree / idx_leaf` を抽出せず、各層へ渡すのは `layer` のみ。層間で `idx >>= SUBTREE_HEIGHT` のような index 伝搬がない |
+
+### A.2 正しい挙動（FIPS 205 / SLH-DSA 準拠）
+
+1. **メッセージダイジェストから index 抽出**: `H_msg` 出力を `(md, idx_tree, idx_leaf)` に分割（FIPS 205 §5）。`md` が FORS、`idx_tree/idx_leaf` がハイパーツリーの位置を決める。
+2. **各 XMSS 層の Merkle 登り**: 高さ `h` で `bit = (idx_leaf >> h) & 1`。`bit == 0` → `hash(node, sibling)`、`bit == 1` → `hash(sibling, node)`。
+3. **層間伝搬**: 1層（高さ `SUBTREE_HEIGHT = 9`）登るごとに `idx_leaf` の下位 9 bit を消費し、`idx_tree` を次層の葉 index として引き継ぐ（`idx >>= SUBTREE_HEIGHT`）。
+4. **ADRS（アドレス）構造**: WOTS+/tree/FORS の各ハッシュ呼び出しでアドレスワードを FIPS 205 の規定どおり構成する（現状の `layer/height/chainIndex` 引数は簡略形であり、ここも要精査）。
+
+> **既に正しいパターンが同ファイル内に存在**: `_computeFORSTreeRoot`（L375-422）は `idx & 1` で左右を判定し `idx >>= 1` で登っている。Merkle 登りロジックはこの実装を踏襲すれば整合させられる。
+
+### A.3 影響
+
+- **Liveness**: 全層 index 0 のパスしか受理しないため、実署名はほぼ常に棄却 → フル検証 Unlock が機能しない（§2.3 の「未実測・実行不可」と整合）。
+- **Soundness（将来リスク）**: 位置非依存ハッシュは葉位置と root の束縛を壊す。gas 最適化（例: SPHINCS- 化）だけ進めてこの欠陥を残すと、**異なる葉位置の値で同一 root を主張できるパス偽造面**を生む可能性がある。紛争パス（fraud proof）の検証器にこれが乗ると、楽観的モデルの安全性そのものが崩れる。
+
+### A.4 修正方針
+
+1. `_verifyHypertree` で `H_msg` から `idx_tree/idx_leaf` を導出し、層ごとに index を伝搬。
+2. `_verifyXMSSLayer` / `_climbMerkleTree` に leaf index を引数追加し、A.2-2 のビット判定で順序を決定。
+3. ADRS 構成を FIPS 205 に合わせて見直し（`_computeWOTSChain` / `_compressWOTSPublicKey` / FORS のアドレスワード）。
+4. **KAT 必須化**: FIPS 205 公式テストベクタ／PQClean リファレンスとの差分照合を CI に追加（§5.3）。修正の正しさは KAT 通過で初めて担保される。
+5. **暫定ガード**: 修正・KAT 通過までは、`useFullVerification` のフル検証経路を**本番のセキュリティ根拠として依存しない**ことを明記（オフチェーン正典検証＝§3 に依拠）。
+
+### A.5 検証手段の制約
+
+本メモ作成環境では `forge` 未導入＋ネットワーク制限のためビルド/KAT 実行不可。**修正着手時は foundry を allowlist 追加し、KAT を実走させること**を前提とする（無検証でのクリプト変更は §5 の方針に反する）。
 
 ---
 
