@@ -153,8 +153,8 @@ contract SPHINCSVerifier {
         // Verify FORS signature
         bytes32 forsRoot = _verifyFORS(digest, signature[16:], pk.seed);
 
-        // Verify hypertree signature
-        bytes32 computedRoot = _verifyHypertree(forsRoot, signature, pk.seed);
+        // Verify hypertree signature (digest carries the tree/leaf position)
+        bytes32 computedRoot = _verifyHypertree(forsRoot, digest, signature, pk.seed);
 
         // Compare with public key root
         valid = (bytes16(computedRoot) == pk.root);
@@ -237,7 +237,7 @@ contract SPHINCSVerifier {
         bytes32 digest = _computeDigest(R, pk.seed, pk.root, message);
 
         bytes32 forsRoot = _verifyFORS(digest, signature[16:], pk.seed);
-        bytes32 computedRoot = _verifyHypertree(forsRoot, signature, pk.seed);
+        bytes32 computedRoot = _verifyHypertree(forsRoot, digest, signature, pk.seed);
 
         return (bytes16(computedRoot) == pk.root);
     }
@@ -313,12 +313,19 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Verify Hypertree signature (d layers of XMSS trees)
+    /// @dev Derives the hypertree position (idx_tree, idx_leaf) from the message
+    ///      digest per FIPS 205 (H_msg output split md || idx_tree || idx_leaf).
+    ///      idx_leaf addresses the leaf in the bottom subtree; each higher layer
+    ///      consumes SUBTREE_HEIGHT bits of idx_tree for its own leaf position.
     function _verifyHypertree(
         bytes32 forsRoot,
+        bytes32 digest,
         bytes calldata signature,
         bytes16 seed
     ) internal pure returns (bytes32 root) {
         root = forsRoot;
+
+        (uint256 idxTree, uint256 idxLeaf) = _extractTreeIndices(digest);
 
         // Skip FORS signature portion
         uint256 offset = 16 + (FORS_TREES * (16 + FORS_HEIGHT * 32));
@@ -339,8 +346,18 @@ contract SPHINCSVerifier {
                 offset += 32;
             }
 
-            // Verify WOTS+ and climb the tree
-            root = _verifyXMSSLayer(root, wotsChains, authPath, seed, layer);
+            // Leaf index within this layer's subtree. Layer 0 uses idx_leaf; each
+            // higher layer consumes the low SUBTREE_HEIGHT bits of the tree index.
+            uint256 leafIdx;
+            if (layer == 0) {
+                leafIdx = idxLeaf;
+            } else {
+                leafIdx = idxTree & ((uint256(1) << SUBTREE_HEIGHT) - 1);
+                idxTree >>= SUBTREE_HEIGHT;
+            }
+
+            // Verify WOTS+ and climb the tree using the leaf position
+            root = _verifyXMSSLayer(root, wotsChains, authPath, seed, layer, leafIdx);
         }
     }
 
@@ -368,6 +385,27 @@ contract SPHINCSVerifier {
             indices[i] = (rawValue >> (16 - FORS_HEIGHT - bitShift)) & 
                          ((1 << FORS_HEIGHT) - 1);
         }
+    }
+
+    /// @notice Extract hypertree tree/leaf indices from the message digest
+    /// @dev FIPS 205 splits the H_msg output as md || idx_tree || idx_leaf. FORS
+    ///      consumes the leading ceil(k*a/8) = 21 bytes; the tree index
+    ///      (h - h/d = 54 bits) and the leaf index (h/d = 9 bits) follow.
+    function _extractTreeIndices(bytes32 digest)
+        internal
+        pure
+        returns (uint256 idxTree, uint256 idxLeaf)
+    {
+        // idx_tree: 7 bytes after the FORS index region (bytes 21..27), 54-bit mask
+        uint256 t = 0;
+        for (uint256 i = 21; i < 28; i++) {
+            t = (t << 8) | uint256(uint8(digest[i]));
+        }
+        idxTree = t & ((uint256(1) << (TREE_HEIGHT - SUBTREE_HEIGHT)) - 1);
+
+        // idx_leaf: next 2 bytes (bytes 28..29), SUBTREE_HEIGHT-bit mask
+        uint256 l = (uint256(uint8(digest[28])) << 8) | uint256(uint8(digest[29]));
+        idxLeaf = l & ((uint256(1) << SUBTREE_HEIGHT) - 1);
     }
 
     /// @notice Compute FORS tree root from leaf and authentication path
@@ -440,12 +478,13 @@ contract SPHINCSVerifier {
         bytes32[35] memory wotsChains,
         bytes32[9] memory authPath,
         bytes16 seed,
-        uint256 layer
+        uint256 layer,
+        uint256 leafIndex
     ) internal pure returns (bytes32 root) {
         // Convert message to WOTS+ checksum
         uint256[35] memory chainLengths = _computeWOTSChecksum(message);
 
-        // Verify each WOTS+ chain
+        // Verify each WOTS+ chain (bound to this leaf's key-pair position)
         bytes32[35] memory publicKeyChunks;
         for (uint256 i = 0; i < WOTS_LEN; i++) {
             publicKeyChunks[i] = _computeWOTSChain(
@@ -454,15 +493,16 @@ contract SPHINCSVerifier {
                 W - 1 - chainLengths[i],
                 seed,
                 layer,
+                leafIndex,
                 i
             );
         }
 
-        // Compress WOTS+ public key to single node
-        bytes32 wotsPublicKey = _compressWOTSPublicKey(publicKeyChunks, seed, layer);
+        // Compress WOTS+ public key to the leaf node at this position
+        bytes32 wotsPublicKey = _compressWOTSPublicKey(publicKeyChunks, seed, layer, leafIndex);
 
-        // Climb the Merkle tree
-        root = _climbMerkleTree(wotsPublicKey, authPath, seed, layer);
+        // Climb the Merkle tree using the leaf position
+        root = _climbMerkleTree(wotsPublicKey, authPath, seed, layer, leafIndex);
     }
 
     /// @notice Compute WOTS+ checksum from message
@@ -503,6 +543,7 @@ contract SPHINCSVerifier {
         uint256 steps,
         bytes16 seed,
         uint256 layer,
+        uint256 keyPairIndex,
         uint256 chainIndex
     ) internal pure returns (bytes32 result) {
         result = start;
@@ -511,6 +552,7 @@ contract SPHINCSVerifier {
                 bytes1(0x04),  // Domain separator for F
                 seed,
                 uint32(layer),
+                uint32(keyPairIndex),  // leaf position binds this chain to its tree slot
                 uint32(chainIndex),
                 uint32(startIndex + i),
                 result
@@ -523,9 +565,12 @@ contract SPHINCSVerifier {
     function _compressWOTSPublicKey(
         bytes32[35] memory chunks,
         bytes16 seed,
-        uint256 layer
+        uint256 layer,
+        uint256 keyPairIndex
     ) internal pure returns (bytes32) {
-        bytes memory packed = abi.encodePacked(bytes1(0x05), seed, uint32(layer));
+        bytes memory packed = abi.encodePacked(
+            bytes1(0x05), seed, uint32(layer), uint32(keyPairIndex)
+        );
         for (uint256 i = 0; i < WOTS_LEN; i++) {
             packed = abi.encodePacked(packed, chunks[i]);
         }
@@ -533,27 +578,47 @@ contract SPHINCSVerifier {
     }
 
     /// @notice Climb Merkle tree using authentication path
-    /// @dev Uses SHAKE256 for tree hashing
+    /// @dev Orders each hash by the leaf-index bit at the current height so the
+    ///      path binds to the leaf's position (mirrors _computeFORSTreeRoot). The
+    ///      node index is folded into the ADRS so sibling positions are addressed.
     function _climbMerkleTree(
         bytes32 leaf,
         bytes32[9] memory authPath,
         bytes16 seed,
-        uint256 layer
+        uint256 layer,
+        uint256 leafIndex
     ) internal pure returns (bytes32 root) {
         root = leaf;
-        // Note: leafIndex would need to be extracted from signature
-        // For simplicity, assuming index 0 path verification
+        uint256 idx = leafIndex;
         for (uint256 height = 0; height < SUBTREE_HEIGHT; height++) {
             bytes32 sibling = authPath[height];
-            // This is simplified - actual implementation needs leaf index
-            root = SHAKE256.hash256(abi.encodePacked(
-                bytes1(0x06),
-                seed,
-                uint32(layer),
-                uint32(height),
-                root,
-                sibling
-            ));
+            uint256 nodeIndex = idx >> 1;
+
+            if (idx & 1 == 0) {
+                // Current node is the left child
+                root = SHAKE256.hash256(abi.encodePacked(
+                    bytes1(0x06),
+                    seed,
+                    uint32(layer),
+                    uint32(height),
+                    uint32(nodeIndex),
+                    root,
+                    sibling
+                ));
+            } else {
+                // Current node is the right child
+                root = SHAKE256.hash256(abi.encodePacked(
+                    bytes1(0x06),
+                    seed,
+                    uint32(layer),
+                    uint32(height),
+                    uint32(nodeIndex),
+                    sibling,
+                    root
+                ));
+            }
+
+            idx >>= 1;
         }
     }
 
