@@ -10,10 +10,27 @@
 
 ## Step 1: Obsidian でこの Vault を開く（5 分）
 
+> **前提**: Obsidian は「ローカルフォルダを読むアプリ」なので、Web 上の GitHub を直接 Vault として見に行くことはできない。ただしフルクローン（約 200MB）は不要で、下の軽量クローンなら **数 MB** で済む。
+
 1. https://obsidian.md からインストール（Mac / Windows / Linux）
-2. 手元にリポジトリを clone していなければ: `git clone git@github.com:kota1026/quantum-shield.git`
-3. Obsidian 起動 → **「保管庫としてフォルダを開く」(Open folder as vault)** → `quantum-shield/vault` を選択
+2. **軽量クローン（推奨）** — vault フォルダだけを手元に持ってくる:
+
+   ```bash
+   git clone --filter=blob:none --no-checkout git@github.com:kota1026/quantum-shield.git qs-vault
+   cd qs-vault
+   git sparse-checkout set vault
+   git checkout
+   ```
+
+   作業フォルダには `vault/`（約 400KB）だけが展開される。`git pull` / `git push` は通常どおり使える。
+   （すでにフルクローンがある場合はそれをそのまま使ってよい）
+3. Obsidian 起動 → **「保管庫としてフォルダを開く」(Open folder as vault)** → `qs-vault/vault` を選択
 4. サイドバーに `00_Memory` 〜 `50_Sessions` が番号順に並べば OK
+
+### そもそもローカルに置きたくない場合
+
+- **読むだけ**なら github.com / GitHub モバイルアプリで十分（Vault はプレーン Markdown なのでそのまま表示できる）
+- **Claude に読ませるだけ**なら Obsidian を経由せず、Claude Desktop の GitHub コネクタ / GitHub MCP で `kota1026/quantum-shield` の `vault/` を直接読み書きさせる構成も可能。Obsidian が必要になるのは「人間がリンク・グラフ・ローカル編集の UX で Vault を触りたい」ときだけ
 
 ## Step 2: Local REST API プラグインを入れる（3 分）
 
