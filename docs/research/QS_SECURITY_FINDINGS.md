@@ -99,9 +99,14 @@
 ---
 
 ## 検証状況と前提
-- Solidity 修正（VAULT-001/002/003）は **solc 0.8.20 で 0 エラー**（OZ は未初期化サブモジュールのためローカルスタブで解決）。
-- Rust 修正（AUTH-001/PROVER-001）は **`cargo check` で検証**（本コミットに結果反映）。
-- **foundry テスト・実 KAT・cargo test は allowlist 追加後に必須**。特に VAULT-001/003 の状態機械はユニットテストで回帰確認すること（`[SLASHED]→executeUnlock revert`、`self-challenge revert`、`[P1,P2]→2` 等）。
+- **foundry を導入して実テストを実走済み**（バイナリ配布はネットワークポリシー外のため、forge をソースからビルドし、solc 0.8.20 ネイティブと submodule を許可済みホストから取得して構築）。
+- **既存テスト 159件 全通過・0 failed**（SPHINCS 53 + L1Vault 106）→ 全 `✅` 修正が既存挙動を破壊しないことを実証。
+- **新規回帰テスト `test/L1VaultSecurityFixes.t.sol` 4件 全通過**:
+  - `test_VAULT001_executeUnlock_revertsAfterSlash`（SLASHED での二重出金を実 revert 確認）
+  - `test_VAULT002_requestUnlockLegacy_isDisabled`
+  - `test_VAULT003_selfChallenge_reverts` / `test_VAULT003_nonSenderChallenge_succeeds`
+- Rust 修正（AUTH-001/PROVER-001）は **`cargo check` 通過**（exit 0）。cargo test は別途。
+- **残**: SPHINCS+ の**実 KAT**（FIPS 205/PQClean 差分。本検証器の非標準 ADRS に合わせた自己整合 KAT）は未実装＝WS4。THRESH-001 の distinct-signer 専用ユニットテストは未追加（既存 threshold テストで間接カバー）。
 
 ---
 
