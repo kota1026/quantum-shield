@@ -14,7 +14,7 @@
 | QS-SEC-VAULT-001 | HIGH | `L1Vault.sol` executeUnlock | 二重出金 | ✅ 修正済 |
 | QS-SEC-VAULT-002 | HIGH | `L1Vault.sol` requestUnlockLegacy | recipient 非束縛/リプレイ | ✅ 修正済（無効化） |
 | QS-SEC-VAULT-003 | HIGH | `L1Vault.sol` challenge | 自己チャレンジ抽出 | 🟡 部分（自己チャレンジ遮断） |
-| QS-SEC-VAULT-004 | HIGH | `L1Vault.sol` challenge 会計 | 報酬をプール原資で支弁→債務超過 | 📋 追跡（stake原資化） |
+| QS-SEC-VAULT-004 | HIGH | `L1Vault.sol` challenge 会計 | 報酬をプール原資で支弁→債務超過 | ✅ 修正済（stake原資化）／裁定は追跡 |
 | QS-SEC-L3-001 | HIGH | `l3/.../CoreLayer.sol` _verifyProof | proof 無検証受理 | 📋 追跡（実STARK検証） |
 | QS-SEC-AUTH-001 | HIGH | `middleware.rs` admin_jwt_auth | 権限昇格（任意ユーザ→admin） | ✅ 修正済 |
 | QS-SEC-PROVER-001 | HIGH | `services/mod.rs` submit_prover_signature | 署名無検証で計上 | ✅ 修正済（本番フェイルクローズ） |
@@ -29,8 +29,8 @@
 
 ### QS-SEC-VAULT-001 — executeUnlock の SLASHED 二重出金
 - **欠陥**: Challenge が valid 解決で lock を `SLASHED`＋送信者へ全額返金するが `UnlockRequest` を消さず、`executeUnlock` は `SLASHED` を弾かなかった → 返金後に再度 `request.amount` を他ユーザのプールから支払い。
-- **修正**: `executeUnlock` を実行可能状態のホワイトリスト（`PENDING_UNLOCK`/`EMERGENCY_PENDING`）に限定。`RESOLVED_INVALID` は pending へ復帰するため正規フローは維持。
-- **残**: 防御多重化として slash 時に `UnlockRequest`/`Challenge` をクリア（VAULT-004 と併せて実施）。foundry テスト必須。
+- **修正**: `executeUnlock` を実行可能状態のホワイトリスト（`PENDING_UNLOCK`/`EMERGENCY_PENDING`）に限定。`RESOLVED_INVALID` は pending へ復帰するため正規フローは維持。**加えて VAULT-004 と併せ、slash 時に `unlockRequests`/`unlockSigningProvers` を `delete`**（多層防御。SLASHED 後の executeUnlock は request 消去により `UnlockNotFound` で revert）。
+- **テスト**: `test_VAULT001_executeUnlock_revertsAfterSlash`（foundry, 通過）で SLASHED 後の再出金不可を実 revert 確認。
 
 ### QS-SEC-VAULT-002 — requestUnlockLegacy の recipient 非束縛リプレイ
 - **欠陥**: legacy 経路は署名メッセージ `hashPair(lockId, stateRoot)` に recipient を含めず、メンプールの署名・SMT証明をコピーして `recipient=Attacker` で先行実行可能（フル SPHINCS+ 検証下でも成立）。
@@ -47,6 +47,15 @@
 - **修正**: 本番（`skip_signature_verification=false`）では**未検証署名を拒否（フェイルクローズ）**。実 SPHINCS+ 検証（WS4・KAT）実装まで、偽造署名が資金移動を駆動できない。
 - **機能影響**: 本番の prover 署名投入は実検証実装まで停止。これは「検証できないものを認可しない」正しい posture（戦略 D1）と整合。
 - **残**: `pqcrypto-sphincsplus`（sphincsshake128ssimple, 7856B 一致）での実検証＋KAT を実装し再有効化（WS4）。
+
+### QS-SEC-VAULT-004 — challenge 報酬をプール原資で支弁（債務超過）
+- **欠陥**: valid 解決で challenger に `bond+報酬`、送信者に全額返金するが、**加害 prover の `stakedAmount` は一切減算されず**、報酬（保険/burn 含む）が他ユーザのプール資金から支払われ、金庫が報酬分だけ債務超過に。
+- **修正（承認方針 D-a〜D-d で実装）**:
+  1. `unlockSigningProvers[lockId]` を追加し `requestUnlock` で**署名 prover 集合を記録**。
+  2. `_slashSigningProvers()`：各**相異なる**署名 prover の **自身の stake** を n²·10%（不足時キャップ・均等）で slash し `stakedAmount` を減算。
+  3. `_resolveValidChallenge`／`autoResolveChallenge` の報酬・保険・burn を**slash した stake から支弁**（プール流出ゼロ）。送信者への lock 全額返金は `totalLocked` 相殺のため据え置き（正常）。内部会計のみ更新（外部 `ProverRegistry.slash` は別途 stub のため今回対象外＝D-d）。
+- **テスト**: **全 L1Vault テスト 110件 通過**（既存106＋新規4、0 failed）。改修した解決コードパス（`_resolveValidChallenge`/`autoResolveChallenge`/state-clear）は emergency-challenge テスト群が網羅。
+- **残（裁定＝設計）**: `autoResolveChallenge` は依然 fraudProof を**裁定せず「未防御=不正確定」**。stake 原資化により、正規 unlock をグリーフされた場合は**48h 以内に prover が `submitDefense` しないと honest prover の stake が slash される**（＝楽観的モデルの前提「prover は常時監視・防御」）。真の裁定（SecurityCouncil 必須化 or fraudProof オンチェーン検証）は WS3 の設計課題として継続。
 
 ---
 
@@ -67,14 +76,6 @@
 ## 追跡（📋 設計実装が必要・cosmetic 修正不可）
 
 > これらは表面的修正では**偽の安心感を与えつつ機能を壊す**ため、意図的に実装を保留し設計作業として記録する（プロジェクトの「無検証暗号を入れない」方針・戦略 D1 と整合）。
-
-### QS-SEC-VAULT-004 — challenge 報酬をプール原資で支弁（債務超過）＋無裁定 slash
-- **欠陥**: valid 解決で challenger に `bond+報酬`、送信者に全額返金するが、**加害 prover の `stakedAmount` は一切減算されない**。報酬（sigCount≥2 で lock の24%）は他ユーザのプール資金から支払われ、金庫が報酬分だけ債務超過に。加えて `autoResolveChallenge` は fraudProof を検証せず未防御=不正確定と扱う（無裁定）。
-- **是正方針**:
-  1. **署名 prover 集合を UnlockRequest に記録**（現状は `signatureCount` のみ）。
-  2. slashing 報酬・保険・burn を**加害 prover の stake（`ProverRegistry` 連携）から支弁**し、プール残高から払わない。
-  3. `autoResolveChallenge` の「未防御=不正確定」を再設計（bond 返却/PENDING 復帰、または SecurityCouncil 裁定必須）。fraudProof をオンチェーン検証。
-- **難度**: 中〜大（Prover 構造・_createUnlockRequest・ProverRegistry slash フックに波及）。VAULT-001 の状態クリアも本作業で。
 
 ### QS-SEC-L3-001 — CoreLayer._verifyProof が任意 proof を受理
 - **欠陥**: `_verifyProof` が STARK 検証を呼ばず「長さ≥32 なら true」（`stateRoot==0` は任意 true）。`unlock()`/`resync()`/`verifyState()` の唯一の暗号ゲート。任意 proof で `_stateRoot` 改ざん・unlock 進行が可能（L3=Anvil/Arbitrum Sepolia デプロイ済）。

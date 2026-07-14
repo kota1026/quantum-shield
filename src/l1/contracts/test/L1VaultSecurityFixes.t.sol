@@ -110,8 +110,10 @@ contract L1VaultSecurityFixesTest is Test {
         );
 
         // Past any unlock window, executeUnlock on a SLASHED lock must not pay out again.
+        // The unlock request is also cleared on slash (QS-SEC-VAULT-004 hardening), so the
+        // request-existence guard fires first.
         vm.warp(block.timestamp + 30 days);
-        vm.expectRevert(L1Vault.LockAlreadyReleased.selector);
+        vm.expectRevert(L1Vault.UnlockNotFound.selector);
         vault.executeUnlock(lockId);
     }
 }

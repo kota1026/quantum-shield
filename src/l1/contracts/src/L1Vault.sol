@@ -276,6 +276,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
     mapping(address => Prover) public provers;
     address[] public activeProvers;
     mapping(bytes32 => Challenge) public challenges;
+
+    /// @notice Signing provers recorded per unlock request. Used to fund slashing
+    ///         from the offending provers' stake instead of the pooled vault balance
+    ///         on a valid challenge (QS-SEC-VAULT-004).
+    mapping(bytes32 => address[]) private unlockSigningProvers;
     uint256 public insuranceFund;
     uint256 public totalBurned;
     bool public useFullVerification;
@@ -457,6 +462,9 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
 
         _createUnlockRequest(lockId, recipient, lockData.amount, lockData.stateRoot, computedSR1, false, 0, validSignatures, unlockNonce);
+        // QS-SEC-VAULT-004: record the signing provers so a later valid challenge can
+        // slash their stake to fund the reward instead of the pooled vault balance.
+        unlockSigningProvers[lockId] = signingProvers;
         lockData.status = LockStatus.PENDING_UNLOCK;
     }
 
@@ -821,11 +829,6 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 burnedAmount = 0;
 
         if (challengeValid) {
-            slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
-            challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
-            insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
-            burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
-            
             // SEC-001 FIX-002b: Forfeit emergency bond BEFORE external calls (CEI pattern)
             // This was previously done AFTER _resolveValidChallenge() which caused reentrancy risk
             if (request.isEmergency && request.bond > 0) {
@@ -833,9 +836,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
                 request.bond = 0;
                 emergencyUnlocks[lockId].bondAmount = 0;
             }
-            
-            // Now call the function that contains external calls
-            _resolveValidChallenge(lockId, challengeData, lockData, request);
+
+            // QS-SEC-VAULT-004: slashing/reward is computed and paid inside, funded from the
+            // signing provers' stake rather than the pooled vault balance.
+            (slashedAmount, challengerReward, insuranceAmount, burnedAmount) =
+                _resolveValidChallenge(lockId, challengeData, lockData, request);
         } else {
             _resolveInvalidChallenge(lockId, challengeData, lockData);
             if (challengeData.defender != address(0)) {
@@ -851,15 +856,21 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     /// @notice Internal function to resolve a valid challenge
     /// @dev SEC-001 FIX-003: CEI pattern applied - ALL state updates BEFORE external calls
-    function _resolveValidChallenge(bytes32 /* lockId - reserved for v0.2 audit logging */, Challenge storage challengeData, Lock storage lockData, UnlockRequest storage request) internal {
+    function _resolveValidChallenge(
+        bytes32 lockId,
+        Challenge storage challengeData,
+        Lock storage lockData,
+        UnlockRequest storage /* request */
+    ) internal returns (uint256 slashedAmount, uint256 challengerReward, uint256 insuranceAmount, uint256 burnedAmount) {
         // === EFFECTS (state updates) - FIRST ===
         challengeData.status = ChallengeStatus.RESOLVED_VALID;
         lockData.status = LockStatus.SLASHED;
 
-        uint256 slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
-        uint256 challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
-        uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
-        uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
+        // QS-SEC-VAULT-004: fund the reward from the signing provers' stake, not the pool.
+        slashedAmount = _slashSigningProvers(lockId);
+        challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
+        insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
+        burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
 
         // Cache values for external calls
         address challenger = challengeData.challenger;
@@ -871,6 +882,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
         insuranceFund += insuranceAmount;
         totalBurned += burnedAmount;
         totalLocked -= lockAmount;
+
+        // QS-SEC-VAULT-001 (defense in depth): clear the unlock request and signer set so a
+        // SLASHED lock cannot be re-driven through executeUnlock.
+        delete unlockRequests[lockId];
+        delete unlockSigningProvers[lockId];
 
         // === INTERACTIONS (external calls) - LAST ===
         (bool success, ) = challenger.call{value: challengerPayout}("");
@@ -927,7 +943,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
         challengeData.status = ChallengeStatus.RESOLVED_VALID;
         lockData.status = LockStatus.SLASHED;
 
-        uint256 slashedAmount = _calculateSlash(request.signatureCount, lockData.amount);
+        // Forfeit emergency bond if applicable (read request before it is cleared below)
+        if (request.isEmergency && request.bond > 0) {
+            insuranceFund += request.bond;
+            request.bond = 0;
+        }
+
+        // QS-SEC-VAULT-004: fund the reward from the signing provers' stake, not the pool.
+        uint256 slashedAmount = _slashSigningProvers(lockId);
         uint256 challengerReward = (slashedAmount * SLASH_CHALLENGER_PERCENT) / 100;
         uint256 insuranceAmount = (slashedAmount * SLASH_INSURANCE_PERCENT) / 100;
         uint256 burnedAmount = (slashedAmount * SLASH_BURN_PERCENT) / 100;
@@ -942,12 +965,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
         insuranceFund += insuranceAmount;
         totalBurned += burnedAmount;
         totalLocked -= lockAmount;
-        
-        // Forfeit emergency bond if applicable
-        if (request.isEmergency && request.bond > 0) {
-            insuranceFund += request.bond;
-            request.bond = 0;
-        }
+
+        // QS-SEC-VAULT-001 (defense in depth): clear unlock/signer state so a SLASHED lock
+        // cannot be re-driven through executeUnlock.
+        delete unlockRequests[lockId];
+        delete unlockSigningProvers[lockId];
 
         // === INTERACTIONS (external calls) - LAST ===
         (bool success, ) = challenger.call{value: challengerPayout}("");
@@ -1159,6 +1181,36 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 slashPercent = numColluding * numColluding * 10;
         if (slashPercent > 100) slashPercent = 100;
         return (amount * slashPercent) / 100;
+    }
+
+    /// @notice Slash each distinct signing prover of a fraudulent unlock and return the
+    ///         total slashed. QS-SEC-VAULT-004: the challenger reward / insurance / burn
+    ///         are funded from this slashed stake (real ETH the provers deposited at
+    ///         registration) rather than from the pooled vault balance, so a valid
+    ///         challenge no longer makes the vault insolvent.
+    /// @dev    Slashes a quadratic percentage of each prover's OWN stake (capped at their
+    ///         balance), distributed by slashing each distinct signer equally.
+    function _slashSigningProvers(bytes32 lockId) internal returns (uint256 totalSlashed) {
+        address[] storage signers = unlockSigningProvers[lockId];
+        uint256 n = signers.length;
+        for (uint256 i = 0; i < n; i++) {
+            // Slash each prover at most once even if it appears multiple times.
+            bool duplicate = false;
+            for (uint256 j = 0; j < i; j++) {
+                if (signers[j] == signers[i]) { duplicate = true; break; }
+            }
+            if (duplicate) continue;
+
+            Prover storage p = provers[signers[i]];
+            uint256 staked = p.stakedAmount;
+            if (staked == 0) continue;
+
+            uint256 slash = _calculateSlash(n, staked); // n^2*10% of the prover's own stake
+            if (slash > staked) slash = staked;          // cap at available stake
+            p.stakedAmount = staked - slash;
+            p.slashedCount += 1;
+            totalSlashed += slash;
+        }
     }
 
     // =========================================================================
