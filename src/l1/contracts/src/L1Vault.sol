@@ -460,29 +460,22 @@ contract L1Vault is ReentrancyGuard, Pausable {
         lockData.status = LockStatus.PENDING_UNLOCK;
     }
 
+    /// @dev QS-SEC-VAULT-002: DISABLED. This legacy path verified prover signatures
+    ///      over hashPair(lockId, stateRoot) WITHOUT binding `recipient` into the
+    ///      signed message, so a valid signature set (public in the mempool) could be
+    ///      replayed/front-run to redirect payout to an attacker-chosen recipient.
+    ///      Use requestUnlock, which folds recipient/amount/unlockNonce into the SR1
+    ///      that provers sign. Kept as a reverting stub (no on-chain callers) to avoid
+    ///      changing the function selector / ABI.
     function requestUnlockLegacy(
-        bytes32 lockId,
-        address recipient,
-        bytes32[] calldata smtProof,
-        bytes32 stateRoot,
-        bytes[] calldata sphincsSignatures,
-        address[] calldata signingProvers
-    ) external whenNotPaused nonReentrant {
-        Lock storage lockData = locks[lockId];
-        if (lockData.sender == address(0)) revert LockNotFound();
-        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
-        if (recipient == address(0)) revert ZeroAddress();
-
-        if (!_verifySMTProof(lockId, smtProof, stateRoot)) revert InvalidProof();
-        if (sphincsSignatures.length < REQUIRED_SIGNATURES) revert InsufficientSignatures();
-        if (sphincsSignatures.length != signingProvers.length) revert InvalidSignatures();
-
-        uint256 validSignatures = _verifyThresholdSignatures(lockId, stateRoot, sphincsSignatures, signingProvers);
-        if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
-
-        uint256 unlockNonce = unlockNonceCounter++;
-        _createUnlockRequest(lockId, recipient, lockData.amount, stateRoot, bytes32(0), false, 0, validSignatures, unlockNonce);
-        lockData.status = LockStatus.PENDING_UNLOCK;
+        bytes32 /* lockId */,
+        address /* recipient */,
+        bytes32[] calldata /* smtProof */,
+        bytes32 /* stateRoot */,
+        bytes[] calldata /* sphincsSignatures */,
+        address[] calldata /* signingProvers */
+    ) external {
+        revert("requestUnlockLegacy disabled: use requestUnlock (recipient must be bound to the signed state root)");
     }
 
     /// @notice Request emergency unlock with bond payment
@@ -666,8 +659,15 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (block.timestamp < request.unlockableAt) revert UnlockNotReady();
 
         Lock storage lockData = locks[lockId];
-        if (lockData.status == LockStatus.CHALLENGED) revert ChallengePeriodActive();
-        if (lockData.status == LockStatus.RELEASED) revert LockAlreadyReleased();
+        // QS-SEC-VAULT-001: only ACTIVE-derived pending states may execute. This
+        // blocks a second withdrawal after a challenge sets the lock to SLASHED
+        // (the UnlockRequest is not cleared on slash), as well as RELEASED replay,
+        // CHALLENGED, and raw ACTIVE. RESOLVED_INVALID restores the lock to
+        // PENDING_UNLOCK / EMERGENCY_PENDING, so a legitimate unlock after a failed
+        // challenge still executes.
+        if (lockData.status != LockStatus.PENDING_UNLOCK && lockData.status != LockStatus.EMERGENCY_PENDING) {
+            revert LockAlreadyReleased();
+        }
 
         if (!request.isEmergency) {
             Challenge storage challengeData = challenges[lockId];
@@ -745,6 +745,13 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
         Lock storage lockData = locks[lockId];
         if (lockData.status != LockStatus.PENDING_UNLOCK && lockData.status != LockStatus.EMERGENCY_PENDING) revert LockAlreadyReleased();
+
+        // QS-SEC-VAULT-003: the lock owner must not challenge their own unlock.
+        // Combined with autoResolveChallenge treating an undefended challenge as valid,
+        // a self-challenge lets the sender reclaim the lock AND collect a challenger
+        // reward. (The reward is currently paid from the pool rather than slashed prover
+        // stake — see QS-SEC-VAULT-004 for the remaining stake-funding hardening.)
+        require(msg.sender != lockData.sender, "challenger must not be the lock sender");
 
         uint256 requiredBond = (request.amount * CHALLENGE_BOND_PERCENT) / 100;
         if (requiredBond < MIN_CHALLENGE_BOND) requiredBond = MIN_CHALLENGE_BOND;

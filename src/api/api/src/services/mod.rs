@@ -1838,6 +1838,25 @@ impl AppState {
         SphincsService::validate_signature_format(&req.sphincs_signature)
             .map_err(|e| ApiError::InvalidSignature(format!("Invalid SPHINCS+ signature: {}", e)))?;
 
+        // QS-SEC-PROVER-001: fail closed. A prover signature counts toward the
+        // M-of-N threshold that auto-triggers the on-chain requestUnlock, so it MUST
+        // be cryptographically verified against the prover's registered SPHINCS+
+        // public key over the canonical (lock_id, sr_1) message before it is stored.
+        // Real SPHINCS+ verification is not yet wired (tracked in WS4, gated on KAT),
+        // and SphincsService::verify_signature is a format-only placeholder. Until
+        // real verification exists, refuse to accept prover signatures in production
+        // rather than let an unverified (potentially forged) signature drive a fund
+        // release. Dev mode (skip_signature_verification) explicitly bypasses this.
+        if !self.config.security.skip_signature_verification {
+            tracing::error!(
+                "Rejecting prover signature: real SPHINCS+ verification unavailable (QS-SEC-PROVER-001), prover_id={}, queue_id={}",
+                prover_id, req.queue_id
+            );
+            return Err(ApiError::InvalidSignature(
+                "SPHINCS+ prover-signature verification is not available; refusing to accept unverified prover signatures in production (QS-SEC-PROVER-001)".into(),
+            ));
+        }
+
         // Step 1: Update signing_queue status in PG
         crate::db::SigningQueueRepository::update_status(
             self.pool(), &req.queue_id, "signed"

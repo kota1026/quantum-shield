@@ -131,6 +131,25 @@ pub async fn admin_jwt_auth(
         }
     };
 
+    // QS-SEC-AUTH-001: a valid access token is NOT sufficient for admin routes.
+    // Any wallet can mint an access token via SIWE, and access/admin tokens are
+    // indistinguishable (same secret, no role claim). Require that the token
+    // subject is an active admin before admitting the request. Fail closed.
+    match crate::db::AdminRepository::get_admin_by_wallet(state.db.pool(), &auth_user.address).await {
+        Ok(Some(admin)) if admin.status == "active" => {}
+        Ok(_) => {
+            tracing::warn!(
+                "Admin auth denied: {} is not an active admin, uri={}",
+                auth_user.address, request.uri()
+            );
+            return forbidden_response("Admin privileges required");
+        }
+        Err(e) => {
+            tracing::error!("Admin auth check failed for {}: {}, uri={}", auth_user.address, e, request.uri());
+            return forbidden_response("Admin authorization check failed");
+        }
+    }
+
     tracing::info!("Admin access: user={}, uri={}", auth_user.address, request.uri());
     request.extensions_mut().insert(auth_user);
     next.run(request).await
@@ -143,6 +162,15 @@ fn unauthorized_response(message: &str) -> Response {
     });
 
     (StatusCode::UNAUTHORIZED, body).into_response()
+}
+
+fn forbidden_response(message: &str) -> Response {
+    let body = Json(ErrorResponse {
+        code: ApiError::Forbidden(String::new()).code(),
+        message: message.to_string(),
+    });
+
+    (StatusCode::FORBIDDEN, body).into_response()
 }
 
 // ─── Rate Limiting (Week 4-A) ──────────────────────────────────────────
