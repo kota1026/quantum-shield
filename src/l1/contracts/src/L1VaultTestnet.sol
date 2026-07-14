@@ -384,29 +384,19 @@ contract L1VaultTestnet is ReentrancyGuard, Pausable {
         lockData.status = LockStatus.PENDING_UNLOCK;
     }
 
+    /// @dev QS-SEC-VAULT-002 (mirror of L1Vault): DISABLED. The legacy path verified
+    ///      prover signatures over hashPair(lockId, stateRoot) without binding
+    ///      `recipient`, allowing mempool replay/front-run to redirect payout. Use
+    ///      requestUnlock, which binds recipient into SR1. Reverting stub (no callers).
     function requestUnlockLegacy(
-        bytes32 lockId,
-        address recipient,
-        bytes32[] calldata smtProof,
-        bytes32 stateRoot,
-        bytes[] calldata sphincsSignatures,
-        address[] calldata signingProvers
-    ) external whenNotPaused nonReentrant {
-        Lock storage lockData = locks[lockId];
-        if (lockData.sender == address(0)) revert LockNotFound();
-        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
-        if (recipient == address(0)) revert ZeroAddress();
-
-        if (!_verifySMTProof(lockId, smtProof, stateRoot)) revert InvalidProof();
-        if (sphincsSignatures.length < REQUIRED_SIGNATURES) revert InsufficientSignatures();
-        if (sphincsSignatures.length != signingProvers.length) revert InvalidSignatures();
-
-        uint256 validSignatures = _verifyThresholdSignatures(lockId, stateRoot, sphincsSignatures, signingProvers);
-        if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
-
-        uint256 unlockNonce = unlockNonceCounter++;
-        _createUnlockRequest(lockId, recipient, lockData.amount, stateRoot, bytes32(0), false, 0, validSignatures, unlockNonce);
-        lockData.status = LockStatus.PENDING_UNLOCK;
+        bytes32 /* lockId */,
+        address /* recipient */,
+        bytes32[] calldata /* smtProof */,
+        bytes32 /* stateRoot */,
+        bytes[] calldata /* sphincsSignatures */,
+        address[] calldata /* signingProvers */
+    ) external {
+        revert("requestUnlockLegacy disabled: use requestUnlock (recipient must be bound to the signed state root)");
     }
 
     /// @notice Request emergency unlock with bond payment
@@ -590,8 +580,11 @@ contract L1VaultTestnet is ReentrancyGuard, Pausable {
         if (block.timestamp < request.unlockableAt) revert UnlockNotReady();
 
         Lock storage lockData = locks[lockId];
-        if (lockData.status == LockStatus.CHALLENGED) revert ChallengePeriodActive();
-        if (lockData.status == LockStatus.RELEASED) revert LockAlreadyReleased();
+        // QS-SEC-VAULT-001 mirror: only ACTIVE-derived pending states may execute,
+        // blocking a second withdrawal on a SLASHED lock plus RELEASED/CHALLENGED/ACTIVE.
+        if (lockData.status != LockStatus.PENDING_UNLOCK && lockData.status != LockStatus.EMERGENCY_PENDING) {
+            revert LockAlreadyReleased();
+        }
 
         if (!request.isEmergency) {
             Challenge storage challengeData = challenges[lockId];
@@ -664,6 +657,9 @@ contract L1VaultTestnet is ReentrancyGuard, Pausable {
 
         Lock storage lockData = locks[lockId];
         if (lockData.status != LockStatus.PENDING_UNLOCK && lockData.status != LockStatus.EMERGENCY_PENDING) revert LockAlreadyReleased();
+
+        // QS-SEC-VAULT-003 mirror: the lock sender must not challenge their own unlock.
+        require(msg.sender != lockData.sender, "challenger must not be the lock sender");
 
         uint256 requiredBond = (request.amount * CHALLENGE_BOND_PERCENT) / 100;
         if (requiredBond < MIN_CHALLENGE_BOND) requiredBond = MIN_CHALLENGE_BOND;
@@ -963,6 +959,7 @@ contract L1VaultTestnet is ReentrancyGuard, Pausable {
 
     function _verifyWithSPHINCSVerifier(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
+            if (_isDuplicateSigner(signers, i)) continue; // QS-SEC-THRESH-001 mirror
             Prover storage prover = provers[signers[i]];
             if (!prover.isActive) continue;
             if (prover.sphincsPublicKey.length != 32) continue;
@@ -979,12 +976,21 @@ contract L1VaultTestnet is ReentrancyGuard, Pausable {
     /// @return validCount Number of valid signatures
     function _verifySimplified(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
+            if (_isDuplicateSigner(signers, i)) continue; // QS-SEC-THRESH-001 mirror
             Prover storage prover = provers[signers[i]];
             if (!prover.isActive) continue;
             // FIX-009: Use SHA3-256 instead of keccak256 for quantum resistance
             bytes32 sigHash = SHA3_256.hash(abi.encodePacked(prover.sphincsPubKeyHash, message, signatures[i]));
             if (sigHash != bytes32(0)) validCount++;
         }
+    }
+
+    /// @notice Distinct-signer enforcement (QS-SEC-THRESH-001 mirror)
+    function _isDuplicateSigner(address[] calldata signers, uint256 idx) private pure returns (bool) {
+        for (uint256 j = 0; j < idx; j++) {
+            if (signers[j] == signers[idx]) return true;
+        }
+        return false;
     }
 
     function _calculateSlash(uint256 numColluding, uint256 amount) internal pure returns (uint256) {
