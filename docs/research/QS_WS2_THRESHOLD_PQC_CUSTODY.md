@@ -59,10 +59,11 @@ QS のデュアル署名は**役割分担**構造。単一操作に2署名を課
 
 WS2 を「機関カストディ品質」にするための必須改修。**2件は現コードの閾値健全性の欠陥**（`QS-SEC-SPHINCS-001` と同様の追跡対象候補、要テスト確認）:
 
-### 4.1 【要修正・高】重複署名者が閾値を回避しうる — `QS-SEC-THRESH-001`（候補）
-`_verifyWithSPHINCSVerifier` は `signers[]` の**一意性を検査しない**。`signers = [P1, P1]`＋`sigs = [s, s]`（同一 Prover の有効署名2つ）で `validCount = 2 ≥ REQUIRED_SIGNATURES` となり、**単一 Prover が 2-of-5 を単独充足**しうる。
-- **要件**: 閾値検証で**署名者の distinct 性を強制**（`signers` の重複排除／登録済み・アクティブかつ相異なる Prover のみカウント）。閾値署名の最も基本的な健全性プロパティ。
-- **確認方法**: `[P1,P1]` で `validCount==1` になることを検証するユニットテスト（foundry）。
+### 4.1 【修正済み・高】重複署名者が閾値を回避しうる — `QS-SEC-THRESH-001`
+`_verifyWithSPHINCSVerifier` は `signers[]` の**一意性を検査しなかった**。`signers = [P1, P1]`＋`sigs = [s, s]`（同一 Prover の有効署名2つ）で `validCount = 2 ≥ REQUIRED_SIGNATURES` となり、**単一 Prover が 2-of-5 を単独充足**しえた。
+- **修正**: `_isDuplicateSigner(signers, idx)` を追加し、両検証経路（`_verifyWithSPHINCSVerifier` / `_verifySimplified`）の各ループ先頭で**既出署名者をスキップ**。単一 Prover は最大1カウント。
+- **状態**: **実装済み（solc 0.8.20 で 0 エラー・OZ スタブ利用／foundry テストは未実走）**。
+- **残**: `[P1,P1]` で `validCount==1`、相異なる `[P1,P2]` で `==2` を確認する foundry ユニットテスト（allowlist 後）。
 
 ### 4.2 【要明示・高】`_verifySimplified` は暗号検証を行わない — `QS-SEC-THRESH-002`（候補）
 `_verifySimplified` は `sigHash = SHA3-256(pubKeyHash‖message‖signature)` が `!= 0` なら `validCount++`。SHA3 出力は事実上常に非零 → **アクティブ Prover のエントリは署名内容に関わらず有効カウント**。つまり簡易モードでは「アクティブ Prover が2人 name されれば Unlock」で**閾値の暗号的意味がない**。
@@ -114,7 +115,7 @@ QS の既存機構を機関カストディのポリシー語彙に対応づけ�
 - 要修正2件（§4.1/4.2）＝ 閾値健全性の具体欠陥（追跡候補 THRESH-001/002）。
 
 **次アクション（優先順）**:
-1. **§4.1 distinct-signer 修正を実装**（小・明確・foundry テスト付き）。閾値カストディを名乗る前提。
+1. ~~**§4.1 distinct-signer 修正を実装**~~ → **実装済み（solc 通過・foundry テスト未実走）**。
 2. **§4.2 の簡易経路**を本番無効化ガード or 明示ラベル（D1 正直開示と一体）。
 3. §5 方式B/C の gas 見積り（WS3 の foundry 実測に相乗り）。
 4. §4.4 ティア化パラメータ設計（WS5 と統合）。

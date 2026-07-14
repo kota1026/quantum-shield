@@ -1079,6 +1079,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     function _verifyWithSPHINCSVerifier(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
+            // Distinct-signer: a prover appearing more than once must not be
+            // counted twice, otherwise a single prover could satisfy the M-of-N
+            // threshold on its own (QS-SEC-THRESH-001).
+            if (_isDuplicateSigner(signers, i)) continue;
+
             bytes memory pubKey;
             bool isActive;
 
@@ -1108,6 +1113,10 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @return validCount Number of valid signatures
     function _verifySimplified(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         for (uint256 i = 0; i < signatures.length; i++) {
+            // Distinct-signer enforcement (QS-SEC-THRESH-001), consistent with
+            // the full-verification path.
+            if (_isDuplicateSigner(signers, i)) continue;
+
             bytes32 pubKeyHash;
             bool isActive;
 
@@ -1126,6 +1135,17 @@ contract L1Vault is ReentrancyGuard, Pausable {
             bytes32 sigHash = SHA3_256.hash(abi.encodePacked(pubKeyHash, message, signatures[i]));
             if (sigHash != bytes32(0)) validCount++;
         }
+    }
+
+    /// @notice True if signers[idx] already appears at an earlier index
+    /// @dev Enforces distinct signers in threshold verification so no single
+    ///      prover can be counted more than once toward the M-of-N threshold
+    ///      (QS-SEC-THRESH-001). O(n^2) but n is bounded by the small prover set.
+    function _isDuplicateSigner(address[] calldata signers, uint256 idx) private pure returns (bool) {
+        for (uint256 j = 0; j < idx; j++) {
+            if (signers[j] == signers[idx]) return true;
+        }
+        return false;
     }
 
     function _calculateSlash(uint256 numColluding, uint256 amount) internal pure returns (uint256) {
