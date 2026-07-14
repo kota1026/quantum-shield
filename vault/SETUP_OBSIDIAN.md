@@ -72,6 +72,23 @@ Obsidian を起動したまま（Local REST API はアプリ起動中のみ動�
 - **作業後**: 「今日の決定事項を該当フローに書き戻して、50_Sessions/ にログを残して」
 - **同期**: Vault を編集したら `git pull` → 作業 → `git commit && git push`。Claude Code 側のセッションは CLAUDE.md 経由で同じ Vault を読むので、両者の記憶が git で揃う
 
+## Step 6（オプション）: git 同期も Obsidian 内で完結させる — Obsidian Git プラグイン
+
+「git clone したフォルダをそのまま Vault として見立てる」のは Step 1 の通り標準機能でできる（Obsidian はただのローカルフォルダを開くだけで、git 管理かどうかを気にしない）。
+さらに **Obsidian Git**（Vinzent03 作、コミュニティプラグイン）を入れると、pull / commit / push を Obsidian のコマンドパレットや自動実行でこなせるので、ターミナルを開かずに同期が回る。
+
+1. コミュニティプラグインから **Git** を検索 → インストール → 有効化
+2. ローカルに git がインストール済みで、`git push` が認証なしで通る状態にしておく（SSH キー or credential manager）
+3. この Vault は**大きなコードリポジトリのサブフォルダ**なので、以下の 2 点を必ず設定する:
+   - **自動コミット（Auto commit-and-sync）はオフにする**。Obsidian Git はリポジトリ全体をコミットするため、オンにすると作業途中のコード変更まで「vault backup」コミットに巻き込まれる
+   - 同期はコマンドパレットの `Git: Pull` →（Vault 編集）→ `Git: Commit-and-sync` を手動で叩く運用にする。コミット前にステージ内容を Source Control ビューで確認する癖をつける
+4. Obsidian 起動時の自動 `pull` だけはオンにしてよい（読み取り側の鮮度が上がり、競合も起きにくい）
+
+### 全自動同期にしたくなったら（将来の選択肢）
+
+vault を専用リポジトリ（例: `quantum-shield-vault`）に分離して git submodule として本体に取り込めば、Obsidian Git の自動 commit/push を安心してオンにできる（コードと記憶のコミット履歴が分離される）。
+ただし Claude Code 側から見た一体性が下がるので、手動同期で困り始めてから移行を検討すれば十分。
+
 ## 議事録の流し込み（必要になったら）
 
 1. 議事録ツール（Notta / tl;dv / Google Meet 文字起こし）でテキスト化
