@@ -57,3 +57,6 @@ src/l3/out/
 !.env.example
 !.env.production.example
 .claude/settings.local.json
+
+# Obsidian personal config (vault/ is the shared content; .obsidian is per-user)
+vault/.obsidian/

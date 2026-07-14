@@ -21,6 +21,10 @@ Obsidian で Vault としてそのまま開けます（プレーンな Markdown 
 3. **完璧を目指さない**: Memory は育てるもの。「これは共有しておくべきだった」と気付いた時点で追記する。
 4. **同期の注意**: この Vault は git で同期される。別のクラウド同期（iCloud / Google Drive）を同じフォルダに重ねないこと。
 
+## セットアップ
+
+実際に Obsidian + Claude Desktop で動かすまでの手順は [SETUP_OBSIDIAN.md](SETUP_OBSIDIAN.md) を参照（15〜20 分）。
+
 ## Claude Desktop (Cowork) から使う場合
 
 Obsidian MCP（例: mcp-obsidian + Local REST API プラグイン）でこのフォルダを Vault として登録し、
