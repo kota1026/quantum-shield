@@ -66,6 +66,14 @@ See `docs/INTEGRATION_METHODOLOGY_v2.md` for full plan.
 **Phase 4**: FALLBACK bulk removal + remaining E2E
 **Phase 5**: Full verification + doc updates
 
+## Project Memory (Vault)
+
+`vault/` is the project's persistent memory (also openable as an Obsidian vault). See `vault/README.md`.
+
+- At session start, read `vault/00_Memory.md`. If working on a specific flow, also read the matching `vault/10_Flows/*.md`.
+- At session end, write back: update `vault/20_Actions.md` and the relevant flow file with decisions made, and add a session log under `vault/50_Sessions/` (template: `vault/40_Templates/session-log.md`).
+- Keep `vault/00_Memory.md` current when project phase or key facts change.
+
 ## Session Rules
 
 - 1 session = 1 flow's 1 layer. Don't mix multiple apps in one session.
