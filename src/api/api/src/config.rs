@@ -176,6 +176,12 @@ pub struct JwtConfig {
     /// Refresh token expiry in seconds (default: 604800 = 7 days)
     #[serde(default = "default_refresh_token_expiry")]
     pub refresh_token_expiry: u64,
+    /// SIWE domains accepted in the `domain` line of a Sign-In-With-Ethereum message.
+    /// Empty = skip the check (dev). In production set to your frontend host(s) so a SIWE
+    /// signature a victim created for a different application cannot be replayed here
+    /// (QS-SEC-AUTH-002).
+    #[serde(default)]
+    pub allowed_siwe_domains: Vec<String>,
 }
 
 fn default_access_token_expiry() -> u64 { 3600 }
@@ -511,6 +517,7 @@ impl Default for Config {
                 expiry_hours: 24,
                 access_token_expiry: 3600,      // 1 hour
                 refresh_token_expiry: 604800,   // 7 days
+                allowed_siwe_domains: Vec::new(),
             },
             security: SecurityConfig::default(),
             vrf: VRFConfig::default(),

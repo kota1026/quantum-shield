@@ -148,7 +148,12 @@ contract VRFConsumer is IVRFConsumer {
     /// @notice Modifier for Chainlink VRF callback security
     /// @dev In production, only VRF Coordinator can call rawFulfillRandomWords
     modifier onlyVRFCoordinator() {
-        if (vrfCoordinator != address(0) && msg.sender != vrfCoordinator) {
+        // QS-SEC-VRF-001: fail closed. Previously the check was skipped entirely when
+        // vrfCoordinator was unset (address(0)), letting ANY caller fulfill randomness
+        // and thus control prover/observer selection before setVRFConfig was called.
+        // Require a configured coordinator AND that the caller is it. Dev/test uses the
+        // owner-gated mockFulfillRandomWords path instead.
+        if (vrfCoordinator == address(0) || msg.sender != vrfCoordinator) {
             revert NotVRFCoordinator();
         }
         _;

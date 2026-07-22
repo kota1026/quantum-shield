@@ -19,7 +19,8 @@
 | QS-SEC-AUTH-001 | HIGH | `middleware.rs` admin_jwt_auth | 権限昇格（任意ユーザ→admin） | ✅ 修正済 |
 | QS-SEC-PROVER-001 | HIGH | `services/mod.rs` submit_prover_signature | 署名無検証で計上 | ✅ 修正済（本番フェイルクローズ） |
 | QS-SEC-PROVER-002 | HIGH | `routes/prover.rs` sign エンドポイント | 呼出元無認証 | 🟡 緩和（PROVER-001で資金影響封止） |
-| QS-SEC-AUTH-002 | MEDIUM | `auth_service.rs` authenticate_siwe | SIWE domain/expiry/nonce 未検証 | 📋 追跡 |
+| QS-SEC-AUTH-002 | MEDIUM | `auth_service.rs` authenticate_siwe | SIWE domain/expiry/nonce 未検証 | 🟡 部分（domain+expiry 強制／サーバnonce 追跡） |
+| QS-SEC-VRF-001 | HIGH(降格) | `VRFConsumer.sol` onlyVRFCoordinator | coordinator 未設定時に callback バイパス | ✅ 修正済（fail-closed） |
 
 関連（本セッションで既修正）: **QS-SEC-SPHINCS-001**（Merkle index、✅）、**QS-SEC-THRESH-001**（distinct-signer、✅）。既知未修正: **QS-SEC-THRESH-002**（`_verifySimplified` 暗号検証なし）。
 
@@ -83,8 +84,15 @@
 - **是正方針**: **実 STARK/FRI/Merkle/制約検証の実装**（STARKVerifier 本体）→ `_verifyProof` から呼び出し・`stateRoot==0` 自動受理を撤廃。これは WS3（正直な強制）/保証プログラムの中核作業であり、本質的にプロトコルの「オンチェーン強制可能性①」そのもの。
 - **難度**: 大（暗号エンジニアリング）。
 
-### QS-SEC-AUTH-002 — SIWE が domain/expiry/サーバ nonce を未検証（境界・MEDIUM）
+### QS-SEC-VRF-001 — VRFConsumer の coordinator 未設定バイパス（✅ 修正済）
+- **欠陥**: `onlyVRFCoordinator` が `vrfCoordinator == address(0)` のとき検査を丸ごとスキップ → setVRFConfig 前は**誰でも `rawFulfillRandomWords` を呼び randomness（prover/observer 選定）を操作**しうる。
+- **修正**: `if (vrfCoordinator == address(0) || msg.sender != vrfCoordinator) revert`（fail-closed）。dev/test は onlyOwner の `mockFulfillRandomWords` 経路を使用するため無影響。
+- **検証**: VRFConsumer.sol solc 0エラー。全 base VRF テストは `mockFulfillRandomWords` 使用のため回帰なし（forge 再実行は env が forge バイナリを消去したため未再走、構造上テスト安全）。
+
+### QS-SEC-AUTH-002 — SIWE の domain/expiry 検証（🟡 部分修正）
 - **欠陥**: `authenticate_siwe` は ECDSA 復元アドレス一致のみ。`domain`/`uri`/`chain_id`/`expiration` を無視し、nonce はクライアント供給（サーバ発行チャレンジでない）。被害者が別アプリで署名した SIWE メッセージを流用しセッション奪取可能。
+- **今回の修正**: (1) `jwt.allowed_siwe_domains`（既定空=dev不変）を追加し **domain allowlist** を強制。(2) メッセージの **Expiration Time をパースして期限切れを拒否**（従来 None 固定で無期限だった）。cargo check 通過。
+- **残（サーバ発行 nonce）**: 真のリプレイ耐性には**サーバ発行 nonce（チャレンジ）エンドポイント＋FE 連携**が必要（本修正は domain/expiry 層のみ）。緩和要因: 資産移動は Dilithium 別ゲートのため MEDIUM。
 - **緩和要因**: 資産移動は Dilithium 別ゲートのため、セッション奪取単体では資金移動しない（→ MEDIUM）。
 - **是正方針**: サーバ発行 nonce（チャレンジ）・`domain` 一致検証・`expiration_time` 強制を実装。
 

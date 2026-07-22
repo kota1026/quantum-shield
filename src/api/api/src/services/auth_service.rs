@@ -55,6 +55,12 @@ impl AuthService {
             .map(|l| l.trim_start_matches("Issued At: ").to_string())
             .unwrap_or_default();
 
+        // QS-SEC-AUTH-002: parse the optional Expiration Time so it can be enforced
+        // (previously hardcoded to None, which meant a captured signature never expired).
+        let expiration_time = lines.iter()
+            .find(|l| l.starts_with("Expiration Time: "))
+            .map(|l| l.trim_start_matches("Expiration Time: ").to_string());
+
         Ok(SiweMessage {
             domain: domain.to_string(),
             address,
@@ -63,7 +69,7 @@ impl AuthService {
             chain_id,
             nonce,
             issued_at,
-            expiration_time: None,
+            expiration_time,
         })
     }
 
@@ -90,6 +96,28 @@ impl AuthService {
                 "Address mismatch: SIWE message address {} does not match recovered address {}",
                 siwe.address, recovered_address
             )));
+        }
+
+        // QS-SEC-AUTH-002: bind the signature to this service's domain. Without this a SIWE
+        // signature the victim produced for a DIFFERENT application (different domain) could
+        // be replayed here to mint a session. Skipped when no domains are configured (dev).
+        if !self.config.allowed_siwe_domains.is_empty()
+            && !self.config.allowed_siwe_domains.iter().any(|d| d == &siwe.domain)
+        {
+            return Err(ApiError::InvalidSiweMessage(format!(
+                "SIWE domain '{}' is not allowed",
+                siwe.domain
+            )));
+        }
+
+        // QS-SEC-AUTH-002: enforce the message's Expiration Time when present, so an old
+        // captured signature cannot be replayed indefinitely.
+        if let Some(exp) = &siwe.expiration_time {
+            let exp_ts = chrono::DateTime::parse_from_rfc3339(exp)
+                .map_err(|_| ApiError::InvalidSiweMessage("Invalid SIWE Expiration Time".into()))?;
+            if chrono::Utc::now() >= exp_ts.with_timezone(&chrono::Utc) {
+                return Err(ApiError::InvalidSiweMessage("SIWE message has expired".into()));
+            }
         }
 
         // Use the address from the SIWE message (standardized format)
