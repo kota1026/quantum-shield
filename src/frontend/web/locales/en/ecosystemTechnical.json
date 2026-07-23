@@ -53,16 +53,16 @@
   },
   "crypto": {
     "title": "Quantum-Resistant Cryptography",
-    "description": "Quantum Shield uses only NIST FIPS-certified algorithms. ECDSA/secp256k1 used in current blockchains is prohibited as it can be broken by quantum computers using Shor's algorithm.",
+    "description": "Quantum Shield uses only NIST FIPS-certified algorithms. ECDSA/secp256k1 used in current blockchains is prohibited as it can be broken by quantum computers using Shor's algorithm. Signature schemes are hot-swappable via a SchemeRegistry (crypto-agility), so future NIST schemes (ML-DSA-87, threshold ML-DSA, and others) can be adopted without a hard migration.",
     "algorithms": {
       "dilithium": {
-        "name": "Dilithium-III",
+        "name": "ML-DSA-65 (Dilithium)",
         "standard": "FIPS 204",
         "use": "User signatures & Prover consensus",
         "description": "Lattice-based digital signature. Used for users to sign unlock requests and Prover-operated L3 nodes to sign blocks."
       },
       "sphincs": {
-        "name": "SPHINCS+-128s",
+        "name": "SLH-DSA (SPHINCS+-SHAKE-128s)",
         "standard": "FIPS 205",
         "use": "Prover signatures",
         "description": "Hash-based digital signature. Used by Provers to sign unlock approvals. 7,856-byte signature size."

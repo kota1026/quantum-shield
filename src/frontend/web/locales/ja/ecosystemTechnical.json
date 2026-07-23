@@ -53,16 +53,16 @@
   },
   "crypto": {
     "title": "量子耐性暗号",
-    "description": "Quantum ShieldはNIST FIPS認定のアルゴリズムのみを使用します。現在のブロックチェーンで使われるECDSA/secp256k1は量子コンピュータのShorアルゴリズムで解読可能なため、使用を禁止しています。",
+    "description": "Quantum ShieldはNIST FIPS認定のアルゴリズムのみを使用します。現在のブロックチェーンで使われるECDSA/secp256k1は量子コンピュータのShorアルゴリズムで解読可能なため、使用を禁止しています。署名スキームはSchemeRegistryによって差し替え可能な設計（クリプトアジリティ）で、将来のNIST標準（ML-DSA-87や閾値ML-DSAなど）へハードマイグレーションなしで移行できます。",
     "algorithms": {
       "dilithium": {
-        "name": "Dilithium-III",
+        "name": "ML-DSA-65 (Dilithium)",
         "standard": "FIPS 204",
         "use": "ユーザー署名 & Proverコンセンサス",
         "description": "格子ベースのデジタル署名。ユーザーがアンロック要求に署名し、Proverが運営するL3ノードがブロックに署名するために使用。"
       },
       "sphincs": {
-        "name": "SPHINCS+-128s",
+        "name": "SLH-DSA (SPHINCS+-SHAKE-128s)",
         "standard": "FIPS 205",
         "use": "Prover署名",
         "description": "ハッシュベースのデジタル署名。Proverがアンロック承認に署名。7,856バイトの署名サイズ。"
