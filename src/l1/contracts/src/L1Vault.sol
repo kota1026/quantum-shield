@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
 import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
+import {ISignatureVerifier} from "./interfaces/ISignatureVerifier.sol";
+import {SchemeRegistry} from "./SchemeRegistry.sol";
 import {IProverRegistry} from "./interfaces/IProverRegistry.sol";
 import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
 import {SHA3_256} from "./libraries/SHA3_256.sol";
@@ -166,6 +168,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
     event ProverSlashed(address indexed prover, uint256 amount, bytes32 reason);
     event StateRootUpdated(bytes32 indexed newRoot, uint256 indexed blockNumber);
     event SPHINCSVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    event SchemeRegistryUpdated(address indexed oldRegistry, address indexed newRegistry);
+    event ActiveSchemeUpdated(bytes4 indexed oldSchemeId, bytes4 indexed newSchemeId);
 
     /// @notice Emitted when prover registry is updated
     /// @dev v3.0: Prover management is now handled by separate registry
@@ -264,6 +268,15 @@ contract L1Vault is ReentrancyGuard, Pausable {
     address public securityCouncil;
     ISPHINCSVerifier public sphincsVerifier;
 
+    /// @notice Crypto-agility (Move 2): registry resolving schemeId -> verifier. When set,
+    ///         the active scheme's verifier is looked up here so schemes can be hot-swapped
+    ///         by governance (ML-DSA-65 -> 87, threshold-ML-DSA, ...) without a migration.
+    ///         When unset, verification falls back to `sphincsVerifier` (backward compatible).
+    SchemeRegistry public schemeRegistry;
+    /// @notice The scheme currently used to verify prover signatures. Defaults to
+    ///         SLH-DSA-SHAKE-128s ("SLH1"), matching the built-in SPHINCSVerifier.
+    bytes4 public activeSchemeId;
+
     /// @notice External Prover Registry contract (v3.0 architecture)
     /// @dev When set, prover lookups use registry instead of local mapping
     IProverRegistry public proverRegistry;
@@ -328,7 +341,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (_securityCouncil == address(0)) revert ZeroAddress();
         owner = msg.sender;
         securityCouncil = _securityCouncil;
-        
+        activeSchemeId = 0x534c4831; // bytes4("SLH1") = SLH-DSA-SHAKE-128s (default)
+
         if (_sphincsVerifier != address(0)) {
             sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
             useFullVerification = true;
@@ -1052,6 +1066,35 @@ contract L1Vault is ReentrancyGuard, Pausable {
         emit SPHINCSVerifierUpdated(oldVerifier, _sphincsVerifier);
     }
 
+    /// @notice Set the scheme registry used to resolve the active signature verifier.
+    /// @dev Crypto-agility (Move 2). address(0) disables the registry (falls back to
+    ///      sphincsVerifier). The registry itself must be governed (timelock) — see
+    ///      SchemeRegistry.
+    function setSchemeRegistry(address _registry) external onlyOwner {
+        address old = address(schemeRegistry);
+        schemeRegistry = SchemeRegistry(_registry);
+        emit SchemeRegistryUpdated(old, _registry);
+    }
+
+    /// @notice Select which scheme's verifier is used for prover-signature verification.
+    /// @dev The chosen scheme must be registered in the SchemeRegistry (unless falling
+    ///      back to the built-in sphincsVerifier for the default scheme).
+    function setActiveSchemeId(bytes4 _schemeId) external onlyOwner {
+        bytes4 old = activeSchemeId;
+        activeSchemeId = _schemeId;
+        emit ActiveSchemeUpdated(old, _schemeId);
+    }
+
+    /// @notice Resolve the verifier for the active scheme: prefer the SchemeRegistry entry,
+    ///         else fall back to the built-in sphincsVerifier (backward compatible).
+    function _activeVerifier() internal view returns (ISignatureVerifier) {
+        if (address(schemeRegistry) != address(0)) {
+            address v = schemeRegistry.verifierFor(activeSchemeId);
+            if (v != address(0)) return ISignatureVerifier(v);
+        }
+        return ISignatureVerifier(address(sphincsVerifier));
+    }
+
     function setFullVerification(bool _enable) external onlyOwner {
         useFullVerification = _enable;
     }
@@ -1100,13 +1143,16 @@ contract L1Vault is ReentrancyGuard, Pausable {
     function _verifyThresholdSignatures(bytes32 lockId, bytes32 stateRoot, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         // FIX-008: Use SHA3-256 instead of keccak256 for quantum resistance
         bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
-        if (useFullVerification && address(sphincsVerifier) != address(0)) {
+        if (useFullVerification && address(_activeVerifier()) != address(0)) {
             return _verifyWithSPHINCSVerifier(message, signatures, signers);
         }
         return _verifySimplified(message, signatures, signers);
     }
 
     function _verifyWithSPHINCSVerifier(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
+        // Crypto-agility (Move 2): resolve the active scheme's verifier once. Falls back
+        // to the built-in sphincsVerifier when no SchemeRegistry is configured.
+        ISignatureVerifier verifier = _activeVerifier();
         for (uint256 i = 0; i < signatures.length; i++) {
             // Distinct-signer: a prover appearing more than once must not be
             // counted twice, otherwise a single prover could satisfy the M-of-N
@@ -1128,7 +1174,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
             if (!isActive) continue;
             if (pubKey.length != 32) continue;
-            if (sphincsVerifier.verify(message, signatures[i], pubKey)) validCount++;
+            if (verifier.verify(message, signatures[i], pubKey)) validCount++;
         }
     }
 
@@ -1269,7 +1315,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     function isQuantumResistant() external pure returns (bool) { return true; }
     function getSPHINCSVerifier() external view returns (address) { return address(sphincsVerifier); }
-    function isFullVerificationEnabled() external view returns (bool) { return useFullVerification && address(sphincsVerifier) != address(0); }
+    function isFullVerificationEnabled() external view returns (bool) { return useFullVerification && address(_activeVerifier()) != address(0); }
+
+    /// @notice The verifier that will be used for prover-signature verification right now,
+    ///         after resolving the SchemeRegistry (crypto-agility, Move 2). For ops/introspection.
+    function activeVerifier() external view returns (address) { return address(_activeVerifier()); }
 
     function getSlashingDistribution() external pure returns (uint256 challenger, uint256 insurance, uint256 burn) {
         return (SLASH_CHALLENGER_PERCENT, SLASH_INSURANCE_PERCENT, SLASH_BURN_PERCENT);

@@ -651,6 +651,19 @@ contract SPHINCSVerifier {
         return SIGNATURE_SIZE;
     }
 
+    // === ISignatureVerifier conformance (QS crypto-agility, Move 2) ===
+
+    /// @notice Stable scheme identifier: "SLH1" = SLH-DSA-SHAKE-128s.
+    /// @dev Lets SchemeRegistry.setVerifier bind this verifier to the correct schemeId.
+    function schemeId() external pure returns (bytes4) {
+        return 0x534c4831; // bytes4("SLH1")
+    }
+
+    /// @notice Expected SPHINCS+ public-key length in bytes.
+    function expectedPubKeyLen() external pure returns (uint256) {
+        return 32;
+    }
+
     /// @notice Check if this contract supports SPHINCS+ verification
     function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
         // ISPHINCSVerifier interface ID

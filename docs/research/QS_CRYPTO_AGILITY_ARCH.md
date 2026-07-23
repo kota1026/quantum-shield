@@ -129,7 +129,7 @@ pub trait SignatureVerifier {
 | Phase | 内容 | 依存/検証 |
 |---|---|---|
 | **P1 抽象化（設計合意）** | 本doc合意。`ISignatureVerifier`/`SchemeRegistry`/`IAuthorizer` の IF 確定 | 合意のみ |
-| **P2 オンチェーン IF 導入** | `ISPHINCSVerifier`→`ISignatureVerifier` 一般化、SchemeRegistry、L1Vault に schemeId。**後方互換アダプタ** | forge 全回帰(現110件)＋新規 |
+| **P2 オンチェーン IF 導入** ✅ | `ISignatureVerifier`＋独立`SchemeRegistry`＋`SPHINCSVerifier` conformance＋L1Vault に `activeSchemeId`/`_activeVerifier()`（registry優先・sphincsVerifier フォールバック＝後方互換）＋`activeVerifier()` getter | **完了: forge 118件通過(既存110＋新規8), 0 failed。回帰なし＋hot-swap routing 実証** |
 | **P3 backend registry** | `SignatureVerifier` trait＋registry、PROVER-001 を「real無→拒否」に一般化 | cargo test |
 | **P4 real verifier（WS4）** | `pqcrypto` で ML-DSA/SLH-DSA 実装＋**KAT を CI 必須** | KAT gate |
 | **P5 L3 real proof（WS3, L3-001）** | STARK 検証を IF 裏に実装 | 専用設計（大） |
