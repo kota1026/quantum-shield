@@ -1011,8 +1011,21 @@ contract L1VaultTestnet is ReentrancyGuard, Pausable {
     ///         QS-SEC-VAULT-004: funds the challenger reward from stake, not the pool.
     function _slashSigningProvers(bytes32 lockId) internal returns (uint256 totalSlashed) {
         address[] storage signers = unlockSigningProvers[lockId];
-        uint256 n = signers.length;
-        for (uint256 i = 0; i < n; i++) {
+        uint256 len = signers.length;
+
+        // Collusion factor = number of DISTINCT signers (self-audit fix): the stored
+        // array may contain padded duplicates, and using the raw length would inflate the
+        // quadratic slash on honest provers.
+        uint256 distinct = 0;
+        for (uint256 i = 0; i < len; i++) {
+            bool dup = false;
+            for (uint256 j = 0; j < i; j++) {
+                if (signers[j] == signers[i]) { dup = true; break; }
+            }
+            if (!dup) distinct++;
+        }
+
+        for (uint256 i = 0; i < len; i++) {
             bool duplicate = false;
             for (uint256 j = 0; j < i; j++) {
                 if (signers[j] == signers[i]) { duplicate = true; break; }
@@ -1023,7 +1036,7 @@ contract L1VaultTestnet is ReentrancyGuard, Pausable {
             uint256 staked = p.stakedAmount;
             if (staked == 0) continue;
 
-            uint256 slash = _calculateSlash(n, staked);
+            uint256 slash = _calculateSlash(distinct, staked);
             if (slash > staked) slash = staked;
             p.stakedAmount = staked - slash;
             p.slashedCount += 1;

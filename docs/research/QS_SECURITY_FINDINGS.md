@@ -21,6 +21,7 @@
 | QS-SEC-PROVER-002 | HIGH | `routes/prover.rs` sign エンドポイント | 呼出元無認証 | 🟡 緩和（PROVER-001で資金影響封止） |
 | QS-SEC-AUTH-002 | MEDIUM | `auth_service.rs` authenticate_siwe | SIWE domain/expiry/nonce 未検証 | 🟡 部分（domain+expiry 強制／サーバnonce 追跡） |
 | QS-SEC-VRF-001 | HIGH(降格) | `VRFConsumer.sol` onlyVRFCoordinator | coordinator 未設定時に callback バイパス | ✅ 修正済（fail-closed） |
+| QS-SEC-VAULT-005 | MEDIUM | `L1Vault.sol` _slashSigningProvers | slash の collusion 係数が raw length（自作込みの回帰） | ✅ 修正済（自己監査） |
 
 関連（本セッションで既修正）: **QS-SEC-SPHINCS-001**（Merkle index、✅）、**QS-SEC-THRESH-001**（distinct-signer、✅）。既知未修正: **QS-SEC-THRESH-002**（`_verifySimplified` 暗号検証なし）。
 
@@ -106,6 +107,21 @@
 - **ProverRegistry.slash()**: 既に非アクティブな prover の再削除で active リスト破損（MEDIUM）。
 
 ---
+
+## 自己監査（本セッション変更の敵対的レビュー）
+
+セッションの全変更（監査是正＋VAULT-004＋VRF/AUTH＋P2 crypto-agility）を手動で敵対的にレビュー。**自作の修正が持ち込んだ回帰を1件検出・修正**。
+
+### QS-SEC-VAULT-005 — slash の collusion 係数が raw length（✅ 修正済・自己監査）
+- **欠陥（VAULT-004 で作り込み）**: `_slashSigningProvers` が `_calculateSlash(n, stake)` の `n` に **`signers.length`（重複込みの raw 長）** を使用。保存される `unlockSigningProvers` は呼出者供給の raw 入力で、閾値に計上されない**重複を padding** できる（例 `[P1,P2,P1]`）。→ collusion 係数が膨らみ、honest prover の quadratic slash が過大（40%→90% 等）。資金窃取/債務超過ではないが不公平な stake 損失＝グリーフ。VAULT-004 前は `request.signatureCount`（重複排除後）を使っていたため、これは**私の変更が招いた MEDIUM 回帰**。
+- **修正**: 先に**相異なる署名者数 `distinct`** を数え、それを collusion 係数に使用。L1Vault/L1VaultTestnet 両方。
+- **検証**: forge 118件通過（回帰なし）。padding 固有ケースの専用テストは requestUnlock（SMT）ハーネスが要るため未追加（emergency 経路 distinct=0 は既存テストで網羅）。
+
+### レビューで問題なしと確認した領域
+- **P2 verifier routing**: 新規 bypass なし。registry/scheme 切替は onlyOwner/governance 権限が必要（信頼モデル不変）、fallback は後方互換（110件実証）、CEI 保持。
+- **VAULT-004 delete-on-slash**: slash→delete→external calls の順で CEI 保持・reentrancy なし・emergency 回帰なし。
+- **AUTH-002**: expiration パース失敗は拒否（fail-closed）、domain 空=スキップ/非空=一致必須。**AUTH-001**: DB エラーは 403（fail-closed）、非admin を通す経路なし。
+- **VRF-001 / PROVER-001**: fail-closed 条件は正（反転なし）、正規 coordinator callback・mockFulfill は無影響。
 
 ## 検証状況と前提
 - **foundry を導入して実テストを実走済み**（バイナリ配布はネットワークポリシー外のため、forge をソースからビルドし、solc 0.8.20 ネイティブと submodule を許可済みホストから取得して構築）。

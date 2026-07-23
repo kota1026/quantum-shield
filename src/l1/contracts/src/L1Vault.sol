@@ -1238,8 +1238,22 @@ contract L1Vault is ReentrancyGuard, Pausable {
     ///         balance), distributed by slashing each distinct signer equally.
     function _slashSigningProvers(bytes32 lockId) internal returns (uint256 totalSlashed) {
         address[] storage signers = unlockSigningProvers[lockId];
-        uint256 n = signers.length;
-        for (uint256 i = 0; i < n; i++) {
+        uint256 len = signers.length;
+
+        // Collusion factor = number of DISTINCT signers, not the raw array length. The
+        // stored array is the caller-supplied input and may contain padded duplicates
+        // (which never count toward the unlock threshold); using the raw length would let
+        // a crafted unlock inflate the quadratic slash on honest provers (self-audit fix).
+        uint256 distinct = 0;
+        for (uint256 i = 0; i < len; i++) {
+            bool dup = false;
+            for (uint256 j = 0; j < i; j++) {
+                if (signers[j] == signers[i]) { dup = true; break; }
+            }
+            if (!dup) distinct++;
+        }
+
+        for (uint256 i = 0; i < len; i++) {
             // Slash each prover at most once even if it appears multiple times.
             bool duplicate = false;
             for (uint256 j = 0; j < i; j++) {
@@ -1251,8 +1265,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
             uint256 staked = p.stakedAmount;
             if (staked == 0) continue;
 
-            uint256 slash = _calculateSlash(n, staked); // n^2*10% of the prover's own stake
-            if (slash > staked) slash = staked;          // cap at available stake
+            uint256 slash = _calculateSlash(distinct, staked); // distinct^2*10% of the prover's own stake
+            if (slash > staked) slash = staked;                // cap at available stake
             p.stakedAmount = staked - slash;
             p.slashedCount += 1;
             totalSlashed += slash;
