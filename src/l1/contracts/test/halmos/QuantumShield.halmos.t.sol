@@ -21,6 +21,7 @@ import {QuantumShield} from "@qs/QuantumShield.sol";
  * ```
  */
 contract QuantumShieldHalmosTest is Test {
+    address internal constant LOCK_RECIPIENT = address(0xCAFE);
     QuantumShield shield;
 
     function setUp() public {
@@ -55,7 +56,7 @@ contract QuantumShieldHalmosTest is Test {
 
         // First, create a lock
         vm.deal(address(this), amount);
-        bytes32 realLockId = shield.lock{value: amount}(publicKeyHash);
+        bytes32 realLockId = shield.lock{value: amount}(publicKeyHash, LOCK_RECIPIENT);
 
         // Try to release with arbitrary proof (should fail or succeed only with valid proof)
         QuantumShield.PublicInputs memory pi = QuantumShield.PublicInputs({
@@ -130,10 +131,10 @@ contract QuantumShieldHalmosTest is Test {
 
         // Create lock
         vm.deal(address(this), lockAmount);
-        bytes32 lockId = shield.lock{value: lockAmount}(publicKeyHash);
+        bytes32 lockId = shield.lock{value: lockAmount}(publicKeyHash, LOCK_RECIPIENT);
 
         // Verify lock has correct amount
-        (,uint256 storedAmount,,,) = shield.getLock(lockId);
+        (,uint256 storedAmount,,,,) = shield.getLock(lockId);
         assert(storedAmount == lockAmount);
 
         // Attempting to claim different amount should fail
@@ -157,10 +158,10 @@ contract QuantumShieldHalmosTest is Test {
 
         // Create lock
         vm.deal(address(this), amount);
-        bytes32 lockId = shield.lock{value: amount}(publicKeyHash);
+        bytes32 lockId = shield.lock{value: amount}(publicKeyHash, LOCK_RECIPIENT);
 
         // Initially not released
-        (,,,,bool releasedBefore) = shield.getLock(lockId);
+        (,,,,bool releasedBefore,) = shield.getLock(lockId);
         assert(releasedBefore == false);
 
         // After a valid release, it should be marked released
@@ -190,14 +191,14 @@ contract QuantumShieldHalmosTest is Test {
 
         // Create first lock
         vm.deal(address(this), amount1);
-        shield.lock{value: amount1}(pk1);
+        shield.lock{value: amount1}(pk1, LOCK_RECIPIENT);
 
         uint256 afterFirst = shield.totalLocked();
         assert(afterFirst == initialTotal + amount1);
 
         // Create second lock
         vm.deal(address(this), amount2);
-        shield.lock{value: amount2}(pk2);
+        shield.lock{value: amount2}(pk2, LOCK_RECIPIENT);
 
         uint256 afterSecond = shield.totalLocked();
         assert(afterSecond == initialTotal + amount1 + amount2);
@@ -219,9 +220,9 @@ contract QuantumShieldHalmosTest is Test {
         vm.assume(amount > 0 && amount < type(uint128).max);
 
         vm.deal(address(this), amount);
-        bytes32 lockId = shield.lock{value: amount}(publicKeyHash);
+        bytes32 lockId = shield.lock{value: amount}(publicKeyHash, LOCK_RECIPIENT);
 
-        (,,bytes32 storedPkHash,,) = shield.getLock(lockId);
+        (,,bytes32 storedPkHash,,,) = shield.getLock(lockId);
 
         // Public key hash should match exactly
         assert(storedPkHash == publicKeyHash);

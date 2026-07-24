@@ -14,6 +14,7 @@ import {QuantumShield} from "@qs/QuantumShield.sol";
  * These tests verify critical security invariants hold across arbitrary sequences of operations.
  */
 contract QuantumShieldInvariantHandler is Test {
+    address internal constant LOCK_RECIPIENT = address(0xCAFE);
     QuantumShield public shield;
 
     // Ghost variables for tracking state
@@ -66,7 +67,7 @@ contract QuantumShieldInvariantHandler is Test {
 
         // Execute lock
         vm.prank(actor);
-        bytes32 lockId = shield.lock{value: amount}(pkHash);
+        bytes32 lockId = shield.lock{value: amount}(pkHash, LOCK_RECIPIENT);
 
         // Update ghost state
         ghost_totalLocked += amount;
@@ -86,7 +87,8 @@ contract QuantumShieldInvariantHandler is Test {
             uint256,
             bytes32,
             uint256,
-            bool
+            bool,
+            address
         ) {
             // Success - nothing to update
         } catch {
@@ -118,7 +120,7 @@ contract QuantumShieldInvariantHandler is Test {
             vm.deal(actor, amount);
             vm.prank(actor);
 
-            bytes32 lockId = shield.lock{value: amount}(pkHash);
+            bytes32 lockId = shield.lock{value: amount}(pkHash, LOCK_RECIPIENT);
 
             ghost_totalLocked += amount;
             ghost_lockCount++;
@@ -269,6 +271,7 @@ contract QuantumShieldInvariantTest is StdInvariant, Test {
  * @notice High-volume handler for stress testing
  */
 contract QuantumShieldStressHandler is Test {
+    address internal constant LOCK_RECIPIENT = address(0xCAFE);
     QuantumShield public shield;
     uint256 public operationCount;
 
@@ -287,7 +290,7 @@ contract QuantumShieldStressHandler is Test {
             vm.deal(actor, amount);
             vm.prank(actor);
 
-            shield.lock{value: amount}(pkHash);
+            shield.lock{value: amount}(pkHash, LOCK_RECIPIENT);
             operationCount++;
         }
     }
