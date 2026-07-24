@@ -278,7 +278,6 @@ contract L1Vault is ReentrancyGuard, Pausable {
     mapping(bytes32 => Challenge) public challenges;
     uint256 public insuranceFund;
     uint256 public totalBurned;
-    bool public useFullVerification;
     
     /// @notice Emergency unlock tracking per lock
     /// @dev Sequence #3: Complete emergency state
@@ -319,15 +318,14 @@ contract L1Vault is ReentrancyGuard, Pausable {
     // Constructor
     // =========================================================================
 
+    /// @dev FR-THRESH-2/6: a verifier is mandatory — there is no deployment
+    ///      mode in which threshold signatures skip cryptographic verification
     constructor(address _securityCouncil, address _sphincsVerifier) {
         if (_securityCouncil == address(0)) revert ZeroAddress();
+        if (_sphincsVerifier == address(0)) revert VerifierNotSet();
         owner = msg.sender;
         securityCouncil = _securityCouncil;
-        
-        if (_sphincsVerifier != address(0)) {
-            sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
-            useFullVerification = true;
-        }
+        sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
     }
 
     // =========================================================================
@@ -1017,14 +1015,13 @@ contract L1Vault is ReentrancyGuard, Pausable {
         emit StateRootUpdated(newStateRoot, block.number);
     }
 
+    /// @dev FR-GOV-1: the verifier can be replaced but never unset — no owner
+    ///      path may downgrade unlocks to unverified signatures
     function setSPHINCSVerifier(address _sphincsVerifier) external onlyOwner {
+        if (_sphincsVerifier == address(0)) revert VerifierNotSet();
         address oldVerifier = address(sphincsVerifier);
         sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
         emit SPHINCSVerifierUpdated(oldVerifier, _sphincsVerifier);
-    }
-
-    function setFullVerification(bool _enable) external onlyOwner {
-        useFullVerification = _enable;
     }
 
     /// @notice Set the external Prover Registry contract
@@ -1071,10 +1068,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
     function _verifyThresholdSignatures(bytes32 lockId, bytes32 stateRoot, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
         // FIX-008: Use SHA3-256 instead of keccak256 for quantum resistance
         bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
-        if (useFullVerification && address(sphincsVerifier) != address(0)) {
-            return _verifyWithSPHINCSVerifier(message, signatures, signers);
-        }
-        return _verifySimplified(message, signatures, signers);
+        // FR-THRESH-2/6: every signature goes through the SPHINCS+ verifier;
+        // the former simplified path (registry lookup with a tautological
+        // hash check) has been removed
+        if (address(sphincsVerifier) == address(0)) revert VerifierNotSet();
+        return _verifyWithSPHINCSVerifier(message, signatures, signers);
     }
 
     function _verifyWithSPHINCSVerifier(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
@@ -1095,36 +1093,6 @@ contract L1Vault is ReentrancyGuard, Pausable {
             if (!isActive) continue;
             if (pubKey.length != 32) continue;
             if (sphincsVerifier.verify(message, signatures[i], pubKey)) validCount++;
-        }
-    }
-
-    /// @notice Simplified signature verification (for testing/non-SPHINCS mode)
-    /// @dev FIX-009: Now uses SHA3-256 for signature hash instead of keccak256
-    ///      This provides quantum resistance per CP-1 requirements.
-    ///      v3.0: Now supports external ProverRegistry
-    /// @param message The message that was signed
-    /// @param signatures Array of signatures
-    /// @param signers Array of signer addresses
-    /// @return validCount Number of valid signatures
-    function _verifySimplified(bytes32 message, bytes[] calldata signatures, address[] calldata signers) internal view returns (uint256 validCount) {
-        for (uint256 i = 0; i < signatures.length; i++) {
-            bytes32 pubKeyHash;
-            bool isActive;
-
-            // v3.0: Use external registry if set, otherwise fall back to local mapping
-            if (address(proverRegistry) != address(0)) {
-                isActive = proverRegistry.isActiveProver(signers[i]);
-                pubKeyHash = proverRegistry.getPublicKeyHash(signers[i]);
-            } else {
-                Prover storage prover = provers[signers[i]];
-                isActive = prover.isActive;
-                pubKeyHash = prover.sphincsPubKeyHash;
-            }
-
-            if (!isActive) continue;
-            // FIX-009: Use SHA3-256 instead of keccak256 for quantum resistance
-            bytes32 sigHash = SHA3_256.hash(abi.encodePacked(pubKeyHash, message, signatures[i]));
-            if (sigHash != bytes32(0)) validCount++;
         }
     }
 
@@ -1190,7 +1158,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
 
     function isQuantumResistant() external pure returns (bool) { return true; }
     function getSPHINCSVerifier() external view returns (address) { return address(sphincsVerifier); }
-    function isFullVerificationEnabled() external view returns (bool) { return useFullVerification && address(sphincsVerifier) != address(0); }
+    function isFullVerificationEnabled() external view returns (bool) { return address(sphincsVerifier) != address(0); }
 
     function getSlashingDistribution() external pure returns (uint256 challenger, uint256 insurance, uint256 burn) {
         return (SLASH_CHALLENGER_PERCENT, SLASH_INSURANCE_PERCENT, SLASH_BURN_PERCENT);

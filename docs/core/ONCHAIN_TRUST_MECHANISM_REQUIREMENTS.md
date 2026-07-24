@@ -155,7 +155,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 | ID | 要件 | 優先度 |
 |----|------|:------:|
 | FR-MSG-1 | `UNIFIED_SPEC.md` Core Principles CP-5 の記述を「状態は L3 に記録・検証可能性を設計原則とし、トラストレスなオンチェーン暗号強制は proof-based で実装中」に置換する | MUST |
-| FR-MSG-2 | 以下の派生ドキュメントの同種表現を CP-5 新表明に整合させる: `docs/design/PROGRESS/DESIGN_SPEC_v3.md` (CP-3), `docs/design/PROGRESS/system_03_governance/DESIGN_BRIEF_governance.md` (L142), `docs/design/PROGRESS/system_06_explorer/DESIGN_BRIEF_explorer.md` (L114), `docs/archive/process-history/specs/IMPLEMENTATION_GUIDE.md` (L111) | MUST |
+| FR-MSG-2 | 以下の派生ドキュメントの同種表現を CP-5 新表明に整合させる: `docs/design/PROGRESS/DESIGN_SPEC_v3.md` (CP-3), `docs/design/PROGRESS/system_03_governance/DESIGN_BRIEF_governance.md` (L142), `docs/design/PROGRESS/system_06_explorer/DESIGN_BRIEF_explorer.md` (L114)。`docs/archive/` 配下は歴史的記録として凍結し変更対象外 | MUST |
 | FR-MSG-3 | ピッチ資料（`docs/pitch/`）・フロントエンド表示文言（i18n キー）に「全てオンチェーンで検証可能」と同義の断定表現が残存しないこと。Phase 2 完了時に「proof-based で強制」へ更新する | SHOULD |
 | FR-MSG-4 | Phase 2 完了までの期間、対外表明には「実装中 (in implementation)」を明記し、完了時に本書の受け入れ基準（§8）を満たした証跡（監査レポート・テストネット検証 tx）とともに表明を更新する | MUST |
 
@@ -212,17 +212,22 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 
 ## 10. トレーサビリティ
 
-| 要件 | 対応コード/ドキュメント | 検証手段 |
-|------|------------------------|----------|
-| FR-THRESH-1,2,6 | `L1Vault.sol` `_verifyThresholdSignatures` 系列 | 受け入れ基準 1, 3 |
-| FR-THRESH-4 | `L1Vault.sol` `_verifyWithSPHINCSVerifier` + `SPHINCSVerifier.sol` | forge test（フル検証経路） |
-| FR-THRESH-5 | `ProverRegistry.sol` | forge test + proof public input 整合テスト |
-| FR-L3-1,2,3 | `CoreLayer.sol` `_verifyProof` / `STARKVerifier.sol` | 受け入れ基準 2, 3 |
-| FR-GOV-1,2 | `L1Vault.sol` owner 関数 / `Timelock.sol` / `SecurityCouncil.sol` | コードレビュー + 受け入れ基準 4 |
-| FR-MSG-1 | `UNIFIED_SPEC.md` CP-5 | 受け入れ基準 5（本 PR で実施済み） |
-| FR-MSG-2,3 | 派生ドキュメント・i18n | grep 検証 |
-| NFR-1 | 全 .sol / proof 回路 | Slither + grep "keccak256" |
-| NFR-6 | `src/l1/contracts/test/`, `src/l3/test/`, `e2e/` | CI |
+| 要件 | 対応コード/ドキュメント | 検証手段 | 状況 (2026-07-24) |
+|------|------------------------|----------|-------------------|
+| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🔴 未着手（R-2 のギャップ分析から） |
+| FR-THRESH-2,6 | `L1Vault.sol`: `_verifySimplified` 削除、verifier 必須化 | 受け入れ基準 1 | 🟢 実装済み |
+| FR-THRESH-4 | `L1Vault.sol` `_verifyWithSPHINCSVerifier` + `SPHINCSVerifier.sol` | forge test（フル検証経路） | 🟢 実装済み（唯一の経路に） |
+| FR-THRESH-5 | `ProverRegistry.sol` | forge test + proof public input 整合テスト | 🔴 未着手 |
+| FR-L3-1,2,3 | `CoreLayer.sol` + `IStateVerifier` + `L3StateVerifier.sol` (STARKVerifier 接続) | 受け入れ基準 2, 3 | 🟢 実装済み（配線完了。STARK 健全性の深化は R-2） |
+| FR-L3-4 | `CoreLayer.stateVerifier` immutable | コードレビュー | 🟢 実装済み |
+| FR-L3-5 | `StateVerified` イベント emit | forge test | 🟢 実装済み |
+| FR-GOV-1 | `L1Vault.sol`: `setFullVerification` 削除、verifier unset 不可 | 受け入れ基準 4 | 🟢 実装済み |
+| FR-GOV-2 | `Timelock.sol` / `SecurityCouncil.sol` 経由の verifier 差替 | コードレビュー | 🔴 未着手（現状 owner+nonzero 制約のみ） |
+| FR-MSG-1 | `UNIFIED_SPEC.md` CP-5 | 受け入れ基準 5 | 🟢 実施済み |
+| FR-MSG-2 | 派生ドキュメント 3 件 | grep 検証 | 🟢 実施済み（archive は凍結） |
+| FR-MSG-3 | ピッチ資料・i18n | grep 検証 | 🔴 未着手 |
+| NFR-1 | 全 .sol / proof 回路 | Slither + grep "keccak256" | 🟡 継続（新規コードは SHA3 のみ） |
+| NFR-6 | `src/l1/contracts/test/`, `src/l3/test/` | forge test | 🟢 失敗系テスト追加済み |
 
 ---
 

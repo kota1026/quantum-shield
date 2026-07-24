@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Script, console} from "forge-std/Script.sol";
 import {L1Vault} from "../src/L1Vault.sol";
+import {SPHINCSVerifier} from "../src/SPHINCSVerifier.sol";
 import {ProverRegistry} from "../src/ProverRegistry.sol";
 
 /// @title DeployL1VaultV3 - Deploy L1 Vault with ProverRegistry integration
@@ -30,9 +31,12 @@ contract DeployL1VaultV3 is Script {
 
         // Step 1: Deploy new L1Vault
         console.log("\nStep 1: Deploying L1Vault...");
+        // FR-THRESH-2: the vault refuses to deploy without a real verifier
+        SPHINCSVerifier sphincsVerifier = new SPHINCSVerifier();
+        console.log("SPHINCSVerifier deployed at:", address(sphincsVerifier));
         L1Vault vault = new L1Vault(
             deployer,   // securityCouncil (deployer for testnet)
-            address(0)  // sphincsVerifier (not set yet)
+            address(sphincsVerifier)
         );
         console.log("L1Vault deployed at:", address(vault));
 

@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {L1Vault} from "../../src/L1Vault.sol";
 import {SHA3_256} from "../../src/libraries/SHA3_256.sol";
 import {StateRootCalculator} from "../../src/libraries/StateRootCalculator.sol";
+import {MockSPHINCSVerifier} from "../mocks/MockSPHINCSVerifier.sol";
 
 /// @title ReentrancyTest - Security tests for L1Vault reentrancy protection
 /// @notice SEC-001: Tests to verify CEI pattern is correctly applied
@@ -38,7 +39,7 @@ contract ReentrancyTest is Test {
         vm.deal(owner, 10 ether);
 
         vm.startPrank(owner);
-        vault = new L1Vault(securityCouncil, address(0));
+        vault = new L1Vault(securityCouncil, address(new MockSPHINCSVerifier()));
         
         // Register provers
         bytes memory sphincsKey1 = abi.encodePacked(bytes32(uint256(1)));

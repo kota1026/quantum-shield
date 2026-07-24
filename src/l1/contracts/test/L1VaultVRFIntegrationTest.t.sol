@@ -35,15 +35,14 @@ contract L1VaultVRFIntegrationTest is Test {
     event ProverSelectionReady(bytes32 indexed lockId, address indexed prover);
 
     function setUp() public {
+        // Deploy mock SPHINCS verifier first — the vault requires one (FR-THRESH-2)
+        sphincsVerifier = new MockSPHINCSVerifier();
+
         // Deploy L1Vault
-        l1Vault = new L1Vault(securityCouncil, address(0));
-        
+        l1Vault = new L1Vault(securityCouncil, address(sphincsVerifier));
+
         // Deploy VRFConsumerMock with L1Vault as authorized caller
         vrfConsumer = new VRFConsumerMock(address(l1Vault));
-        
-        // Deploy mock SPHINCS verifier
-        sphincsVerifier = new MockSPHINCSVerifier();
-        l1Vault.setSPHINCSVerifier(address(sphincsVerifier));
         
         // Register provers in L1Vault
         _registerProvers();
