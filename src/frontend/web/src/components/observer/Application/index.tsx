@@ -193,7 +193,7 @@ export function ObserverApplication() {
                 <div className="text-center py-8">
                   <Loader2 className="h-8 w-8 text-gold animate-spin mx-auto mb-4" />
                   <p className="text-sm text-foreground-secondary">
-                    {t('steps.connect.connecting', { wallet: WALLET_OPTIONS.find((w) => w.id === selectedWallet)?.name })}
+                    {t('steps.connect.connecting', { wallet: WALLET_OPTIONS.find((w) => w.id === selectedWallet)?.name ?? '' })}
                   </p>
                 </div>
               ) : (
