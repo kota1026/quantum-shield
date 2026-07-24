@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ICoreLayer} from "../interfaces/ICoreLayer.sol";
+import {IStateVerifier} from "../interfaces/IStateVerifier.sol";
 import {SHA3_256} from "../crypto/SHA3_256.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
@@ -43,7 +44,11 @@ contract CoreLayer is ICoreLayer {
     bytes32 private constant STATE_DOMAIN = 0x6e1b7a4c3d5f0e9b8a2c1d4f7e0a3b6c9d2e5f8a1b4c7d0e3f6a9b2c5d8e1f4a;
     
     // ============ State Variables ============
-    
+
+    /// @notice Proof verifier enforcing every state claim (FR-L3-1)
+    /// @dev Immutable per FR-L3-4: no owner path can swap it for a weaker verifier
+    IStateVerifier public immutable stateVerifier;
+
     /// @notice Current state root
     bytes32 private _stateRoot;
     
@@ -73,11 +78,20 @@ contract CoreLayer is ICoreLayer {
     /// @notice Emitted on resync
     event Resynced(bytes32 indexed txHash, bytes32 newStateRoot);
     
+    // ============ Errors (Additional) ============
+
+    /// @notice Thrown when the state verifier address is zero
+    error VerifierNotSet();
+
     // ============ Constructor ============
-    
-    constructor() {
-        // Initialize with empty state root
-        _stateRoot = bytes32(0);
+
+    /// @param _verifier Address of the IStateVerifier enforcing all state claims
+    /// @param genesisStateRoot Initial state root; the only root ever accepted
+    ///        without a proof (FR-L3-2: deploy-time exception only)
+    constructor(address _verifier, bytes32 genesisStateRoot) {
+        if (_verifier == address(0)) revert VerifierNotSet();
+        stateVerifier = IStateVerifier(_verifier);
+        _stateRoot = genesisStateRoot;
     }
     
     // ============ Core Functions - Sequence #1: Lock ============
@@ -131,15 +145,16 @@ contract CoreLayer is ICoreLayer {
         if (tx_.txHash == bytes32(0)) revert TransactionNotFound(txHash);
         if (tx_.executed) revert TransactionAlreadyExecuted(txHash);
         
-        // Verify STARK proof
-        if (!_verifyProof(_stateRoot, proof)) {
+        // FR-L3-1: STARK proof of inclusion in the current state, enforced on-chain
+        if (!stateVerifier.verifyInclusion(_stateRoot, txHash, proof)) {
             revert StateVerificationFailed();
         }
-        
+        emit StateVerified(_stateRoot, true);
+
         // Set unlock time with normal timelock (CP-3)
         tx_.unlockTime = block.timestamp + NORMAL_TIMELOCK;
         tx_.isEmergency = false;
-        
+
         emit AssetUnlocked(txHash, recipient, tx_.amount, false);
     }
     
@@ -182,11 +197,12 @@ contract CoreLayer is ICoreLayer {
         
         if (tx_.txHash == bytes32(0)) revert TransactionNotFound(txHash);
         
-        // Verify proof for new state
-        if (!_verifyProof(newStateRoot, proof)) {
+        // FR-L3-2/3: STARK proof of a valid transition (oldRoot, newRoot) enforced on-chain
+        if (!stateVerifier.verifyTransition(_stateRoot, newStateRoot, proof)) {
             revert StateVerificationFailed();
         }
-        
+        emit StateVerified(newStateRoot, true);
+
         // Update state root
         bytes32 oldRoot = _stateRoot;
         _stateRoot = newStateRoot;
@@ -240,8 +256,8 @@ contract CoreLayer is ICoreLayer {
     function verifyState(
         bytes32 stateRoot,
         bytes calldata proof
-    ) external pure override returns (bool) {
-        return _verifyProof(stateRoot, proof);
+    ) external view override returns (bool) {
+        return stateVerifier.verifyTransition(_stateRoot, stateRoot, proof);
     }
     
     /// @inheritdoc ICoreLayer
@@ -322,23 +338,6 @@ contract CoreLayer is ICoreLayer {
         );
         
         return SHA3_256.hash(data);
-    }
-    
-    /// @dev Verify STARK proof (placeholder for actual verification)
-    /// @param stateRoot State root to verify against
-    /// @param proof STARK proof bytes
-    /// @return valid True if proof is valid
-    function _verifyProof(bytes32 stateRoot, bytes calldata proof) internal pure returns (bool valid) {
-        // TODO: Integrate with actual STARK verifier
-        // For now, accept non-empty proofs with valid state root
-        // Production implementation will call STARKVerifier contract
-        
-        if (proof.length == 0) return false;
-        if (stateRoot == bytes32(0)) return true; // Allow initial state
-        
-        // Placeholder: verify proof structure
-        // In production, this calls the STARK verification logic
-        return proof.length >= 32;
     }
     
     // ============ Receive ETH ============

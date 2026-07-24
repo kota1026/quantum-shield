@@ -40,9 +40,11 @@ contract DeployCoreScript is Script {
         veQS veQSContract = new veQS(address(qsToken));
         console.log("veQS deployed at:", address(veQSContract));
 
-        // 3. CoreLayer (no constructor args)
-        CoreLayer coreLayer = new CoreLayer();
-        console.log("CoreLayer deployed at:", address(coreLayer));
+        // 3. CoreLayer (requires a deployed IStateVerifier — FR-L3-1)
+        // Deploy it first from the L1 project:
+        //   cd src/l1/contracts && forge script script/DeployL3StateVerifier.s.sol --rpc-url <l3-rpc> --broadcast
+        // then export QS_STATE_VERIFIER=<L3StateVerifier address>
+        CoreLayer coreLayer = _deployCoreLayer();
 
         // 4. InsuranceFund (admin only)
         InsuranceFund insuranceFund = new InsuranceFund(deployer);
@@ -125,4 +127,13 @@ contract DeployCoreScript is Script {
         console.log("l3_insurance_fund_address:", address(insuranceFund));
         console.log("l3_treasury_address:", address(treasury));
     }
+    /// @dev FR-L3-1: CoreLayer refuses to deploy without a real proof verifier
+    function _deployCoreLayer() internal returns (CoreLayer coreLayer) {
+        address verifier = vm.envOr("QS_STATE_VERIFIER", address(0));
+        require(verifier != address(0), "QS_STATE_VERIFIER not set: deploy src/l1/contracts/script/DeployL3StateVerifier.s.sol first");
+        coreLayer = new CoreLayer(verifier, vm.envOr("QS_GENESIS_STATE_ROOT", bytes32(0)));
+        console.log("CoreLayer deployed at:", address(coreLayer));
+        console.log("  state verifier:", verifier);
+    }
+
 }

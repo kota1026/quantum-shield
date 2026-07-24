@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {L1Vault} from "../../src/L1Vault.sol";
 import {QuantumShield} from "../../src/QuantumShield.sol";
 import {VRFConsumer} from "../../src/VRFConsumer.sol";
+import {MockSPHINCSVerifier} from "../mocks/MockSPHINCSVerifier.sol";
 
 /// @title EventsAndChecksTest - Security tests for events and zero-address checks
 /// @notice SEC-002: Tests to verify proper event emission and input validation
@@ -36,7 +37,7 @@ contract EventsAndChecksTest is Test {
 
         // Deploy contracts
         vm.startPrank(owner);
-        vault = new L1Vault(securityCouncil, address(0));
+        vault = new L1Vault(securityCouncil, address(new MockSPHINCSVerifier()));
         quantumShield = new QuantumShield();
         vrfConsumer = new VRFConsumer(l1VaultAddress);
         vm.stopPrank();

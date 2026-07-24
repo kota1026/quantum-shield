@@ -4,21 +4,25 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "../src/L1Vault.sol";
 import "../src/libraries/SHA3_256.sol";
+import {MockSPHINCSVerifier} from "./mocks/MockSPHINCSVerifier.sol";
+import {RejectingSPHINCSVerifier} from "./mocks/RejectingSPHINCSVerifier.sol";
 
 /// @title L1Vault Signature SHA3-256 Migration Tests
 /// @notice Day 11 - [TEST-011] Tests for FIX-008 and FIX-009
 /// @dev Verifies signature message creation uses SHA3-256 instead of keccak256
 ///
 /// FIX-008: _verifyThresholdSignatures() uses SHA3-256 for message hash
-/// FIX-009: _verifySimplified() uses SHA3-256 for signature hash
+/// FR-THRESH-2/6: every signature must pass the SPHINCS+ verifier; the former
+/// _verifySimplified path (tautological hash check) has been removed
 ///
 /// Security rationale:
 /// - keccak256 is vulnerable to Grover's algorithm (256-bit → 128-bit security)
 /// - SHA3-256 (FIPS 202) maintains full 256-bit quantum resistance
 /// - CP-1 compliance requires complete quantum resistance
 contract L1VaultSignatureSHA3Test is Test {
-    
+
     L1Vault vault;
+    MockSPHINCSVerifier verifier;
     address owner;
     address securityCouncil;
     address prover1;
@@ -36,14 +40,79 @@ contract L1VaultSignatureSHA3Test is Test {
         prover2 = makeAddr("prover2");
         recipient = makeAddr("recipient");
         
-        // Deploy vault without SPHINCS verifier (simplified mode)
-        vault = new L1Vault(securityCouncil, address(0));
+        // FR-THRESH-2: a verifier is mandatory; tests inject a mock through
+        // the same enforcement path production uses
+        verifier = new MockSPHINCSVerifier();
+        vault = new L1Vault(securityCouncil, address(verifier));
         
         // Register provers
         vault.registerProver{value: 1 ether}(prover1, PROVER1_PUBKEY);
         vault.registerProver{value: 1 ether}(prover2, PROVER2_PUBKEY);
     }
     
+    // =========================================================================
+    // Trustless Enforcement Tests (FR-THRESH-2/6, FR-GOV-1)
+    // =========================================================================
+
+    /// @notice The vault must refuse to deploy without a verifier
+    function test_Constructor_ZeroVerifier_Reverts() public {
+        vm.expectRevert(L1Vault.VerifierNotSet.selector);
+        new L1Vault(securityCouncil, address(0));
+    }
+
+    /// @notice FR-GOV-1: the verifier can be replaced but never unset
+    function test_SetVerifier_Zero_Reverts() public {
+        vm.expectRevert(L1Vault.VerifierNotSet.selector);
+        vault.setSPHINCSVerifier(address(0));
+        assertTrue(vault.isFullVerificationEnabled(), "Verification must remain enforced");
+    }
+
+    /// @notice Threshold unlock succeeds when the verifier accepts 2/N signatures
+    function test_ThresholdUnlock_VerifierAccepts_Succeeds() public {
+        bytes32 lockId = vault.lock{value: 1 ether}(recipient, DILITHIUM_PUBKEY);
+
+        (bytes[] memory sigs, address[] memory signers) = _twoProverSignatures();
+        // requestUnlockLegacy verifies the SMT proof against a caller-supplied
+        // root: an empty proof with root == lockId reaches the signature check
+        vault.requestUnlockLegacy(lockId, recipient, new bytes32[](0), lockId, sigs, signers);
+
+        L1Vault.Lock memory lockData = vault.getLock(lockId);
+        assertEq(uint256(lockData.status), uint256(L1Vault.LockStatus.PENDING_UNLOCK), "Unlock should be pending");
+    }
+
+    /// @notice Threshold unlock reverts when the verifier rejects the signatures —
+    ///         the tautological fallback that accepted any bytes no longer exists
+    function test_ThresholdUnlock_VerifierRejects_Reverts() public {
+        vault.setSPHINCSVerifier(address(new RejectingSPHINCSVerifier()));
+        bytes32 lockId = vault.lock{value: 1 ether}(recipient, DILITHIUM_PUBKEY);
+
+        (bytes[] memory sigs, address[] memory signers) = _twoProverSignatures();
+        vm.expectRevert(L1Vault.InsufficientSignatures.selector);
+        vault.requestUnlockLegacy(lockId, recipient, new bytes32[](0), lockId, sigs, signers);
+    }
+
+    /// @notice Signatures from unregistered provers never count toward the threshold
+    function test_ThresholdUnlock_InactiveSigners_Reverts() public {
+        bytes32 lockId = vault.lock{value: 1 ether}(recipient, DILITHIUM_PUBKEY);
+
+        (bytes[] memory sigs, ) = _twoProverSignatures();
+        address[] memory strangers = new address[](2);
+        strangers[0] = makeAddr("stranger1");
+        strangers[1] = makeAddr("stranger2");
+
+        vm.expectRevert(L1Vault.InsufficientSignatures.selector);
+        vault.requestUnlockLegacy(lockId, recipient, new bytes32[](0), lockId, sigs, strangers);
+    }
+
+    function _twoProverSignatures() internal view returns (bytes[] memory sigs, address[] memory signers) {
+        sigs = new bytes[](2);
+        sigs[0] = hex"deadbeef01";
+        sigs[1] = hex"deadbeef02";
+        signers = new address[](2);
+        signers[0] = prover1;
+        signers[1] = prover2;
+    }
+
     // =========================================================================
     // Signature Message Hash Tests (FIX-008)
     // =========================================================================

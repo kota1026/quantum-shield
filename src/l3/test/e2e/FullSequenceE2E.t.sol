@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../../src/core/CoreLayer.sol";
+import {TestStateVerifier} from "../mocks/TestStateVerifier.sol";
 import "../../src/core/CoreState.sol";
 
 /**
@@ -24,6 +25,7 @@ contract FullSequenceE2E is Test {
     
     // Contracts
     CoreLayer public coreLayer;
+    TestStateVerifier internal stateVerifier;
     CoreState public coreState;
     
     // Actors
@@ -38,8 +40,9 @@ contract FullSequenceE2E is Test {
         
         vm.startPrank(admin);
         
-        // Deploy CoreLayer (bridge contract)
-        coreLayer = new CoreLayer();
+        // Deploy CoreLayer (bridge contract) behind a controllable proof verifier
+        stateVerifier = new TestStateVerifier();
+        coreLayer = new CoreLayer(address(stateVerifier), bytes32(0));
         
         // Deploy CoreState (state management)
         coreState = new CoreState();

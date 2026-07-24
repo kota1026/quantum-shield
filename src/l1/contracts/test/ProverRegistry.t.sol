@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../src/prover/ProverRegistry.sol";
+import {SHA3_256} from "../src/libraries/SHA3_256.sol";
 
 /// @title ProverRegistryTest - Comprehensive tests for ProverRegistry
 /// @notice Tests SEQUENCES §5 (Prover Registration) and §6 (Prover Exit)
@@ -155,7 +156,7 @@ contract ProverRegistryTest is Test {
         vm.startPrank(prover1);
 
         vm.expectEmit(false, true, false, true);
-        emit ProverRegistered(bytes32(0), prover1, bytes32(0), MIN_STAKE);
+        emit ProverRegistered(bytes32(0), prover1, SHA3_256.hash(validPubKey), MIN_STAKE);
 
         registry.register{value: MIN_STAKE}(
             validPubKey,

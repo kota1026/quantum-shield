@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../../src/core/CoreLayer.sol";
+import {TestStateVerifier} from "../mocks/TestStateVerifier.sol";
 
 /**
  * @title FullSystemE2E
@@ -162,6 +163,7 @@ contract FullSystemE2E is Test {
     
     // Real CoreLayer for bridge operations
     CoreLayer public coreLayer;
+    TestStateVerifier internal stateVerifier;
     
     // Mock contracts for other components
     MockSequencerRegistry public seqRegistry;
@@ -206,8 +208,9 @@ contract FullSystemE2E is Test {
     function _deploySystem() internal {
         vm.startPrank(admin);
         
-        // Deploy real CoreLayer
-        coreLayer = new CoreLayer();
+        // Deploy real CoreLayer behind a controllable proof verifier
+        stateVerifier = new TestStateVerifier();
+        coreLayer = new CoreLayer(address(stateVerifier), bytes32(0));
         
         // Deploy mock contracts
         qsToken = new MockQSToken(admin);

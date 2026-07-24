@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../src/core/CoreLayer.sol";
+import {TestStateVerifier} from "./mocks/TestStateVerifier.sol";
 
 /**
  * @title CoreLayerTest
@@ -11,7 +12,8 @@ import "../src/core/CoreLayer.sol";
  */
 contract CoreLayerTest is Test {
     CoreLayer public coreLayer;
-    
+    TestStateVerifier public stateVerifier;
+
     address public user;
     address public recipient;
     
@@ -23,7 +25,8 @@ contract CoreLayerTest is Test {
     event AssetUnlocked(bytes32 indexed txHash, address indexed recipient, uint256 amount, bool isEmergency);
     
     function setUp() public {
-        coreLayer = new CoreLayer();
+        stateVerifier = new TestStateVerifier();
+        coreLayer = new CoreLayer(address(stateVerifier), bytes32(0));
         user = makeAddr("user");
         recipient = makeAddr("recipient");
         
@@ -39,6 +42,18 @@ contract CoreLayerTest is Test {
         assertEq(coreLayer.getStateRoot(), bytes32(0), "Initial state root should be 0");
         assertEq(coreLayer.NORMAL_TIMELOCK(), NORMAL_TIMELOCK, "Normal timelock should be 24h");
         assertEq(coreLayer.EMERGENCY_TIMELOCK(), EMERGENCY_TIMELOCK, "Emergency timelock should be 7d");
+        assertEq(address(coreLayer.stateVerifier()), address(stateVerifier), "Verifier should be wired");
+    }
+
+    function test_Constructor_ZeroVerifier_Reverts() public {
+        vm.expectRevert(CoreLayer.VerifierNotSet.selector);
+        new CoreLayer(address(0), bytes32(0));
+    }
+
+    function test_Constructor_GenesisRoot_Set() public {
+        bytes32 genesis = bytes32(uint256(0xabc));
+        CoreLayer layer = new CoreLayer(address(stateVerifier), genesis);
+        assertEq(layer.getStateRoot(), genesis, "Genesis root should be stored");
     }
     
     // =========================================================================
@@ -146,10 +161,24 @@ contract CoreLayerTest is Test {
     function test_Unlock_EmptyProof_Reverts() public {
         bytes32 txHash = _lockETH(user, 1 ether);
         bytes memory emptyProof = "";
-        
+
         vm.prank(user);
         vm.expectRevert(ICoreLayer.StateVerificationFailed.selector);
         coreLayer.unlock(txHash, emptyProof, recipient);
+    }
+
+    function test_Unlock_VerifierRejects_Reverts() public {
+        bytes32 txHash = _lockETH(user, 1 ether);
+        bytes memory proof = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
+
+        stateVerifier.setAcceptInclusion(false);
+
+        vm.prank(user);
+        vm.expectRevert(ICoreLayer.StateVerificationFailed.selector);
+        coreLayer.unlock(txHash, proof, recipient);
+
+        ICoreLayer.BridgeTx memory bridgeTx = coreLayer.getTransaction(txHash);
+        assertEq(bridgeTx.unlockTime, 0, "Rejected proof must not start the timelock");
     }
     
     // =========================================================================
@@ -313,9 +342,22 @@ contract CoreLayerTest is Test {
         bytes32 fakeTxHash = bytes32(uint256(12345));
         bytes32 newStateRoot = bytes32(uint256(999));
         bytes memory proof = abi.encodePacked(bytes32(uint256(1)));
-        
+
         vm.expectRevert(abi.encodeWithSelector(ICoreLayer.TransactionNotFound.selector, fakeTxHash));
         coreLayer.resync(fakeTxHash, newStateRoot, proof);
+    }
+
+    function test_Resync_VerifierRejects_Reverts() public {
+        bytes32 txHash = _lockETH(user, 1 ether);
+        bytes32 newStateRoot = bytes32(uint256(999));
+        bytes memory proof = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
+
+        stateVerifier.setAcceptTransition(false);
+
+        vm.expectRevert(ICoreLayer.StateVerificationFailed.selector);
+        coreLayer.resync(txHash, newStateRoot, proof);
+
+        assertEq(coreLayer.getStateRoot(), bytes32(0), "Rejected proof must not move the state root");
     }
     
     // =========================================================================
@@ -336,12 +378,15 @@ contract CoreLayerTest is Test {
         assertFalse(coreLayer.isLocked(txHash), "Should not be locked after claim");
     }
     
-    function test_VerifyState() public view {
+    function test_VerifyState() public {
         bytes memory validProof = abi.encodePacked(bytes32(uint256(1)), bytes32(uint256(2)));
         bytes memory emptyProof = "";
-        
-        assertTrue(coreLayer.verifyState(bytes32(0), validProof), "Should verify with empty state root");
+
+        assertTrue(coreLayer.verifyState(bytes32(uint256(1)), validProof), "Accepted proof should verify");
         assertFalse(coreLayer.verifyState(bytes32(uint256(1)), emptyProof), "Should fail with empty proof");
+
+        stateVerifier.setAcceptTransition(false);
+        assertFalse(coreLayer.verifyState(bytes32(uint256(1)), validProof), "Rejected proof should not verify");
     }
     
     // =========================================================================
