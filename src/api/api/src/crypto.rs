@@ -18,6 +18,8 @@
 
 use fips204::ml_dsa_65;
 use fips204::traits::{SerDes, Signer, Verifier};
+use fips205::slh_dsa_shake_128s;
+use fips205::traits::{SerDes as Fips205SerDes, Verifier as Fips205Verifier};
 use ethers::core::types::{RecoveryMessage, Signature};
 use crate::error::ApiError;
 
@@ -162,6 +164,65 @@ pub fn verify_ml_dsa_65_signature(
     // Note: The third argument is the NIST-specified context (empty for basic verification)
     let result = public_key.verify(message, &sig_array, &[]);
 
+    Ok(result)
+}
+
+/// SLH-DSA-SHAKE-128s public key size (NIST FIPS 205)
+pub const SLH_DSA_SHAKE_128S_PUBLIC_KEY_BYTES: usize = 32;
+
+/// SLH-DSA-SHAKE-128s signature size (NIST FIPS 205)
+pub const SLH_DSA_SHAKE_128S_SIGNATURE_BYTES: usize = 7856;
+
+/// Verify SLH-DSA-SHAKE-128s (SPHINCS+) signature — NIST FIPS 205.
+///
+/// This is the REAL post-quantum verification for prover threshold signatures that
+/// authorize unlocks (previously a format-only placeholder — see QS-SEC-PROVER-001).
+/// Uses the RustCrypto `fips205` implementation (pure Rust, NIST ACVP KAT-verified
+/// upstream), the FIPS-205 sibling of the `fips204` crate already used for ML-DSA.
+///
+/// # Arguments
+/// * `message` - The exact message bytes that were signed (32-byte unlock digest)
+/// * `signature_hex` - Hex-encoded 7856-byte SLH-DSA-SHAKE-128s signature
+/// * `public_key_hex` - Hex-encoded 32-byte SLH-DSA-SHAKE-128s public key
+///
+/// # Returns
+/// * `Ok(true)` valid, `Ok(false)` invalid, `Err` on malformed input.
+pub fn verify_slh_dsa_shake_128s_signature(
+    message: &[u8],
+    signature_hex: &str,
+    public_key_hex: &str,
+) -> Result<bool, ApiError> {
+    let sig_bytes = hex::decode(signature_hex.strip_prefix("0x").unwrap_or(signature_hex))
+        .map_err(|e| ApiError::InvalidSignature(format!("Invalid signature hex: {}", e)))?;
+
+    let pk_bytes = hex::decode(public_key_hex.strip_prefix("0x").unwrap_or(public_key_hex))
+        .map_err(|e| ApiError::InvalidSignature(format!("Invalid public key hex: {}", e)))?;
+
+    if sig_bytes.len() != SLH_DSA_SHAKE_128S_SIGNATURE_BYTES {
+        return Err(ApiError::InvalidSignature(format!(
+            "Invalid signature size: expected {} bytes (FIPS 205 SLH-DSA-SHAKE-128s), got {}",
+            SLH_DSA_SHAKE_128S_SIGNATURE_BYTES, sig_bytes.len()
+        )));
+    }
+    if pk_bytes.len() != SLH_DSA_SHAKE_128S_PUBLIC_KEY_BYTES {
+        return Err(ApiError::InvalidSignature(format!(
+            "Invalid public key size: expected {} bytes (FIPS 205 SLH-DSA-SHAKE-128s), got {}",
+            SLH_DSA_SHAKE_128S_PUBLIC_KEY_BYTES, pk_bytes.len()
+        )));
+    }
+
+    let pk_array: [u8; SLH_DSA_SHAKE_128S_PUBLIC_KEY_BYTES] = pk_bytes
+        .try_into()
+        .map_err(|_| ApiError::InvalidSignature("Failed to convert public key to array".into()))?;
+    let sig_array: [u8; SLH_DSA_SHAKE_128S_SIGNATURE_BYTES] = sig_bytes
+        .try_into()
+        .map_err(|_| ApiError::InvalidSignature("Failed to convert signature to array".into()))?;
+
+    let public_key = slh_dsa_shake_128s::PublicKey::try_from_bytes(&pk_array)
+        .map_err(|_| ApiError::InvalidSignature("Failed to parse SLH-DSA-SHAKE-128s public key".into()))?;
+
+    // Empty NIST context for the basic verification used by the prover threshold path.
+    let result = Fips205Verifier::verify(&public_key, message, &sig_array, &[]);
     Ok(result)
 }
 
@@ -441,6 +502,42 @@ mod tests {
         let result = verify_ml_dsa_65_signature(message, &sig_hex, &pk_hex);
         assert!(result.is_ok());
         assert!(result.unwrap());
+    }
+
+    /// KAT / functional test for the real SLH-DSA-SHAKE-128s (SPHINCS+) verifier.
+    /// The `fips205` crate is NIST ACVP KAT-verified upstream; this asserts our wrapper
+    /// accepts a genuine signature and rejects a wrong message, tampered signature, and
+    /// wrong key. This is the real prover-signature verification behind QS-SEC-PROVER-001.
+    #[test]
+    fn test_slh_dsa_shake_128s_verify_roundtrip_and_tamper() {
+        use fips205::slh_dsa_shake_128s;
+        use fips205::traits::{SerDes as _, Signer as _};
+
+        let (pk, sk) = slh_dsa_shake_128s::try_keygen().expect("SLH-DSA keygen failed");
+        let message = b"QS prover unlock digest (SLH-DSA KAT roundtrip)";
+        let sig = sk.try_sign(message, &[], true).expect("SLH-DSA signing failed");
+
+        assert_eq!(sig.len(), SLH_DSA_SHAKE_128S_SIGNATURE_BYTES);
+
+        let pk_hex = format!("0x{}", hex::encode(pk.into_bytes()));
+        let sig_hex = format!("0x{}", hex::encode(sig));
+
+        // Genuine signature verifies.
+        assert!(verify_slh_dsa_shake_128s_signature(message, &sig_hex, &pk_hex).unwrap());
+
+        // Wrong message is rejected.
+        assert!(!verify_slh_dsa_shake_128s_signature(b"tampered", &sig_hex, &pk_hex).unwrap());
+
+        // Tampered signature is rejected.
+        let mut bad = sig;
+        bad[0] ^= 0xFF;
+        let bad_hex = format!("0x{}", hex::encode(bad));
+        assert!(!verify_slh_dsa_shake_128s_signature(message, &bad_hex, &pk_hex).unwrap());
+
+        // Signature verified against the wrong public key is rejected.
+        let (pk2, _sk2) = slh_dsa_shake_128s::try_keygen().expect("SLH-DSA keygen2 failed");
+        let pk2_hex = format!("0x{}", hex::encode(pk2.into_bytes()));
+        assert!(!verify_slh_dsa_shake_128s_signature(message, &sig_hex, &pk2_hex).unwrap());
     }
 
     #[test]

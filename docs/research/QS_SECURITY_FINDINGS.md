@@ -17,7 +17,7 @@
 | QS-SEC-VAULT-004 | HIGH | `L1Vault.sol` challenge 会計 | 報酬をプール原資で支弁→債務超過 | ✅ 修正済（stake原資化）／裁定は追跡 |
 | QS-SEC-L3-001 | HIGH | `l3/.../CoreLayer.sol` _verifyProof | proof 無検証受理 | 📋 追跡（実STARK検証） |
 | QS-SEC-AUTH-001 | HIGH | `middleware.rs` admin_jwt_auth | 権限昇格（任意ユーザ→admin） | ✅ 修正済 |
-| QS-SEC-PROVER-001 | HIGH | `services/mod.rs` submit_prover_signature | 署名無検証で計上 | ✅ 修正済（本番フェイルクローズ） |
+| QS-SEC-PROVER-001 | HIGH | `services/mod.rs` submit_prover_signature | 署名無検証で計上 | ✅ 修正済（**実 SLH-DSA 検証＋KAT**） |
 | QS-SEC-PROVER-002 | HIGH | `routes/prover.rs` sign エンドポイント | 呼出元無認証 | 🟡 緩和（PROVER-001で資金影響封止） |
 | QS-SEC-AUTH-002 | MEDIUM | `auth_service.rs` authenticate_siwe | SIWE domain/expiry/nonce 未検証 | 🟡 部分（domain+expiry 強制／サーバnonce 追跡） |
 | QS-SEC-VRF-001 | HIGH(降格) | `VRFConsumer.sol` onlyVRFCoordinator | coordinator 未設定時に callback バイパス | ✅ 修正済（fail-closed） |
@@ -46,9 +46,10 @@
 
 ### QS-SEC-PROVER-001 — バックエンドが prover 署名を無検証で閾値計上
 - **欠陥**: `submit_prover_signature` はフォーマット長（7856B）チェックのみで、SPHINCS+ 署名を登録 pubkey・メッセージと照合せず M-of-N に計上（`verify_signature` はスタブで未呼出）。sig_count≥2 でバックエンドが自動 `requestUnlock` を L1 送信。
-- **修正**: 本番（`skip_signature_verification=false`）では**未検証署名を拒否（フェイルクローズ）**。実 SPHINCS+ 検証（WS4・KAT）実装まで、偽造署名が資金移動を駆動できない。
-- **機能影響**: 本番の prover 署名投入は実検証実装まで停止。これは「検証できないものを認可しない」正しい posture（戦略 D1）と整合。
-- **残**: `pqcrypto-sphincsplus`（sphincsshake128ssimple, 7856B 一致）での実検証＋KAT を実装し再有効化（WS4）。
+- **修正（第1段: フェイルクローズ）**: 本番では未検証署名を一旦拒否し、偽造署名が資金移動を駆動できないようにした。
+- **修正（第2段: 実検証＝WS4-a 完了）**: `fips205`（NIST FIPS 205 SLH-DSA-SHAKE-128s, RustCrypto・ACVP KAT 済み。`fips204`/ML-DSA の姉妹）を導入し、`crypto::verify_slh_dsa_shake_128s_signature` を実装。`submit_prover_signature` は本番で、**登録 pubkey・正典メッセージ `SHA3-256(lockId‖sr_1)`（on-chain `_verifyThresholdSignatures` と同一構成）で実検証**し、失敗は reject。dev（skip フラグ）は従来通り bypass。
+- **KAT**: `crypto::tests::test_slh_dsa_shake_128s_verify_roundtrip_and_tamper`（正規署名 accept／メッセージ改竄・署名改竄・別鍵を reject）通過。crypto モジュール全14件・0 failed。
+- **残**: 正典メッセージの HSM 署名仕様（context/ドメイン分離の有無）を実運用 prover と最終突合。オンチェーン `SPHINCSVerifier` 側の標準準拠化（THRESH-002）は WS4-b で継続（本修正はバックエンド検証層＝標準 FIPS205 で本物化）。
 
 ### QS-SEC-VAULT-004 — challenge 報酬をプール原資で支弁（債務超過）
 - **欠陥**: valid 解決で challenger に `bond+報酬`、送信者に全額返金するが、**加害 prover の `stakedAmount` は一切減算されず**、報酬（保険/burn 含む）が他ユーザのプール資金から支払われ、金庫が報酬分だけ債務超過に。

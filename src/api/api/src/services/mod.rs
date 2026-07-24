@@ -1848,13 +1848,44 @@ impl AppState {
         // rather than let an unverified (potentially forged) signature drive a fund
         // release. Dev mode (skip_signature_verification) explicitly bypasses this.
         if !self.config.security.skip_signature_verification {
-            tracing::error!(
-                "Rejecting prover signature: real SPHINCS+ verification unavailable (QS-SEC-PROVER-001), prover_id={}, queue_id={}",
+            // QS-SEC-PROVER-001: cryptographically verify the prover's SLH-DSA (SPHINCS+)
+            // signature against its registered public key over the canonical unlock digest
+            // BEFORE it can count toward the M-of-N threshold. The digest mirrors the
+            // on-chain _verifyThresholdSignatures message: SHA3-256(lockId || sr_1).
+            // Reject on failure — never count an unverified/forged signature.
+            let prover_row = crate::db::ProverRepository::get_by_id(self.pool(), prover_id).await?
+                .ok_or_else(|| ApiError::ProverNotFound(prover_id.to_string()))?;
+            let pubkey_hex = format!("0x{}", hex::encode(&prover_row.sphincs_pubkey));
+
+            let lock_id_bytes = hex::decode(item.lock_id.trim_start_matches("0x"))
+                .map_err(|e| ApiError::InvalidSignature(format!("Invalid lock_id hex: {}", e)))?;
+            let sr1_bytes = hex::decode(item.sr_1.trim_start_matches("0x"))
+                .map_err(|e| ApiError::InvalidSignature(format!("Invalid sr_1 hex: {}", e)))?;
+            let mut hasher = sha3::Sha3_256::new();
+            sha3::Digest::update(&mut hasher, &lock_id_bytes);
+            sha3::Digest::update(&mut hasher, &sr1_bytes);
+            let digest = sha3::Digest::finalize(hasher);
+
+            let verified = crate::crypto::verify_slh_dsa_shake_128s_signature(
+                digest.as_slice(),
+                &req.sphincs_signature,
+                &pubkey_hex,
+            )
+            .map_err(|e| ApiError::InvalidSignature(format!("SPHINCS+ verification error: {}", e)))?;
+
+            if !verified {
+                tracing::warn!(
+                    "Rejecting prover signature: SLH-DSA verification failed, prover_id={}, queue_id={}",
+                    prover_id, req.queue_id
+                );
+                return Err(ApiError::InvalidSignature(
+                    "SPHINCS+ signature verification failed (QS-SEC-PROVER-001)".into(),
+                ));
+            }
+            tracing::info!(
+                "SLH-DSA prover signature verified, prover_id={}, queue_id={}",
                 prover_id, req.queue_id
             );
-            return Err(ApiError::InvalidSignature(
-                "SPHINCS+ prover-signature verification is not available; refusing to accept unverified prover signatures in production (QS-SEC-PROVER-001)".into(),
-            ));
         }
 
         // Step 1: Update signing_queue status in PG

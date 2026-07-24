@@ -30,6 +30,9 @@ hex = "0.4"
 # NIST FIPS 204 - ML-DSA-65 (Dilithium) for user signatures
 # Migrated from pqcrypto-dilithium (pre-FIPS) to fips204 (NIST standard)
 fips204 = { version = "0.4", features = ["ml-dsa-65", "default-rng"] }
+# NIST FIPS 205 - SLH-DSA-SHAKE-128s (SPHINCS+) for prover threshold signatures
+# Real verification behind the crypto-agility receptacle (QS-SEC-PROVER-001 / THRESH KAT)
+fips205 = { version = "0.4", features = ["slh_dsa_shake_128s", "default-rng"] }
 
 # Utilities
 tracing = "0.1"
