@@ -540,6 +540,34 @@ mod tests {
         assert!(!verify_slh_dsa_shake_128s_signature(message, &sig_hex, &pk2_hex).unwrap());
     }
 
+    /// Cross-implementation interop KAT (prover ↔ backend reconciliation).
+    /// A signature produced by @noble/post-quantum (the JS SLH-DSA-SHAKE-128s the prover
+    /// agent uses) over the canonical unlock digest SHA3-256(lockId || sr_1) MUST verify
+    /// with the Rust `fips205` backend verifier. This confirms the prover, backend, and
+    /// on-chain layers agree on the exact message, scheme, and encoding.
+    #[test]
+    fn test_slh_dsa_noble_rust_interop() {
+        let data = include_str!("testdata/slh_dsa_noble_interop.hex");
+        let mut lines = data.lines();
+        let digest_hex = lines.next().expect("digest line");
+        let pk_hex = lines.next().expect("pk line");
+        let sig_hex = lines.next().expect("sig line");
+
+        let digest = hex::decode(digest_hex).expect("digest hex");
+        assert_eq!(digest.len(), 32);
+
+        // The noble-signed vector verifies under the Rust fips205 verifier.
+        assert!(
+            verify_slh_dsa_shake_128s_signature(&digest, sig_hex, pk_hex).unwrap(),
+            "noble (JS) signature must verify with fips205 (Rust)"
+        );
+
+        // A different digest is rejected — the signature is bound to the exact message.
+        let mut tampered = digest.clone();
+        tampered[0] ^= 0xFF;
+        assert!(!verify_slh_dsa_shake_128s_signature(&tampered, sig_hex, pk_hex).unwrap());
+    }
+
     #[test]
     fn test_sign_ml_dsa_65_invalid_key_size() {
         let message = b"test message";
