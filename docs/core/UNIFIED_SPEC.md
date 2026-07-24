@@ -21,7 +21,7 @@ Quantum Shield L3は、量子コンピュータ時代に備えた世界初のNIS
 | 2 | **Self-Custody** | ユーザーが自身の秘密鍵を管理 |
 | 3 | **Time Lock存在** | Time Lockを0にすることは不可 |
 | 4 | **Slashing存在** | Slashingメカニズムの削除は不可 |
-| 5 | **透明性** | 全てオンチェーンで検証可能 |
+| 5 | **透明性** | 状態はL3に記録・検証可能性を設計原則とし、トラストレスなオンチェーン暗号強制はproof-basedで実装中（`docs/core/ONCHAIN_TRUST_MECHANISM_REQUIREMENTS.md` 参照） |
 
 ---
 
