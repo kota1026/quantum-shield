@@ -7,9 +7,9 @@
 | Network | Ethereum Sepolia |
 | Chain ID | 11155111 |
 | RPC URL | Set via `QS__L1_RPC_URL` env var (default: `https://rpc.sepolia.org`) |
-| Vault | `0x07012aeF87C6E423c32F2f8eaF81762f63337260` |
+| Vault | `0x314703AC3989F9756E3bE3b2704c12BA14c644CB` |
 | ProverRegistry | `0x08e1fc1A0d614bc132B48950760c7A291cCB8946` |
-| SPHINCS+ Verifier | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` |
+| SPHINCS+ Verifier | `0x58A75BeAE450312c54f98B0e9902356B6710AA91` |
 
 **CRITICAL**: Never create a new L1 deployment. Always use these existing Sepolia contracts.
 
