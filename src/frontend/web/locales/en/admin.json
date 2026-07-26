@@ -666,7 +666,7 @@
           },
           "cp5": {
             "title": "Transparency",
-            "description": "Everything verifiable on-chain. Off-chain secret computation is prohibited.",
+            "description": "State is recorded on L3 with verifiability as a design principle; trustless on-chain cryptographic enforcement is being implemented proof-based. Off-chain secret computation is prohibited.",
             "tag": "CP-5"
           }
         }

@@ -43,7 +43,7 @@
       },
       "transparent": {
         "title": "透明性",
-        "description": "すべての操作はオンチェーンで記録・検証可能"
+        "description": "状態はL3に記録・検証可能（オンチェーン暗号強制はproof-basedで実装中）"
       }
     },
     "technicalLink": "技術詳細を見る"

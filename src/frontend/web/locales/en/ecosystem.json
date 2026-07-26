@@ -43,7 +43,7 @@
       },
       "transparent": {
         "title": "Transparency",
-        "description": "All operations recorded and verifiable on-chain"
+        "description": "State recorded on L3 and verifiable (on-chain cryptographic enforcement being implemented proof-based)"
       }
     },
     "technicalLink": "View Technical Details"

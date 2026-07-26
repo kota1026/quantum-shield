@@ -27,7 +27,7 @@
       },
       "transparency": {
         "title": "完全な透明性",
-        "description": "すべてのトランザクションとChallengeがオンチェーンで公開・検証可能"
+        "description": "トランザクションとChallengeはオンチェーンに公開・記録され追跡可能（暗号強制はproof-basedで実装中）"
       },
       "analytics": {
         "title": "詳細な分析",
@@ -88,7 +88,7 @@
     },
     "cta": {
       "title": "今すぐExplorerを始めよう",
-      "description": "Quantum Shieldプロトコルの透明性を体験してください。すべてのトランザクションがオンチェーンで検証可能です。",
+      "description": "Quantum Shieldプロトコルの透明性を体験してください。トランザクションはオンチェーンに記録され、誰でも追跡・確認できます。",
       "button": "Explorerを開く"
     },
     "footer": {
@@ -818,7 +818,7 @@
       "stark-proof": {
         "name": "STARK証明",
         "definition": "ゼロ知識証明の一種。計算の正しさを証明しながらも、元の情報を明かさずに検証できます。",
-        "example": "Proverの計算結果はSTARK証明でオンチェーンに記録され、誰でも検証可能です。"
+        "example": "Proverの計算結果はSTARK証明としてオンチェーン検証される設計です（proof-based強制を実装中）。"
       },
       "post-quantum": {
         "name": "耐量子暗号",
