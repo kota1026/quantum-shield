@@ -1,9 +1,9 @@
 {
   "network": "sepolia",
   "chainId": 11155111,
-  "l1Vault": "0x43aF0A4b58CC3f040eF05746e72021dE6D35115B",
+  "l1Vault": "0x314703AC3989F9756E3bE3b2704c12BA14c644CB",
   "proverRegistry": "0x08e1fc1A0d614bc132B48950760c7A291cCB8946",
-  "sphincsVerifier": "0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103",
+  "sphincsVerifier": "0x58A75BeAE450312c54f98B0e9902356B6710AA91",
   "starkVerifier": "0x083F33B0AF571F17599AEAd056f746c0d9f0FDfd",
   "deployer": "0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3",
   "timestamp": "1772150400",

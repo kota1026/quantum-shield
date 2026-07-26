@@ -389,3 +389,21 @@ pkg/
 - 調査者: Claude (コード実態ベース、docs未参照で実施)
 - 対象コミット: `d8715e3e` (claude/research-competitors-22xDC HEAD)
 - 調査ツール: grep, find, cast (Foundry), curl, ファイル読み込みによる実コード確認
+
+---
+
+## R-1: Phase 2 Vault 移行 (2026-07-26)
+
+オンチェーントラスト機構 Phase 2（簡易経路廃止・実 verifier 強制）を Sepolia に反映。
+
+| 項目 | 値 |
+|------|-----|
+| Phase 2 L1Vault | `0x314703AC3989F9756E3bE3b2704c12BA14c644CB` |
+| SPHINCSVerifier | `0x58A75BeAE450312c54f98B0e9902356B6710AA91` |
+| deploy tx | `0xe739f5f862d83382024db82507fcdbf4cdb5ee56bfa635e7729ea2056e54bcfd` |
+| owner | `0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3` |
+| `isFullVerificationEnabled()` | **true**（オンチェーン確認済み = 簡易経路なし・実 verifier 強制） |
+
+- 旧 Vault `0x07012aeF87C6E423c32F2f8eaF81762f63337260`（~5.55 test ETH, verifier 未設定・active prover 0）は legacy 扱い（unlock は emergency 経路のみ）。テスト資金のため放棄、新 Vault へ移行。
+- 全 active 参照（blockchain.md / SEQUENCES.md / config/default.yaml / AUTO_CLAIM_SERVICE.md / ConfigureVaultAndProvers.s.sol / sepolia.json）を新 Vault に更新。
+- 残: proof-based (FR-THRESH-1 / STARK) Unlock の end-to-end 実証は M2〜M4 後（`docs/core/STARK_AIR_GAP_ANALYSIS.md`）。不正署名 Unlock の revert tx はキャプチャ待ち。

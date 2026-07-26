@@ -260,7 +260,7 @@ service:
 
 l1:
   rpc_url: "${L1_RPC_URL}"
-  vault_address: "0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67"
+  vault_address: "0x314703AC3989F9756E3bE3b2704c12BA14c644CB"
   chain_id: 11155111
 
 treasury:

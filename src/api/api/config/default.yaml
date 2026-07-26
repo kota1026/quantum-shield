@@ -91,7 +91,7 @@ l1:
 l1_rpc_url: "https://rpc.sepolia.org"  # Override via QS__L1_RPC_URL env var for production
 l1_chain_id: 11155111
 # L1 Vault address on Sepolia (v7.0.0 - 1min TimeLock DEMO + SHA3-256 domain separators)
-l1_vault_address: "0x07012aeF87C6E423c32F2f8eaF81762f63337260"
+l1_vault_address: "0x314703AC3989F9756E3bE3b2704c12BA14c644CB"
 # Prover Registry address on Sepolia (v3.0 architecture)
 l1_prover_registry_address: "0x08e1fc1A0d614bc132B48950760c7A291cCB8946"
 # SPHINCS+ Verifier on Sepolia

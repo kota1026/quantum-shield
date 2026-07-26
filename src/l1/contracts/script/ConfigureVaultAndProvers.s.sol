@@ -9,7 +9,7 @@ import {ProverRegistry} from "../src/ProverRegistry.sol";
 /// @notice SEQUENCES.md v3.0: Link Vault to Registry and register AI Provers
 contract ConfigureVaultAndProvers is Script {
     // Deployed contract addresses on Sepolia
-    address constant L1_VAULT = 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67;
+    address constant L1_VAULT = 0x314703AC3989F9756E3bE3b2704c12BA14c644CB;
     address constant PROVER_REGISTRY = 0x08e1fc1A0d614bc132B48950760c7A291cCB8946;
 
     // Prover addresses (placeholder addresses for AI Provers)

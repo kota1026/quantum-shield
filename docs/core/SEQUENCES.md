@@ -82,7 +82,7 @@
 
 | Contract | Address | 役割 |
 |:---------|:--------|:-----|
-| L1 Vault | `0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67` | 資産Lock/Unlock |
+| L1 Vault | `0x314703AC3989F9756E3bE3b2704c12BA14c644CB` | 資産Lock/Unlock (Phase 2: verifier強制) |
 | Prover Registry | (TBD - 新規デプロイ予定) | Prover管理 |
 | SPHINCS Verifier | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` | 署名検証 |
 
