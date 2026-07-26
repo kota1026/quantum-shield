@@ -25,29 +25,25 @@
 1. **実資金 (5.55 ETH) が載る canonical Vault = `0x07012aeF…7260`**。`blockchain.md` が正、`SEQUENCES.md` / `sepolia.json` / `ConfigureVaultAndProvers.s.sol` / `AUTO_CLAIM_SERVICE.md` の `0x6F889C00…1c67` は stale（Step 4 で一貫修正）。
 2. 両 Vault とも **owner = デプロイヤー `0xe69B…CDC3`**（＝実行者が全権）。
 3. canonical Vault は **verifier 未設定・full 検証 false** → 5.55 ETH は現在 **簡易経路（恒真チェック）のみで保護**されている（Phase 2 が塞ぐ穴が実資金上で露出）。
-4. **オーナー判断: 5.55 ETH はテスト資金** → 既存 Vault へのフル検証有効化（ブリックリスクあり）は行わず、**旧 Vault をドレイン（Step 0.5）してから Phase 2 版の新 Vault をクリーンにデプロイ（Option B）** する方針に確定。
+4. **active prover = 0**（`activeProvers(0)` が revert）。→ 簡易経路の閾値検証は「active prover から出た署名」しか数えないため、**prover 0 では 2/N に到達不能 = Normal Unlock 経路は事実上凍結**。攻撃者も同条件で通せないため、簡易経路の穴は**現時点で実際には悪用不能**。5.55 ETH の回収は **Emergency Unlock 経路（7d タイムロック + bond）のみ**。
+5. **オーナー判断: 5.55 ETH はテスト資金**。Emergency ドレイン（7d + bond）は割に合わず、実害露出でもない（prover 0 で Normal は誰も通せない）ため、**旧 Vault は放棄扱いとし、Phase 2 版の新 Vault をクリーンにデプロイ（Option B）**する方針に確定。ドレインは任意（下記）。
 
-## Step 0.5: 旧 Vault のドレイン（テスト資金の回収）
+## Step 0.5: 旧 Vault のドレイン（任意 — 露出ゼロ化したい場合のみ）
 
-canonical Vault (`0x07012aeF…7260`) は簡易経路（verifier 未設定）で動作し、owner = 実行者。以下でロック済みテスト資金を回収する。**Normal 経路は 24h タイムロックがある**点に注意（Emergency 経路は 7d でより長い）。
+active prover が 0 のため **Normal 経路（`requestUnlockLegacy`）は使えない**（InsufficientSignatures で revert）。回収は Emergency 経路のみ:
 
 ```bash
 export VAULT=0x07012aeF87C6E423c32F2f8eaF81762f63337260
-# 1) active prover を 2 つ取得（簡易経路は「active prover から出た任意の署名バイト列」を有効と数える）
-cast call $VAULT "activeProvers(uint256)(address)" 0 --rpc-url $RPC
-cast call $VAULT "activeProvers(uint256)(address)" 1 --rpc-url $RPC
-# 2) 回収対象 lockId を列挙（Locked イベント。<deployBlock> はデプロイ時のブロック）
+# 回収対象 lockId を列挙（Locked イベント。<deployBlock> はデプロイ時のブロック）
 cast logs --rpc-url $RPC --address $VAULT \
-  "Locked(bytes32,address,address,uint256,bytes32,bytes32)" --from-block <deployBlock> | grep -A2 topics
-# 3) 各 lockId について Unlock 要求（SMT proof は空、root=lockId で通過する簡易構造）
-cast send $VAULT "requestUnlockLegacy(bytes32,address,bytes32[],bytes32,bytes[],address[])" \
-  <lockId> <recipient> "[]" <lockId> "[0xdead01,0xdead02]" "[<prover0>,<prover1>]" \
-  --rpc-url $RPC --private-key $PRIVATE_KEY
-# 4) 24h 後に確定
-cast send $VAULT "executeUnlock(bytes32)" <lockId> --rpc-url $RPC --private-key $PRIVATE_KEY
+  "Locked(bytes32,address,address,uint256,bytes32,bytes32)" --from-block <deployBlock>
+# 各 lock に Emergency Unlock を要求（bond = max(0.5 ETH, 5% of amount)）
+cast send $VAULT "requestEmergencyUnlock(bytes32,address)" <lockId> <recipient> \
+  --value 0.5ether --rpc-url $RPC --private-key $PRIVATE_KEY
+# 7 日後に確定（executeUnlock / claim。ABI は旧 Vault のものを確認）
 ```
 
-> **代替（テストネット割り切り）**: 5.55 ETH は実行者管理下のテスト ETH のため、厳密なドレインに拘らず「旧 Vault を放棄扱いにして新 Vault へ移行」でも可。ドレインは露出をゼロにするための任意工程。
+> **推奨（テストネット割り切り）**: テスト ETH のため厳密なドレインは不要。旧 Vault を放棄扱いにして新 Vault へ移行するのが実務的（5.55 ETH は必要なら後日 Emergency で回収可能）。R-1 は Step 1 のデプロイへ直行してよい。
 
 ## Step 1: デプロイ
 
