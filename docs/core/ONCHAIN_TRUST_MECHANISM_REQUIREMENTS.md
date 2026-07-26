@@ -198,6 +198,24 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 6. **テスト**: `forge test`（L1/L3）・`cargo test`・Playwright 統合テスト全パス、NFR-6 の失敗系テスト含む
 7. **ガス計測**: proof-based Unlock の実測ガスが NFR-2 以内であることを forge gas-report で記録
 
+### 8.1 R-1 実行状況 (2026-07-26)
+
+Phase 2 版 L1Vault を Sepolia にデプロイ（R-1 / Option B、`R1_SEPOLIA_VAULT_MIGRATION_RUNBOOK.md`）:
+- L1Vault: `0x314703AC3989F9756E3bE3b2704c12BA14c644CB`（deploy tx `0xe739f5f862d83382024db82507fcdbf4cdb5ee56bfa635e7729ea2056e54bcfd`）
+- SPHINCSVerifier: `0x58A75BeAE450312c54f98B0e9902356B6710AA91`
+
+| 受け入れ基準 | 状況 |
+|---|---|
+| 1. 簡易経路の不在 | 🟢 grep 0 件 + オンチェーン `isFullVerificationEnabled()=true`（簡易経路は経路として存在しない） |
+| 2. プレースホルダ不在 | 🟢 L3 CoreLayer 済み |
+| 3. 検証強制の実証（testnet） | 🟡 デプロイ済み Vault が**フル SPHINCS+ 検証を強制**（FR-THRESH-4 経路）。不正署名 Unlock の revert tx はキャプチャ待ち。**proof-based (FR-THRESH-1) の Unlock 実証は M2〜M4 後** |
+| 4. 権限の不可逆化 | 🟢 Phase 2 バイトコードに `setFullVerification` 不在（verifier は FR-GOV-2 の 2 段階でのみ差替可、unset 不可） |
+| 5. ドキュメント整合 | 🟢 FR-MSG-1/2/3 反映済み |
+| 6. テスト | 🟢 L1 1102 / L3 558 passed |
+| 7. ガス計測 | ⚪ proof-based Unlock 未実装のため保留 |
+
+**要約**: 「簡易経路の廃止・実 verifier 強制・検証の不可逆化」は**テストネット上で成立**。残る「proof-based (STARK) Unlock の end-to-end 実証」は AIR 回路（M2〜M4, `STARK_AIR_GAP_ANALYSIS.md`）完成後。
+
 ---
 
 ## 9. スコープ外 (Non-Goals)
@@ -205,7 +223,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 - L3 BFT ノードの permissionless 化（Phase 3 / IC-7）
 - Dilithium 署名（ユーザー署名）のオンチェーン直接検証 — 引き続きオフチェーン検証 + proof 集約の対象
 - 新しい proof システムの開発 — 既存 STARKVerifier v1.0 スタックを使用
-- L1 コントラクトの再デプロイによる新 L1 作成（blockchain.md ルール: 既存 Sepolia コントラクトを使用。verifier 接続は既存アップグレード経路/新規 verifier 参照設定で行う）
+- ~~L1 コントラクトの再デプロイによる新 L1 作成~~ → R-1 で方針変更: 既存 Sepolia Vault は immutable かつ簡易経路がバイトコードに焼き込まれているため、**承認済みプロトコル移行**として Phase 2 版 Vault を新規デプロイ（Option B, 2026-07-26 実施）。同一チェーン上のバージョン改訂であり「新 L1 チェーン作成」ではない
 - Auto-Claim サービスの分散化（liveness 問題であり本書の safety スコープ外）
 
 ---
