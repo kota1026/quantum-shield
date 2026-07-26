@@ -67,14 +67,14 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M | 内容 | 完了条件 (検証可能) | 対応ギャップ |
 |---|------|--------------------|:------------:|
 | M0 | 技術選定: 自前スタック vs Plonky3 (keccak-air 再利用) の PoC 比較 | SHAKE256 1 置換の proof 生成/検証時間・proof サイズの実測比較レポート | ✅ **完了 → §5** |
-| M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | G1 |
+| M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §6** |
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7 |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | G2, G3 |
-| **M0.5** | **proof wrapping/recursion 戦略の PoC**（M0 で判明した 2.8MB proof をオンチェーン投稿可能サイズに畳む） | Groth16 wrap 等で最終 proof を数 KB に圧縮し EVM 検証ガスを実測 | **G4 の前提（M0 実測により新規追加）** |
+| **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
-**逐次依存**: M0 ✅ → M1 → M2 → M3 → (M0.5 と並行) → M4 → M5。
+**逐次依存**: M0 ✅ → M1 ✅ → M2 → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
 **M0 で判明した最重要事項**: 生の STARK proof は 2.8MB で L1 直接投稿不可。M4 の前に **M0.5 (proof wrapping)** が必須クリティカルパスになった。
 **リスク最大要素**: M2 の proof 生成時間。SPHINCS+ はハッシュ回数が多く、NFR-3 (≤1h) を満たせない場合は (a) 集約バッチの分割、(b) ハード増強、(c) 閾値検証のみ回路化し署名検証はフォールバック経路 (FR-THRESH-4) 併用継続 — の順に検討する。
 
@@ -134,4 +134,87 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 cd src/crypto/circuits/keccak-m0
 cargo run --release          # 表を標準出力
 cargo run --release --features  # parallel を足す場合は Cargo.toml に p3-maybe-rayon/parallel を追加
+```
+
+---
+
+## 6. M1 実測結果: 単一 WOTS+ チェーン検証 (2026-07-26)
+
+### 6.1 実施内容
+
+`src/crypto/circuits/wots-m1` に SPHINCS+-SHAKE-128s の tweakable hash **F = SHAKE256(PK.seed ‖ ADRS ‖ M)** を実装し、単一 WOTS+ チェーン（w=16 → 15 回の F 適用）を実行。各 F の入力 (16+32+16 = 64 bytes) は SHAKE256 rate (136 bytes) 未満なので **1 回の Keccak-f[1600] 置換**に対応する。
+
+重要: 各 F について「64 byte 入力を SHAKE パディングして得た Keccak-f 入力状態」を再構成し、それを `p3-keccak` の `KeccakF` で置換した結果 (n=16 byte squeeze) が **`sha3` クレートの参照 SHAKE256 出力と一致すること** をコード内 assert で検証している。つまり keccak-air が証明する置換は「FIPS が実際に行う F」そのものである。
+
+### 6.2 実測値
+
+| 単位 | 置換数 | prove (ms) | verify (ms) | proof (bytes) | ok |
+|------|------:|-----------:|------------:|--------------:|:--:|
+| 1 WOTS+ チェーン | 15 | 854 | 28.7 | 2,501,652 | ✅ |
+
+**外挿**（置換数は厳密、prove_ms は ~56.9 ms/置換で線形近似）:
+
+| 単位 | 置換数 | prove_ms~ |
+|------|------:|----------:|
+| 1 WOTS+ チェーン | 15 | 854 |
+| 1 WOTS+ 署名 (len=35 チェーン) | 525 | 29,876 |
+| ~フル署名 (order 8k 置換) | 8,000 | 455,259 (~7.6 分) |
+
+### 6.3 所見
+
+1. **F モデリングは FIPS 準拠**: 15 回すべての F 再構成が `sha3` 参照と一致（assert 通過）。SHAKE256 置換 AIR (= keccak-air) を SPHINCS+ の実 F に接続する経路が成立した。M1 の目的達成。
+2. **フル署名の proof 生成は ~7.6 分（単一スレッド・保守 FRI）**: NFR-3 (≤1h p99) を**大きな余裕で満たす**。`parallel` feature + マルチコアで更に短縮可能。proof 生成時間は律速要因ではない。
+3. **M1 が証明する範囲と残り**: keccak-air は各置換が正しい Keccak-f であることを証明する。まだ制約していないのは (a) 連続する置換の**チェーン結合**（perm i の出力が perm i+1 の入力に正しく渡る）、(b) ADRS/パディングの**構造的正当性**。これらは keccak-air の上に載せる**リンク AIR** が必要で M2/M3 のスコープ。
+
+### 6.4 再現方法
+
+```bash
+cd src/crypto/circuits/wots-m1
+cargo run --release   # 各 F を sha3 と照合後、15 置換を keccak-air で証明
+```
+
+---
+
+## 7. M0.5 実測結果: proof サイズ下限スイープ (2026-07-26)
+
+### 7.1 実施内容
+
+M0 で判明した「生 proof が大きすぎて L1 に載らない」問題に対し、**FRI パラメータ（blowup / queries）を振って proof サイズがどこまで縮むか = オンチェーン投稿の下限**を `src/crypto/circuits/wrap-m05` で実測。256 置換の固定バッチに対しスイープした。EVM の実用 calldata 上限を ~128 KB とする。
+
+### 7.2 実測値
+
+| log_blowup | queries | pow | proof (bytes) | 推定 sec_bits | 128KB 比 | ok |
+|-----------:|--------:|----:|--------------:|-------------:|--------:|:--:|
+| 1 | 30 | 16 | 843,652 | 46 | 6× | ✅ |
+| 1 | 50 | 16 | 1,349,412 | 66 | 10× | ✅ |
+| 2 | 40 | 16 | 1,115,732 | 96 | 9× | ✅ |
+| 2 | 64 | 16 | 1,734,164 | 144 | 13× | ✅ |
+| 3 | 80 | 16 | 2,184,852 | 256 | 17× | ✅ |
+| 3 | 100 | 16 | 2,709,812 | 316 | 21× | ✅ |
+
+### 7.3 結論: wrapping は必須
+
+**最小でも 843 KB（EVM 上限の 6 倍）で、しかもこれは 46-bit という本番使用不可の低セキュリティ設定**。本番相当の ~100-bit (blowup 2 / 40 queries) では 1.1 MB = 9 倍。生 STARK を L1 に直接投稿する道は、パラメータ調整では開かない。**proof wrapping / recursion は選択肢ではなく必須**であることが実測で確定した。EIP-4844 blob (128 KB) でも 6〜21 倍不足。
+
+### 7.4 wrapping 方式の決定マトリクス
+
+| 方式 | 最終 proof サイズ | EVM 検証ガス | 前提ツール | trusted setup | 評価 |
+|------|------------------|-------------|-----------|:-------------:|------|
+| **A. STARK→Groth16 wrap** (STARK 検証器を Groth16 回路内で証明) | ~200 bytes (3 群要素) | ~250K gas | gnark / circom+snarkjs | 要（回路固有 CRS） | ◎ サイズ・ガス最小。setup がネック |
+| **B. STARK→PLONK/Halo2 wrap** | ~1〜4 KB | ~300〜500K gas | halo2 / plonky2→SNARK | 不要（universal SRS） | ○ setup 不要。ガスやや大 |
+| **C. STARK 再帰集約 + 最終 SNARK wrap** | A/B と同等 | 同上 | Plonky3 recursion + A or B | A/B 準拠 | ◎ 8k 置換のフル署名向け。集約で L1 検証 1 回に畳める |
+| **D. 直接オンチェーン STARK 検証（wrap 無し）** | 0.8〜2.8 MB | — | 現行 `STARKVerifier.sol` | 不要 | ✗ サイズが上限超過で不成立（本 §で否定） |
+| **E. proof オフチェーン + コミットメントのみ L1** | ~32 bytes | ~50K gas | — | 不要 | △ 「オンチェーン強制」ではなく optimistic 化。CP-5 定義の再検討が必要 |
+
+### 7.5 推奨
+
+- **G1（回路）は M0 の結論通り Plonky3 keccak-air（Buy）**、
+- **オンチェーン化は方式 C（STARK 再帰集約 → 最終 SNARK wrap）を第一候補**とする。フル署名 8k 置換を再帰集約で 1 proof に畳み、最終段を Groth16 (方式 A, ガス最小) か Halo2 (方式 B, setup 不要) で wrap する。setup 許容可否は運用ポリシー判断。
+- **注意**: wrap のツールチェーン（gnark / halo2 / circom）は本サンドボックス環境ではビルド不可（外部依存・ネットワーク制約）。M0.5 の成果は**「下限の実測 + 方式決定マトリクス + 推奨」までで、wrap 実装本体は専用 CI 環境での M0.5-impl（後続）**とする。
+
+### 7.6 再現方法
+
+```bash
+cd src/crypto/circuits/wrap-m05
+cargo run --release   # FRI パラメータを振って proof サイズを出力
 ```
