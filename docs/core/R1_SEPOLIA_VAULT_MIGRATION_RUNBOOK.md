@@ -1,7 +1,8 @@
 # R-1 実行 Runbook: Sepolia 新 Vault デプロイ (Option B)
 
 > **Created**: 2026-07-24
-> **Status**: 承認済み (2026-07-24 オーナー指示により Option B 採用) — **実行待ち**
+> **Updated**: 2026-07-26 — Step 0 オンチェーン確認完了、方針を「テスト資金ドレイン + クリーン Option B」に確定
+> **Status**: 承認済み・実行中 (Step 0 完了 / Step 1 デプロイ待ち)
 > **Parent**: `ONCHAIN_TRUST_MECHANISM_REQUIREMENTS.md` §12 (R-1 分析)
 > **Blocker**: リモート実行環境からは Sepolia RPC への egress がプロキシで遮断され (403)、`QS__L1_PRIVATE_KEY` も未設定のため、デプロイ tx はローカル環境から実行する必要がある
 
@@ -11,19 +12,42 @@
 - Foundry がインストール済みで、`src/l1/contracts` がビルド可能なこと
 - Phase 2 版 L1Vault（簡易経路なし・verifier 必須・FR-GOV-2 ガバナンス）= PR #201 マージ後の `main` 相当ブランチを使用
 
-## Step 0: 現行 Vault アドレスの確定（ドキュメント不一致の解消）
+## Step 0: 現行 Vault アドレスの確定 — ✅ 完了 (2026-07-26)
 
-`blockchain.md` (`0x07012aeF87C6E423c32F2f8eaF81762f63337260`) と `SEQUENCES.md` (`0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67`) が不一致。両方を照会し、コードが存在し `totalLocked > 0` の方を legacy Vault と確定する:
+オンチェーン照会（Sepolia）の結果:
+
+| アドレス | code | owner | getSPHINCSVerifier | isFullVerificationEnabled | totalLocked | 判定 |
+|---|:--:|---|:--:|:--:|--:|---|
+| `0x07012aeF…7260` (blockchain.md) | あり | `0xe69B…CDC3` | `0x0`（未設定） | **false** | **5.55 ETH** | **canonical / 実稼働 Vault** |
+| `0x6F889C00…1c67` (SEQUENCES.md 他) | あり | `0xe69B…CDC3` | `0x0` | — | 0 相当 | 旧・空デプロイ（記録のみ残存） |
+
+**確定事項**:
+1. **実資金 (5.55 ETH) が載る canonical Vault = `0x07012aeF…7260`**。`blockchain.md` が正、`SEQUENCES.md` / `sepolia.json` / `ConfigureVaultAndProvers.s.sol` / `AUTO_CLAIM_SERVICE.md` の `0x6F889C00…1c67` は stale（Step 4 で一貫修正）。
+2. 両 Vault とも **owner = デプロイヤー `0xe69B…CDC3`**（＝実行者が全権）。
+3. canonical Vault は **verifier 未設定・full 検証 false** → 5.55 ETH は現在 **簡易経路（恒真チェック）のみで保護**されている（Phase 2 が塞ぐ穴が実資金上で露出）。
+4. **オーナー判断: 5.55 ETH はテスト資金** → 既存 Vault へのフル検証有効化（ブリックリスクあり）は行わず、**旧 Vault をドレイン（Step 0.5）してから Phase 2 版の新 Vault をクリーンにデプロイ（Option B）** する方針に確定。
+
+## Step 0.5: 旧 Vault のドレイン（テスト資金の回収）
+
+canonical Vault (`0x07012aeF…7260`) は簡易経路（verifier 未設定）で動作し、owner = 実行者。以下でロック済みテスト資金を回収する。**Normal 経路は 24h タイムロックがある**点に注意（Emergency 経路は 7d でより長い）。
 
 ```bash
-export RPC=https://ethereum-sepolia-rpc.publicnode.com   # または任意の Sepolia RPC
-cast code 0x07012aeF87C6E423c32F2f8eaF81762f63337260 --rpc-url $RPC | head -c 20
-cast call 0x07012aeF87C6E423c32F2f8eaF81762f63337260 "totalLocked()(uint256)" --rpc-url $RPC
-cast code 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 --rpc-url $RPC | head -c 20
-cast call 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 "totalLocked()(uint256)" --rpc-url $RPC
+export VAULT=0x07012aeF87C6E423c32F2f8eaF81762f63337260
+# 1) active prover を 2 つ取得（簡易経路は「active prover から出た任意の署名バイト列」を有効と数える）
+cast call $VAULT "activeProvers(uint256)(address)" 0 --rpc-url $RPC
+cast call $VAULT "activeProvers(uint256)(address)" 1 --rpc-url $RPC
+# 2) 回収対象 lockId を列挙（Locked イベント。<deployBlock> はデプロイ時のブロック）
+cast logs --rpc-url $RPC --address $VAULT \
+  "Locked(bytes32,address,address,uint256,bytes32,bytes32)" --from-block <deployBlock> | grep -A2 topics
+# 3) 各 lockId について Unlock 要求（SMT proof は空、root=lockId で通過する簡易構造）
+cast send $VAULT "requestUnlockLegacy(bytes32,address,bytes32[],bytes32,bytes[],address[])" \
+  <lockId> <recipient> "[]" <lockId> "[0xdead01,0xdead02]" "[<prover0>,<prover1>]" \
+  --rpc-url $RPC --private-key $PRIVATE_KEY
+# 4) 24h 後に確定
+cast send $VAULT "executeUnlock(bytes32)" <lockId> --rpc-url $RPC --private-key $PRIVATE_KEY
 ```
 
-確定した方を `blockchain.md` / `SEQUENCES.md` の両方に「legacy (unlock-only)」として記載する。
+> **代替（テストネット割り切り）**: 5.55 ETH は実行者管理下のテスト ETH のため、厳密なドレインに拘らず「旧 Vault を放棄扱いにして新 Vault へ移行」でも可。ドレインは露出をゼロにするための任意工程。
 
 ## Step 1: デプロイ
 
@@ -66,13 +90,21 @@ cast call $VAULT "isFullVerificationEnabled()(bool)" --rpc-url $RPC   # → true
 # setFullVerification(bool) が ABI に存在しないことを新 Vault の ABI で確認
 ```
 
-## Step 4: ドキュメント / 設定更新
+## Step 4: ドキュメント / 設定更新（新 Vault アドレス確定後に一括実施）
 
-1. `.claude/rules/blockchain.md`: 新 Vault + SPHINCSVerifier アドレスに更新、旧 Vault を「legacy (unlock-only)」として残置
-2. `src/api/api/config/default.yaml`: `l1.vault_address` を新アドレスへ
-3. フロントエンド env (`NEXT_PUBLIC_*`) のアドレス更新
-4. `docs/ACTUAL_STATE.md`: 移行記録 + Step 3 の tx hash（成功 tx と revert tx の両方）を追記
-5. `ONCHAIN_TRUST_MECHANISM_REQUIREMENTS.md` §10: 受け入れ基準 3/4 を 🟢 に更新
+新 Vault デプロイで `<newVault>` が確定したら、以下を **1 つのコミットで一貫**させる（現状 stale な `0x6F889C00…1c67` 参照も同時に是正）:
+
+1. `.claude/rules/blockchain.md`: L1 Vault を `<newVault>` に更新、`0x07012aeF…7260` を「legacy (unlock-only, drained)」として残置注記
+2. `docs/core/SEQUENCES.md` (L85): `0x6F889C00…1c67` → `<newVault>`（stale 修正 + 新 Vault 反映）
+3. `src/l1/deployments/sepolia.json` (L18): `l1Vault` を `<newVault>` に
+4. `src/l1/contracts/script/ConfigureVaultAndProvers.s.sol` (L12): `L1_VAULT` を `<newVault>` に
+5. `docs/architecture/AUTO_CLAIM_SERVICE.md` (L263): `vault_address` を `<newVault>` に
+6. `src/api/api/config/default.yaml`: `l1.vault_address` を `<newVault>` へ
+7. フロントエンド env (`NEXT_PUBLIC_*`) のアドレス更新
+8. `docs/ACTUAL_STATE.md`: 移行記録 + Step 0.5 ドレイン tx + Step 3 の tx hash（成功 tx と revert tx の両方）を追記
+9. `ONCHAIN_TRUST_MECHANISM_REQUIREMENTS.md` §10: 受け入れ基準 3/4 を 🟢 に更新
+
+> `<newVault>` と各 tx hash を貼ってもらえれば、この 9 項目の一貫修正コミットは当方で作成可能。
 
 ## ロールバック
 
