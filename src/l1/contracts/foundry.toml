@@ -1,7 +1,7 @@
 [profile.default]
 src = "src"
 out = "out"
-test = "../test"
+test = "test"
 script = "script"
 libs = ["lib"]
 solc = "0.8.20"
@@ -19,8 +19,8 @@ remappings = [
 # Exclude files that require newer Solidity versions
 ignore = [
     "src/core/EditionConfig.sol",
-    "../test/core/EditionConfig.t.sol",
-    "../test/core/EditionSwitchE2E.t.sol",
+    "test/core/EditionConfig.t.sol",
+    "test/core/EditionSwitchE2E.t.sol",
     "lib/openzeppelin-contracts/contracts/mocks/**",
     "lib/openzeppelin-contracts/contracts/governance/**",
     "lib/openzeppelin-contracts/contracts/crosschain/**",

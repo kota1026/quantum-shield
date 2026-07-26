@@ -20,6 +20,7 @@ import "@qs/QuantumShield.sol";
  * 8. Recipient Manipulation - Attempt to redirect funds
  */
 contract NegativeProofTests is Test {
+    address internal constant LOCK_RECIPIENT = address(0x1001); // == USER: SEC-004 binds release to the lock's intended recipient
     QuantumShield public shield;
 
     address constant USER = address(0x1001);
@@ -31,6 +32,9 @@ contract NegativeProofTests is Test {
 
     function setUp() public {
         shield = new QuantumShield();
+        // This suite exercises Level 1 (structural) verification; Level 2
+        // full-FRI rejection is covered by test/QuantumShield.t.sol
+        shield.setVerificationLevel(false);
         vm.deal(USER, 100 ether);
         vm.deal(ATTACKER, 100 ether);
     }
@@ -42,7 +46,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that a proof with tampered FRI layer commitments is rejected
     function test_Reject_TamperedFRILayerCommitment() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -68,7 +72,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that a proof with truncated FRI proof is rejected
     function test_Reject_TruncatedFRIProof() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -94,7 +98,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that a proof with zero FRI layers is rejected
     function test_Reject_ZeroFRILayers() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -120,7 +124,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that a proof with tampered query responses is rejected
     function test_Reject_TamperedQueryResponses() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -143,7 +147,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that a proof with insufficient query count is rejected
     function test_Reject_InsufficientQueries() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -166,7 +170,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that a proof with all-zero queries is rejected
     function test_Reject_AllZeroQueries() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -191,7 +195,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that a proof with zero trace commitment is rejected
     function test_Reject_ZeroTraceCommitment() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -212,7 +216,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that using wrong public key hash fails
     function test_Reject_WrongPublicKeyHash() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         // Attacker tries to use their own public key
         QuantumShield.PublicInputs memory pi = QuantumShield.PublicInputs({
@@ -232,7 +236,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that signatureValid=false fails
     function test_Reject_InvalidSignatureFlag() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = QuantumShield.PublicInputs({
             publicKeyHash: DILITHIUM_PUB_KEY_HASH,
@@ -256,21 +260,21 @@ contract NegativeProofTests is Test {
     function test_Reject_NonceReplay() public {
         // First legitimate release
         vm.prank(USER);
-        bytes32 lockId1 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId1 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi1 = _createValidPublicInputs(lockId1, 1 ether, USER);
         shield.releaseWithProof(pi1, _createValidProof());
 
         // Attacker tries to replay with same nonce
         vm.prank(USER);
-        bytes32 lockId2 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId2 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi2 = QuantumShield.PublicInputs({
             publicKeyHash: DILITHIUM_PUB_KEY_HASH,
             messageHash: MESSAGE_HASH,
             signatureValid: true,
             nonce: 1, // Same nonce!
-            recipient: ATTACKER,
+            recipient: USER, // must match the lock so the nonce check is reached
             amount: 1 ether,
             lockId: lockId2
         });
@@ -282,7 +286,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that double-release is prevented
     function test_Reject_DoubleRelease() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
         shield.releaseWithProof(pi, _createValidProof());
@@ -310,12 +314,12 @@ contract NegativeProofTests is Test {
     function test_Reject_CrossLockAttack() public {
         // User creates lock
         vm.prank(USER);
-        bytes32 userLockId = shield.lock{value: 5 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 userLockId = shield.lock{value: 5 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         // Attacker creates their own lock
         bytes32 attackerPubKeyHash = keccak256("attacker_key");
         vm.prank(ATTACKER);
-        bytes32 attackerLockId = shield.lock{value: 0.1 ether}(attackerPubKeyHash);
+        bytes32 attackerLockId = shield.lock{value: 0.1 ether}(attackerPubKeyHash, LOCK_RECIPIENT);
 
         // Attacker tries to use their proof to claim user's funds
         QuantumShield.PublicInputs memory pi = QuantumShield.PublicInputs({
@@ -339,7 +343,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that claiming more than locked fails
     function test_Reject_AmountManipulation() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         // Try to claim 10 ETH from 1 ETH lock
         QuantumShield.PublicInputs memory pi = QuantumShield.PublicInputs({
@@ -363,7 +367,7 @@ contract NegativeProofTests is Test {
     /// @notice Test edge case: zero recipient address
     function test_Reject_ZeroRecipient() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = QuantumShield.PublicInputs({
             publicKeyHash: DILITHIUM_PUB_KEY_HASH,
@@ -375,7 +379,9 @@ contract NegativeProofTests is Test {
             lockId: lockId
         });
 
-        vm.expectRevert(QuantumShield.ZeroAddress.selector);
+        // SEC-004 FIX-021: the recipient binding check fires first — a zero
+        // recipient can never match the lock's intended recipient
+        vm.expectRevert(QuantumShield.RecipientMismatch.selector);
         shield.releaseWithProof(pi, _createValidProof());
     }
 
@@ -386,7 +392,7 @@ contract NegativeProofTests is Test {
     /// @notice Test that completely empty proof is rejected
     function test_Reject_EmptyProof() public {
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = _createValidPublicInputs(lockId, 1 ether, USER);
 
@@ -418,7 +424,7 @@ contract NegativeProofTests is Test {
         vm.assume(randomFri.length > 0 && randomFri.length < 10000);
 
         vm.prank(USER);
-        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi = QuantumShield.PublicInputs({
             publicKeyHash: DILITHIUM_PUB_KEY_HASH,
@@ -459,7 +465,7 @@ contract NegativeProofTests is Test {
 
         // First release
         vm.prank(USER);
-        bytes32 lockId1 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId1 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi1 = QuantumShield.PublicInputs({
             publicKeyHash: DILITHIUM_PUB_KEY_HASH,
@@ -475,7 +481,7 @@ contract NegativeProofTests is Test {
 
         // Second release with different nonce should work
         vm.prank(USER);
-        bytes32 lockId2 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH);
+        bytes32 lockId2 = shield.lock{value: 1 ether}(DILITHIUM_PUB_KEY_HASH, LOCK_RECIPIENT);
 
         QuantumShield.PublicInputs memory pi2 = QuantumShield.PublicInputs({
             publicKeyHash: DILITHIUM_PUB_KEY_HASH,

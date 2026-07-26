@@ -455,7 +455,7 @@
         },
         "smtProof": {
           "title": "SMT Merkle Verification",
-          "description": "Cryptographic proofs via Sparse Merkle Trees. All state transitions are verifiable on-chain, combined with SPHINCS+ multi-sig for layered defense.",
+          "description": "Cryptographic proofs via Sparse Merkle Trees. State transitions are recorded on L3 and verifiable, combined with SPHINCS+ multi-sig for layered defense; on-chain cryptographic enforcement is being implemented proof-based.",
           "badge": "Cryptographic Proof",
           "tooltip": "SMT (Sparse Merkle Tree) efficiently verifies large-scale data integrity. Combined with SHA3-256 hashing to achieve quantum resistance."
         },
@@ -473,7 +473,7 @@
         },
         "transparency": {
           "title": "Transparency",
-          "description": "All transactions are verifiable on-chain. Open-source, audited smart contracts.",
+          "description": "Transactions are recorded on-chain and traceable; trustless on-chain cryptographic enforcement is being implemented proof-based. Open-source, audited smart contracts.",
           "badge": "Open Source",
           "tooltip": "Transparency means all transaction history and smart contract code is publicly available and verifiable by anyone. Third-party audits have also been completed."
         }
@@ -751,7 +751,7 @@
         },
         "smtProof": {
           "title": "SMT Merkle Proof",
-          "description": "Cryptographic proofs via Sparse Merkle Trees. State transitions (SR_0→SR_1) are calculated with SHA3-256 hashing, all verifiable on-chain.",
+          "description": "Cryptographic proofs via Sparse Merkle Trees. State transitions (SR_0→SR_1) are calculated with SHA3-256 hashing, recorded on L3 and verifiable; on-chain cryptographic enforcement is being implemented proof-based.",
           "badge": "SHA3-256"
         }
       },

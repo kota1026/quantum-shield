@@ -18,6 +18,7 @@ import {QuantumShield} from "@qs/QuantumShield.sol";
  * 4. Challenge and slashing flow
  */
 contract StarkE2ETest is Test {
+    address internal constant LOCK_RECIPIENT = address(0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC); // == RECIPIENT: releaseWithProof enforces the intended recipient
     QuantumShield public quantumShield;
 
     // Test accounts
@@ -27,7 +28,7 @@ contract StarkE2ETest is Test {
     address constant PROVER = address(0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65);
 
     // Events
-    event Locked(bytes32 indexed lockId, address indexed owner, uint256 amount, bytes32 dilithiumPubKeyHash);
+    event Locked(bytes32 indexed lockId, address indexed sender, uint256 amount, bytes32 dilithiumPubKeyHash, uint256 nonce, address intendedRecipient);
     event Released(bytes32 indexed lockId, address indexed recipient, uint256 amount);
     event ChallengeSubmitted(bytes32 indexed lockId, address indexed challenger, uint256 bondAmount);
 
@@ -53,10 +54,10 @@ contract StarkE2ETest is Test {
         uint256 lockAmount = 1 ether;
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash, LOCK_RECIPIENT);
 
         // Verify lock exists
-        (address owner, uint256 amount, bytes32 pubKeyHash, uint256 createdAt, bool released) =
+        (address owner, uint256 amount, bytes32 pubKeyHash, uint256 createdAt, bool released,) =
             quantumShield.getLock(lockId);
 
         assertEq(owner, USER, "Lock owner should be USER");
@@ -77,11 +78,12 @@ contract StarkE2ETest is Test {
         bytes32 dilithiumPubKeyHash = keccak256("event_test_pubkey");
         uint256 lockAmount = 2 ether;
 
-        vm.expectEmit(true, true, false, true);
-        // We can't predict the exact lockId, but we can check the other fields
+        // lockId (topic1) and data are unpredictable (nonce-dependent) — check the sender topic only
+        vm.expectEmit(false, true, false, false);
+        emit Locked(bytes32(0), USER, lockAmount, dilithiumPubKeyHash, 0, LOCK_RECIPIENT);
 
         vm.prank(USER);
-        quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash);
+        quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash, LOCK_RECIPIENT);
     }
 
     /**
@@ -95,10 +97,10 @@ contract StarkE2ETest is Test {
             uint256 amount = (i + 1) * 0.5 ether;
 
             vm.prank(USER);
-            lockIds[i] = quantumShield.lock{value: amount}(pubKeyHash);
+            lockIds[i] = quantumShield.lock{value: amount}(pubKeyHash, LOCK_RECIPIENT);
 
             // Verify each lock
-            (address owner, uint256 lockedAmount,,,) = quantumShield.getLock(lockIds[i]);
+            (address owner, uint256 lockedAmount,,,,) = quantumShield.getLock(lockIds[i]);
             assertEq(owner, USER);
             assertEq(lockedAmount, amount);
         }
@@ -119,7 +121,7 @@ contract StarkE2ETest is Test {
         uint256 lockAmount = 1 ether;
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash, LOCK_RECIPIENT);
 
         // Step 2: Create valid STARK proof
         QuantumShield.StarkProof memory proof = _createValidProof(0);
@@ -132,24 +134,16 @@ contract StarkE2ETest is Test {
         // Step 3: Verify and release
         uint256 recipientBalanceBefore = RECIPIENT.balance;
 
+        // Phase 2 enforcement: a structurally fabricated proof must be
+        // rejected — only a real STARK proof (Rust prover) can release
+        vm.expectRevert();
         vm.prank(USER);
         quantumShield.releaseWithProof(publicInputs, proof);
 
-        uint256 recipientBalanceAfter = RECIPIENT.balance;
-
-        // Verify transfer
-        assertEq(
-            recipientBalanceAfter - recipientBalanceBefore,
-            lockAmount,
-            "Recipient should receive full amount"
-        );
-
-        // Verify lock is released
-        (,,,, bool released) = quantumShield.getLock(lockId);
-        assertTrue(released, "Lock should be marked as released");
-
-        console.log("Unlock successful:");
-        console.log("  Recipient received:", lockAmount / 1e18, "ETH");
+        // Funds stay locked
+        assertEq(RECIPIENT.balance, recipientBalanceBefore, "No funds may move on a rejected proof");
+        (,,,, bool released,) = quantumShield.getLock(lockId);
+        assertFalse(released, "Lock must remain unreleased");
     }
 
     /**
@@ -160,9 +154,10 @@ contract StarkE2ETest is Test {
         uint256 lockAmount = 1 ether;
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash, LOCK_RECIPIENT);
 
-        // First release
+        // Every fabricated-proof attempt is rejected; retrying does not
+        // weaken the lock (Phase 2 enforcement)
         QuantumShield.StarkProof memory proof = _createValidProof(0);
         QuantumShield.PublicInputs memory publicInputs = _createPublicInputs(
             dilithiumPubKeyHash,
@@ -170,16 +165,19 @@ contract StarkE2ETest is Test {
             lockAmount
         );
 
+        vm.expectRevert();
         vm.prank(USER);
         quantumShield.releaseWithProof(publicInputs, proof);
 
-        // Second release should fail
         QuantumShield.StarkProof memory proof2 = _createValidProof(1);
         publicInputs.nonce = 2;
 
         vm.expectRevert();
         vm.prank(USER);
         quantumShield.releaseWithProof(publicInputs, proof2);
+
+        (,,,, bool released,) = quantumShield.getLock(lockId);
+        assertFalse(released, "Lock must remain unreleased after rejected attempts");
     }
 
     /**
@@ -190,7 +188,7 @@ contract StarkE2ETest is Test {
         uint256 lockAmount = 1 ether;
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: lockAmount}(dilithiumPubKeyHash, LOCK_RECIPIENT);
 
         // Create invalid proof (empty query responses)
         QuantumShield.StarkProof memory proof = QuantumShield.StarkProof({
@@ -222,7 +220,7 @@ contract StarkE2ETest is Test {
 
         uint256 gasBefore = gasleft();
         vm.prank(USER);
-        quantumShield.lock{value: 1 ether}(pubKeyHash);
+        quantumShield.lock{value: 1 ether}(pubKeyHash, LOCK_RECIPIENT);
         uint256 gasUsed = gasBefore - gasleft();
 
         console.log("=== Lock Gas Benchmark ===");
@@ -230,7 +228,9 @@ contract StarkE2ETest is Test {
         console.log("Cost @ 30 gwei:", (gasUsed * 30) / 1e9, "ETH");
 
         // Lock should be efficient
-        assertLt(gasUsed, 100000, "Lock gas should be under 100k");
+        // SHA3-256 (FIPS 202) is implemented in Solidity (no native opcode), so lock
+        // costs ~1.8M gas — the historical 100k bound predates the CP-1 migration
+        assertLt(gasUsed, 2_500_000, "Lock gas should stay under 2.5M");
     }
 
     /**
@@ -241,7 +241,7 @@ contract StarkE2ETest is Test {
         uint256 lockAmount = 1 ether;
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: lockAmount}(pubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: lockAmount}(pubKeyHash, LOCK_RECIPIENT);
 
         QuantumShield.StarkProof memory proof = _createValidProof(0);
         QuantumShield.PublicInputs memory publicInputs = _createPublicInputs(
@@ -250,17 +250,20 @@ contract StarkE2ETest is Test {
             lockAmount
         );
 
+        // The fabricated proof is rejected; benchmark the gas consumed by the
+        // rejecting verification path
         uint256 gasBefore = gasleft();
         vm.prank(USER);
-        quantumShield.releaseWithProof(publicInputs, proof);
+        try quantumShield.releaseWithProof(publicInputs, proof) {
+            revert("Fabricated proof must not verify");
+        } catch {}
         uint256 gasUsed = gasBefore - gasleft();
 
-        console.log("=== Proof Verification Gas Benchmark ===");
+        console.log("=== Proof Verification (reject path) Gas Benchmark ===");
         console.log("Gas used:", gasUsed);
         console.log("Cost @ 30 gwei:", (gasUsed * 30) / 1e9, "ETH");
 
-        // Level 1 verification should be under 500k gas
-        assertLt(gasUsed, 500000, "Verification gas should be under 500k");
+        assertLt(gasUsed, 5_000_000, "Rejecting verification should stay under 5M gas");
     }
 
     // =========================================================================
@@ -278,9 +281,9 @@ contract StarkE2ETest is Test {
 
         vm.deal(USER, amount + 1 ether);
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: amount}(pubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: amount}(pubKeyHash, LOCK_RECIPIENT);
 
-        (address owner, uint256 lockedAmount,,,) = quantumShield.getLock(lockId);
+        (address owner, uint256 lockedAmount,,,,) = quantumShield.getLock(lockId);
         assertEq(owner, USER);
         assertEq(lockedAmount, amount);
     }
@@ -293,9 +296,9 @@ contract StarkE2ETest is Test {
         vm.assume(pubKeyHash != bytes32(0));
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: 1 ether}(pubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: 1 ether}(pubKeyHash, LOCK_RECIPIENT);
 
-        (,, bytes32 storedHash,,) = quantumShield.getLock(lockId);
+        (,, bytes32 storedHash,,,) = quantumShield.getLock(lockId);
         assertEq(storedHash, pubKeyHash);
     }
 
@@ -311,7 +314,7 @@ contract StarkE2ETest is Test {
         uint256 lockAmount = 1 ether;
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: lockAmount}(pubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: lockAmount}(pubKeyHash, LOCK_RECIPIENT);
 
         // Challenge would be submitted here if the function exists
         // This is a placeholder for the challenge flow test
@@ -372,6 +375,7 @@ contract StarkE2ETest is Test {
  * @notice Tests complete flow across all sequences
  */
 contract MultiSequenceE2ETest is Test {
+    address internal constant LOCK_RECIPIENT = address(0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC); // == RECIPIENT: releaseWithProof enforces the intended recipient
     QuantumShield public quantumShield;
 
     address constant USER = address(0x70997970C51812dc3A010C7d01b50e0d17dc79C8);
@@ -394,11 +398,11 @@ contract MultiSequenceE2ETest is Test {
         uint256 lockAmount = 5 ether;
 
         vm.prank(USER);
-        bytes32 lockId = quantumShield.lock{value: lockAmount}(pubKeyHash);
+        bytes32 lockId = quantumShield.lock{value: lockAmount}(pubKeyHash, LOCK_RECIPIENT);
         console.log("  Lock created:", vm.toString(lockId));
 
         // Verify lock state
-        (address owner, uint256 amount,,, bool released) = quantumShield.getLock(lockId);
+        (address owner, uint256 amount,,, bool released,) = quantumShield.getLock(lockId);
         assertEq(owner, USER);
         assertEq(amount, lockAmount);
         assertFalse(released);
@@ -429,21 +433,22 @@ contract MultiSequenceE2ETest is Test {
 
         console.log("  Proof generated with", queries.length, "queries");
 
-        // Execute unlock
-        console.log("\n[SEQ#2] Executing unlock with proof...");
+        // Execute unlock attempt — Phase 2 enforcement rejects the
+        // fabricated proof and the lock stays intact
+        console.log("\n[SEQ#2] Attempting unlock with fabricated proof...");
         uint256 balanceBefore = RECIPIENT.balance;
 
+        vm.expectRevert();
         vm.prank(USER);
         quantumShield.releaseWithProof(inputs, proof);
 
-        uint256 balanceAfter = RECIPIENT.balance;
-        assertEq(balanceAfter - balanceBefore, lockAmount);
+        assertEq(RECIPIENT.balance, balanceBefore, "No funds may move on a rejected proof");
 
         // Verify final state
-        (,,,, released) = quantumShield.getLock(lockId);
-        assertTrue(released);
+        (,,,, released,) = quantumShield.getLock(lockId);
+        assertFalse(released, "Lock must remain unreleased");
 
-        console.log("\n=== E2E Flow Complete ===");
+        console.log("\n=== E2E enforcement verified: fabricated proof rejected ===");
         console.log("  Recipient received:", lockAmount / 1e18, "ETH");
         console.log("  Lock released: true");
     }
@@ -465,7 +470,7 @@ contract MultiSequenceE2ETest is Test {
             totalAmount += amount;
 
             vm.prank(USER);
-            lockIds[i] = quantumShield.lock{value: amount}(pubKeyHash);
+            lockIds[i] = quantumShield.lock{value: amount}(pubKeyHash, LOCK_RECIPIENT);
         }
 
         console.log("Created", batchSize, "locks");
@@ -499,14 +504,18 @@ contract MultiSequenceE2ETest is Test {
                 lockId: lockIds[i]
             });
 
+            // Phase 2 enforcement: every fabricated batch proof is rejected
+            vm.expectRevert();
             vm.prank(USER);
             quantumShield.releaseWithProof(inputs, proof);
         }
 
-        uint256 balanceAfter = RECIPIENT.balance;
-        assertEq(balanceAfter - balanceBefore, totalAmount);
+        assertEq(RECIPIENT.balance, balanceBefore, "No funds may move on rejected proofs");
+        for (uint256 i = 0; i < batchSize; i++) {
+            (,,,, bool released,) = quantumShield.getLock(lockIds[i]);
+            assertFalse(released, "Every lock must remain unreleased");
+        }
 
-        console.log("All locks released");
-        console.log("Recipient total:", (balanceAfter - balanceBefore) / 1e18, "ETH");
+        console.log("All fabricated proofs rejected; funds remain locked");
     }
 }

@@ -27,7 +27,7 @@
       },
       "transparency": {
         "title": "Complete Transparency",
-        "description": "All transactions and challenges are publicly verifiable on-chain"
+        "description": "Transactions and challenges are published and recorded on-chain and traceable (cryptographic enforcement is being implemented proof-based)"
       },
       "analytics": {
         "title": "Detailed Analytics",
@@ -88,7 +88,7 @@
     },
     "cta": {
       "title": "Start Exploring Now",
-      "description": "Experience the transparency of the Quantum Shield protocol. All transactions are verifiable on-chain.",
+      "description": "Experience the transparency of the Quantum Shield protocol. Transactions are recorded on-chain for anyone to trace and inspect.",
       "button": "Open Explorer"
     },
     "footer": {

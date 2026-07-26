@@ -61,10 +61,90 @@ contract L1VaultSignatureSHA3Test is Test {
     }
 
     /// @notice FR-GOV-1: the verifier can be replaced but never unset
-    function test_SetVerifier_Zero_Reverts() public {
+    function test_ProposeVerifier_Zero_Reverts() public {
         vm.expectRevert(L1Vault.VerifierNotSet.selector);
-        vault.setSPHINCSVerifier(address(0));
+        vault.proposeSPHINCSVerifier(address(0));
         assertTrue(vault.isFullVerificationEnabled(), "Verification must remain enforced");
+    }
+
+    /// @notice FR-GOV-2: full propose -> approve -> timelock -> execute flow
+    function test_VerifierUpdate_FullGovernanceFlow() public {
+        address newVerifier = address(new MockSPHINCSVerifier());
+
+        vault.proposeSPHINCSVerifier(newVerifier);
+
+        vm.prank(securityCouncil);
+        vault.approveSPHINCSVerifier(newVerifier);
+
+        // Timelock not yet expired
+        vm.expectRevert(L1Vault.VerifierTimelockActive.selector);
+        vault.executeSPHINCSVerifierUpdate();
+
+        vm.warp(block.timestamp + vault.VERIFIER_UPDATE_DELAY() + 1);
+        vault.executeSPHINCSVerifierUpdate();
+
+        assertEq(vault.getSPHINCSVerifier(), newVerifier, "Verifier should be swapped");
+        assertEq(vault.pendingSphincsVerifier(), address(0), "Proposal should be cleared");
+    }
+
+    /// @notice FR-GOV-2: execution without council approval must revert
+    function test_VerifierUpdate_WithoutApproval_Reverts() public {
+        vault.proposeSPHINCSVerifier(address(new MockSPHINCSVerifier()));
+        vm.warp(block.timestamp + vault.VERIFIER_UPDATE_DELAY() + 1);
+
+        vm.expectRevert(L1Vault.VerifierUpdateNotApproved.selector);
+        vault.executeSPHINCSVerifierUpdate();
+    }
+
+    /// @notice FR-GOV-2: owner alone cannot approve; council alone cannot propose
+    function test_VerifierUpdate_RoleSeparation() public {
+        address newVerifier = address(new MockSPHINCSVerifier());
+
+        // Council cannot propose
+        vm.prank(securityCouncil);
+        vm.expectRevert(L1Vault.NotOwner.selector);
+        vault.proposeSPHINCSVerifier(newVerifier);
+
+        // Owner cannot approve
+        vault.proposeSPHINCSVerifier(newVerifier);
+        vm.expectRevert(L1Vault.NotSecurityCouncil.selector);
+        vault.approveSPHINCSVerifier(newVerifier);
+    }
+
+    /// @notice FR-GOV-2: re-proposal invalidates a stale approval
+    function test_VerifierUpdate_ReproposalResetsApproval() public {
+        address verifierA = address(new MockSPHINCSVerifier());
+        address verifierB = address(new MockSPHINCSVerifier());
+
+        vault.proposeSPHINCSVerifier(verifierA);
+        vm.prank(securityCouncil);
+        vault.approveSPHINCSVerifier(verifierA);
+
+        // Owner swaps the proposal after approval — approval must not carry over
+        vault.proposeSPHINCSVerifier(verifierB);
+        vm.warp(block.timestamp + vault.VERIFIER_UPDATE_DELAY() + 1);
+
+        vm.expectRevert(L1Vault.VerifierUpdateNotApproved.selector);
+        vault.executeSPHINCSVerifierUpdate();
+
+        // Approval bound to the wrong address must also fail
+        vm.prank(securityCouncil);
+        vm.expectRevert(L1Vault.NoPendingVerifier.selector);
+        vault.approveSPHINCSVerifier(verifierA);
+    }
+
+    /// @notice FR-GOV-2: owner or council can cancel a pending proposal
+    function test_VerifierUpdate_Cancel() public {
+        address newVerifier = address(new MockSPHINCSVerifier());
+        vault.proposeSPHINCSVerifier(newVerifier);
+
+        vm.prank(securityCouncil);
+        vault.cancelSPHINCSVerifierUpdate();
+        assertEq(vault.pendingSphincsVerifier(), address(0), "Proposal should be cancelled");
+
+        // Nothing pending: execute reverts
+        vm.expectRevert(L1Vault.NoPendingVerifier.selector);
+        vault.executeSPHINCSVerifierUpdate();
     }
 
     /// @notice Threshold unlock succeeds when the verifier accepts 2/N signatures
@@ -83,12 +163,15 @@ contract L1VaultSignatureSHA3Test is Test {
     /// @notice Threshold unlock reverts when the verifier rejects the signatures —
     ///         the tautological fallback that accepted any bytes no longer exists
     function test_ThresholdUnlock_VerifierRejects_Reverts() public {
-        vault.setSPHINCSVerifier(address(new RejectingSPHINCSVerifier()));
-        bytes32 lockId = vault.lock{value: 1 ether}(recipient, DILITHIUM_PUBKEY);
+        // Dedicated vault wired to a verifier that rejects everything
+        L1Vault rejectingVault = new L1Vault(securityCouncil, address(new RejectingSPHINCSVerifier()));
+        rejectingVault.registerProver{value: 1 ether}(prover1, PROVER1_PUBKEY);
+        rejectingVault.registerProver{value: 1 ether}(prover2, PROVER2_PUBKEY);
+        bytes32 lockId = rejectingVault.lock{value: 1 ether}(recipient, DILITHIUM_PUBKEY);
 
         (bytes[] memory sigs, address[] memory signers) = _twoProverSignatures();
         vm.expectRevert(L1Vault.InsufficientSignatures.selector);
-        vault.requestUnlockLegacy(lockId, recipient, new bytes32[](0), lockId, sigs, signers);
+        rejectingVault.requestUnlockLegacy(lockId, recipient, new bytes32[](0), lockId, sigs, signers);
     }
 
     /// @notice Signatures from unregistered provers never count toward the threshold

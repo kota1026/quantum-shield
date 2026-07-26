@@ -214,7 +214,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 
 | 要件 | 対応コード/ドキュメント | 検証手段 | 状況 (2026-07-24) |
 |------|------------------------|----------|-------------------|
-| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🔴 未着手（R-2 のギャップ分析から） |
+| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🟡 ギャップ分析完了 → `STARK_AIR_GAP_ANALYSIS.md` (M0〜M5) |
 | FR-THRESH-2,6 | `L1Vault.sol`: `_verifySimplified` 削除、verifier 必須化 | 受け入れ基準 1 | 🟢 実装済み |
 | FR-THRESH-4 | `L1Vault.sol` `_verifyWithSPHINCSVerifier` + `SPHINCSVerifier.sol` | forge test（フル検証経路） | 🟢 実装済み（唯一の経路に） |
 | FR-THRESH-5 | `ProverRegistry.sol` | forge test + proof public input 整合テスト | 🔴 未着手 |
@@ -222,7 +222,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 | FR-L3-4 | `CoreLayer.stateVerifier` immutable | コードレビュー | 🟢 実装済み |
 | FR-L3-5 | `StateVerified` イベント emit | forge test | 🟢 実装済み |
 | FR-GOV-1 | `L1Vault.sol`: `setFullVerification` 削除、verifier unset 不可 | 受け入れ基準 4 | 🟢 実装済み |
-| FR-GOV-2 | `Timelock.sol` / `SecurityCouncil.sol` 経由の verifier 差替 | コードレビュー | 🔴 未着手（現状 owner+nonzero 制約のみ） |
+| FR-GOV-2 | `L1Vault.sol`: propose→SecurityCouncil 承認→48h Timelock→execute の 2 段階差替 | forge test (governance flow) | 🟢 実装済み |
 | FR-MSG-1 | `UNIFIED_SPEC.md` CP-5 | 受け入れ基準 5 | 🟢 実施済み |
 | FR-MSG-2 | 派生ドキュメント 3 件 | grep 検証 | 🟢 実施済み（archive は凍結） |
 | FR-MSG-3 | ピッチ資料・i18n | grep 検証 | 🔴 未着手 |
@@ -235,7 +235,46 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 
 | # | 論点 | 推奨 | 決定 |
 |---|------|------|:----:|
-| R-1 | 既存 Sepolia L1Vault は immutable。簡易経路削除は新 verifier 参照の設定変更で足りるか、Vault 再デプロイが必要か（blockchain.md「新 L1 作成禁止」との整合） | `sphincsVerifier` 差替 + `useFullVerification` 恒久化で対応可能かをまず検証。不可なら testnet 上での新 Vault は「新 L1 作成」に当たらないことを確認の上で判断 | 未決 |
-| R-2 | STARK 回路（SPHINCS+ 検証の AIR 化）の実装工数 — 既存 `AIRConstraints.sol` がどこまでカバーするか | 回路ギャップ分析を Phase 2 最初のタスクにする | 未決 |
-| R-3 | proof 生成の実行主体（Prover 自身 / 専用 proving service） | Phase 2 は専用 service（liveness は FR-THRESH-4 で担保）、Phase 3 で分散化 | 未決 |
-| R-4 | CP-5 の文言変更は「憲法は変更不可」原則と矛盾しないか | 本変更は保証の**強化**（検証可能性→強制）+ 実態の正確な表明であり、原則の弱体化ではないことを明記して承認プロセスを通す | 未決 |
+| R-1 | 既存 Sepolia L1Vault は immutable。簡易経路削除は新 verifier 参照の設定変更で足りるか、Vault 再デプロイが必要か（blockchain.md「新 L1 作成禁止」との整合） | **§12 の分析に基づき Option B（Sepolia 上への新 Vault デプロイ + 移行）を推奨**。即時の stopgap として Option A（旧 Vault のフル検証有効化）を併用 | 提案済み（要承認） |
+| R-2 | STARK 回路（SPHINCS+ 検証の AIR 化）の実装工数 — 既存 `AIRConstraints.sol` がどこまでカバーするか | **ギャップ分析完了 → `docs/core/STARK_AIR_GAP_ANALYSIS.md`**。SPHINCS+ 回路は未着手だが Dilithium 回路 (~6,000 行) と prover service が既存。G1〜G7 のギャップとマイルストーンを定義 | 分析済み |
+| R-3 | proof 生成の実行主体（Prover 自身 / 専用 proving service） | Phase 2 は専用 service（`src/crypto/stark-prover` が原型。liveness は FR-THRESH-4 で担保）、Phase 3 で分散化 | 未決 |
+| R-4 | CP-5 の文言変更は「憲法は変更不可」原則と矛盾しないか | 本変更は保証の**強化**（検証可能性→強制）+ 実態の正確な表明であり、原則の弱体化ではないことを明記して承認プロセスを通す | PR #200 マージにより実質承認 |
+
+---
+
+## 12. R-1 分析: 既存 Sepolia Vault への Phase 2 反映方針
+
+> 追記: 2026-07-24。決定者の承認待ち。
+
+### 前提事実
+
+- Phase 2 の L1Vault コード（簡易経路削除・verifier 必須化・FR-GOV-2 ガバナンス）は本リポジトリに実装済みだが、**Sepolia にデプロイ済みの Vault はプロキシなしの immutable コントラクト**であり、バイトコードに簡易経路（`_verifySimplified`）と `setFullVerification`（owner が検証を無効化できるスイッチ）を含んだままである
+- ドキュメント間で Vault アドレスが不一致: `blockchain.md` は `0x07012aeF...7260`、`SEQUENCES.md` は `0x6F889C00...1c67`。**反映作業前にどちらが正か on-chain で検証すること**
+- テストネット Vault の TVL は ~0.18 ETH（テスト資金のみ）であり、移行リスクは金銭的には僅少
+
+### 選択肢
+
+| Option | 内容 | 達成される保証 | コスト/リスク |
+|:------:|------|---------------|--------------|
+| **A** | 旧 Vault の設定変更のみ: `setSPHINCSVerifier` で実 verifier を設定し `setFullVerification(true)` を維持 | 検証は**現在**有効。ただし owner が単独でいつでも無効化可能（FR-GOV-1 未達）。簡易経路もバイトコードに残存 | 最小（tx 2 本）。「実装中」表明は変えられない |
+| **B** | Phase 2 コードの新 Vault を Sepolia にデプロイし、新規 Lock を新 Vault へ移行。旧 Vault は既存 Lock の Unlock 専用として残置（NFR-7 準拠） | FR-THRESH-2/6・FR-GOV-1/2 が**オンチェーンで**成立。受け入れ基準 3（不正 proof revert の実 tx）を取得可能 | デプロイ + config/blockchain.md/フロントエンドのアドレス更新。blockchain.md ルールの解釈確認が必要（下記） |
+| **C** | テストネットは現状維持し、次のマイルストーン（メインネット or 次期テストネット再構築)で Phase 2 コードを初回デプロイ | コードのみ。オンチェーン保証の実証なし | ゼロ。ただし Phase 2 完了宣言（§8）が不可能 |
+
+### blockchain.md「新 L1 作成禁止」との整合
+
+同ルールの趣旨は「**L1 チェーンを別チェーンに変えない / 既存デプロイを勝手に乱立させない**」であり、同一 Sepolia チェーン上でのプロトコル改訂に伴う新バージョンのコントラクトデプロイを禁じるものではないと解釈する（実際、ProverRegistry は「新規デプロイ予定 (TBD)」と記載されており、コントラクト追加は想定内）。ただしこの解釈の確定は決定者の承認事項とする。
+
+### 推奨
+
+**Option B を推奨**（即時の stopgap として Option A を併用可）。理由:
+1. §8 受け入れ基準 3・4 は旧 Vault では構造的に達成不可能（簡易経路と無効化スイッチがバイトコードに焼き込まれている）
+2. テストネットである今が移行コスト最小のタイミング（TVL 僅少・利用者限定）
+3. メインネットは初回から Phase 2 コードで launch する前提であり、テストネットで移行手順（新旧並走・旧 Lock の残置 Unlock）を検証しておく価値が高い
+
+### 実施手順（承認後）
+
+1. on-chain で現行 Vault アドレスを確定し、ドキュメント不一致を解消
+2. `SPHINCSVerifier` → `L1Vault`（Phase 2 版）の順に Sepolia へデプロイ（`script/DeployL1Vault.s.sol` 使用）
+3. Prover 登録 + Registry 接続、フル検証経路での lock→unlock 実 tx と**不正署名 revert の実 tx** を記録（受け入れ基準 3）
+4. `blockchain.md`・`config/default.yaml`・フロントエンド env のアドレス更新（旧 Vault は「legacy (unlock-only)」として記載残置）
+5. `docs/ACTUAL_STATE.md` に移行記録を追記

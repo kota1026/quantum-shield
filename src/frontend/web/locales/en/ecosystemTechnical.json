@@ -305,7 +305,7 @@
       },
       "cp5": {
         "title": "CP-5: Transparency",
-        "description": "All operations are verifiable on-chain. No secret computations exist. All state changes recorded on L3 chain."
+        "description": "All state changes are recorded on the L3 chain with verifiability as a design principle; trustless on-chain cryptographic enforcement is being implemented proof-based. No secret computations exist."
       }
     }
   },

@@ -57,6 +57,8 @@ contract L1Vault is ReentrancyGuard, Pausable {
     uint256 public constant REQUIRED_SIGNATURES = 2;
     uint256 public constant TOTAL_PROVERS = 5;
     uint256 public constant TVL_CAP = 400 ether;
+    /// @notice FR-GOV-2: delay between verifier proposal and execution
+    uint256 public constant VERIFIER_UPDATE_DELAY = 48 hours;
     uint256 public constant CHALLENGE_PERIOD = 12 hours;
     uint256 public constant DEFENSE_PERIOD = 48 hours;
     uint256 public constant MIN_CHALLENGE_BOND = 0.1 ether;
@@ -166,6 +168,10 @@ contract L1Vault is ReentrancyGuard, Pausable {
     event ProverSlashed(address indexed prover, uint256 amount, bytes32 reason);
     event StateRootUpdated(bytes32 indexed newRoot, uint256 indexed blockNumber);
     event SPHINCSVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    /// @notice FR-GOV-2 verifier governance events
+    event SPHINCSVerifierProposed(address indexed newVerifier, uint256 executableAt);
+    event SPHINCSVerifierApproved(address indexed newVerifier);
+    event SPHINCSVerifierProposalCancelled(address indexed cancelledVerifier);
 
     /// @notice Emitted when prover registry is updated
     /// @dev v3.0: Prover management is now handled by separate registry
@@ -242,6 +248,10 @@ contract L1Vault is ReentrancyGuard, Pausable {
     error UnlockNotFound();
     error InvalidPublicKeyLength();
     error VerifierNotSet();
+    /// @dev FR-GOV-2 verifier governance errors
+    error NoPendingVerifier();
+    error VerifierUpdateNotApproved();
+    error VerifierTimelockActive();
     error DefensePeriodNotExpired();
     error DefensePeriodExpired();
     error NotActiveProver();
@@ -263,6 +273,11 @@ contract L1Vault is ReentrancyGuard, Pausable {
     address public owner;
     address public securityCouncil;
     ISPHINCSVerifier public sphincsVerifier;
+
+    /// @notice FR-GOV-2: pending verifier proposal state
+    address public pendingSphincsVerifier;
+    uint256 public verifierProposedAt;
+    bool public verifierUpdateApproved;
 
     /// @notice External Prover Registry contract (v3.0 architecture)
     /// @dev When set, prover lookups use registry instead of local mapping
@@ -1015,13 +1030,62 @@ contract L1Vault is ReentrancyGuard, Pausable {
         emit StateRootUpdated(newStateRoot, block.number);
     }
 
-    /// @dev FR-GOV-1: the verifier can be replaced but never unset — no owner
-    ///      path may downgrade unlocks to unverified signatures
-    function setSPHINCSVerifier(address _sphincsVerifier) external onlyOwner {
+    // =========================================================================
+    // Verifier Governance (FR-GOV-1/2)
+    // =========================================================================
+    // FR-GOV-1: the verifier can be replaced but never unset — no owner path
+    // may downgrade unlocks to unverified signatures.
+    // FR-GOV-2: replacement is a two-step process — owner proposes, the
+    // Security Council approves, and execution is possible only after a
+    // 48h timelock, so a compromised owner key alone cannot swap in a
+    // weakened (e.g. no-op) verifier.
+
+    /// @notice Propose a new SPHINCS+ verifier (step 1 of 3)
+    /// @dev Re-proposing overwrites the pending proposal and resets the
+    ///      timelock and any prior council approval
+    function proposeSPHINCSVerifier(address _sphincsVerifier) external onlyOwner {
         if (_sphincsVerifier == address(0)) revert VerifierNotSet();
+        pendingSphincsVerifier = _sphincsVerifier;
+        verifierProposedAt = block.timestamp;
+        verifierUpdateApproved = false;
+        emit SPHINCSVerifierProposed(_sphincsVerifier, block.timestamp + VERIFIER_UPDATE_DELAY);
+    }
+
+    /// @notice Approve the pending verifier proposal (step 2 of 3)
+    function approveSPHINCSVerifier(address _sphincsVerifier) external onlySecurityCouncil {
+        if (pendingSphincsVerifier == address(0)) revert NoPendingVerifier();
+        // Bind the approval to the exact address so a re-proposal cannot
+        // ride on a stale approval
+        if (_sphincsVerifier != pendingSphincsVerifier) revert NoPendingVerifier();
+        verifierUpdateApproved = true;
+        emit SPHINCSVerifierApproved(_sphincsVerifier);
+    }
+
+    /// @notice Execute the approved verifier update after the timelock (step 3 of 3)
+    /// @dev Callable by anyone once approved and matured
+    function executeSPHINCSVerifierUpdate() external {
+        address newVerifier = pendingSphincsVerifier;
+        if (newVerifier == address(0)) revert NoPendingVerifier();
+        if (!verifierUpdateApproved) revert VerifierUpdateNotApproved();
+        if (block.timestamp < verifierProposedAt + VERIFIER_UPDATE_DELAY) revert VerifierTimelockActive();
+
         address oldVerifier = address(sphincsVerifier);
-        sphincsVerifier = ISPHINCSVerifier(_sphincsVerifier);
-        emit SPHINCSVerifierUpdated(oldVerifier, _sphincsVerifier);
+        sphincsVerifier = ISPHINCSVerifier(newVerifier);
+        pendingSphincsVerifier = address(0);
+        verifierProposedAt = 0;
+        verifierUpdateApproved = false;
+        emit SPHINCSVerifierUpdated(oldVerifier, newVerifier);
+    }
+
+    /// @notice Cancel the pending verifier proposal
+    function cancelSPHINCSVerifierUpdate() external {
+        if (msg.sender != owner && msg.sender != securityCouncil) revert NotOwner();
+        if (pendingSphincsVerifier == address(0)) revert NoPendingVerifier();
+        address cancelled = pendingSphincsVerifier;
+        pendingSphincsVerifier = address(0);
+        verifierProposedAt = 0;
+        verifierUpdateApproved = false;
+        emit SPHINCSVerifierProposalCancelled(cancelled);
     }
 
     /// @notice Set the external Prover Registry contract
