@@ -290,3 +290,39 @@ Plonky3 は logup ベースの lookup をサポートするため、M2b はこ�
 2. **M0.5-impl**: §9 仕様に基づき専用 CI で SNARK wrap 実装。
 3. **R-1 受け入れ基準 3 の証跡**: 新 Vault (`0x314703AC…`) で不正署名 Unlock の revert tx を取得し `ACTUAL_STATE.md` に記録（FR-THRESH-4 フル検証経路の強制実証）。
 4. **M2c → M3 → M4 → M5**: FORS/hypertree → 集約/閾値 → オンチェーン統合 → E2E。
+
+---
+
+## 11. M2b 実測結果 + M2b-2 仕様 (2026-07-26)
+
+### 11.1 M2b-1: フル WOTS+ 導出（`src/crypto/circuits/wots-full-m2`）
+
+M1（単一チェーン）を **完全な WOTS+ インスタンス**へ拡張: メッセージダイジェストの base-w 分解 + チェックサム + len=35 チェーンを実装し、導出が行う全 Keccak-f 置換を keccak-air で証明。各 F は `sha3` 参照と一致を assert。
+
+| 単位 | 置換数 | prove (ms) | verify (ms) | proof (bytes) | ok |
+|------|------:|-----------:|------------:|--------------:|:--:|
+| フル WOTS+ 公開鍵 | 300 | 12,802 | 24.2 | 2,709,812 | ✅ |
+
+- 置換数 300 は検証側チェーン（各桁 `w-1-d_i` ステップ）の合計。全置換の keccak-air 証明が verify 成功。
+- per-perm ~42.7ms → **フル署名 ~8000 置換で ~5.7 分**（単一スレッド・保守 FRI）。M0/M1 と整合し NFR-3 (≤1h) を満たす。
+
+### 11.2 M2b-2 仕様: chain ↔ keccak-air の cross-table lookup（検証済み API）
+
+Plonky3 に **`p3-lookup`（logup）+ `p3-batch-stark`** が存在し、本 pinned rev に **2 テーブル global-lookup の動作テスト**（`batch-stark/tests/simple.rs` の MulAir↔FibAir）があることを確認済み。keccak-air は `export` 列（multiset equality 用）と `preimage`（入力状態）/ `a_prime_prime_prime`（出力状態）を公開しており、**lookup の Send 側として設計されている**。
+
+実装方式（M2b-2, 専用実装タスク）:
+1. **keccak テーブル**（`KeccakAir`）: 各置換行が `export` フラグ付きで `(preimage, output)` を **`Direction::Send`**（`Kind::Global("keccak_f")`）。
+2. **chain テーブル**（M2a `ChainAir` 拡張）: 各遷移行が `(local.state, next.state)` を **`Direction::Receive`**（同 `Kind::Global`）。round 制約は持たず、「その遷移は keccak テーブルが証明した Keccak-f である」ことを lookup で束縛。
+3. **合成**: `CommonData::from_airs_and_degrees` → `StarkInstance::new_multiple` → `LogUpGadget::new()` → `prove_batch` / `verify_batch`。
+4. multiplicity バランス（各置換 1 送信 = 各遷移 1 受信）とパディング行のセレクタ処理が実装上の要点。
+
+これにより「置換の暗号的正しさ（keccak-air, M1）」＋「連鎖順序（chain AIR, M2a）」が **1 つの batch STARK 証明**に合成される。API 実現可能性は確認済み（参照テストあり）で、残るは配線実装のみ。
+
+### 11.3 マイルストーン更新
+
+| | 状態 |
+|--|--|
+| M2a（チェーン結合拘束） | ✅ §8 |
+| M2b-1（フル WOTS+ スケール実証） | ✅ §11.1 |
+| M2b-2（chain↔keccak-air lookup 配線） | 🟡 検証済み API 仕様確定 → §11.2（実装が次段） |
+| M2c（FORS + hypertree） | 🔴 未着手 |
