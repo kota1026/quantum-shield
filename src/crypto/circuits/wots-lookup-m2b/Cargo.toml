@@ -1,0 +1,30 @@
+[package]
+name = "wots-lookup-m2b"
+version = "0.1.0"
+edition = "2021"
+description = "M2b-2: cross-table lookup wiring — a chain table's transitions are bound to a producer table's (in,out) rows via p3-lookup logup + p3-batch-stark, composing chaining (M2a) with a separately-proven transition table (keccak-air stand-in) in one batch STARK. Includes a negative test."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-batch-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-lookup = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+rand = "0.9"
+
+[[bin]]
+name = "wots-lookup-m2b"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
