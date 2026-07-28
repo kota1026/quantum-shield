@@ -68,13 +68,14 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 |---|------|--------------------|:------------:|
 | M0 | 技術選定: 自前スタック vs Plonky3 (keccak-air 再利用) の PoC 比較 | SHAKE256 1 置換の proof 生成/検証時間・proof サイズの実測比較レポート | ✅ **完了 → §5** |
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §6** |
-| M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7 |
+| **M2a** | **リンク AIR: 置換間チェーン結合 + ADRS/パディング構造 + public 束縛**（M1 の明示的残課題） | 35 チェーン WOTS+ ユニットの honest proof が verify し、リンク構造のみを壊した改竄 witness（keccak 置換は全て有効）が reject される | ✅ **完了 → §8** |
+| M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7（M2a で一部完了） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | G2, G3 |
 | **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
-**逐次依存**: M0 ✅ → M1 ✅ → M2 → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
+**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2 (FORS + hypertree) → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
 **M0 で判明した最重要事項**: 生の STARK proof は 2.8MB で L1 直接投稿不可。M4 の前に **M0.5 (proof wrapping)** が必須クリティカルパスになった。
 **リスク最大要素**: M2 の proof 生成時間。SPHINCS+ はハッシュ回数が多く、NFR-3 (≤1h) を満たせない場合は (a) 集約バッチの分割、(b) ハード増強、(c) 閾値検証のみ回路化し署名検証はフォールバック経路 (FR-THRESH-4) 併用継続 — の順に検討する。
 
@@ -217,4 +218,47 @@ M0 で判明した「生 proof が大きすぎて L1 に載らない」問題に
 ```bash
 cd src/crypto/circuits/wrap-m05
 cargo run --release   # FRI パラメータを振って proof サイズを出力
+```
+
+---
+
+## 8. M2a 実測結果: リンク AIR — 置換間チェーン結合 + ADRS 構造制約 (2026-07-28)
+
+### 8.1 実施内容
+
+`src/crypto/circuits/wots-link-m2a` に、M1 が明示的に残課題とした **(a) 置換間チェーン結合、(b) ADRS/パディングの構造的正当性** を制約化するリンク AIR を実装した。keccak-air のトレースを 42 列のリンク列（`is_real` / `chain_step` / `links_next` / chain-first/last フラグ + 逆元 witness / 35 幅 one-hot チェーンセレクタ）で水平拡張し、keccak-air 本体は `p3_uni_stark::SubAirBuilder` 経由で**無改変のまま**先頭列に適用する。
+
+追加制約は全て **degree ≤ 3**（keccak-air 自身と同じ quotient 次数予算のため、プローバのコスト特性は不変）:
+
+1. **SHAKE256 吸収構造**: pad10*1（0x1F / 0x80）と capacity レーン = 0
+2. **FIPS 205 WOTS_HASH ADRS レイアウト**: layer/tree/keypair は public input、type = 0、chain address = one-hot チェーン番号、hash address = ステップカウンタ（BE u32 のリム分解として制約）
+3. **チェーン結合**: F 出力先頭 16 バイト（出力レーン 0-1）= 次置換の M 入力（レーン 6-7）
+4. **public 束縛**: 各チェーンの開始値（step 0 の M）と終了値（step 14 の F 出力）を one-hot 選択で public input に束縛（計 578 public values）
+5. **形状の強制**: one-hot の歩進制約（チェーン内は保持、チェーン境界で 1 シフト、wrap 禁止）+「real 行は Σ one-hot = 1、padding 行は全 0」により、**35 チェーン × 15 ステップを順番に完走してからでないと padding に入れない**ことが制約系だけで強制される
+
+### 8.2 実測値（16,384 行 × 2,675 列、FRI: log_blowup=3 / 100 queries / pow 16、単一スレッド）
+
+| ケース | prove (ms) | verify (ms) | proof (bytes) | 期待 | 結果 |
+|--------|-----------:|------------:|--------------:|:----:|:----:|
+| honest（35 チェーン / 525 置換） | 28,746 | 34.7 | 2,804,796 | accept | ✅ PASS |
+| break-chain (c12, s7) | 25,609 | 32.2 | 2,804,796 | reject | ✅ PASS |
+| wrong-hash-addr (c3) | 25,064 | 32.2 | 2,804,796 | reject | ✅ PASS |
+| wrong-chain-addr (c5) | 25,485 | 33.9 | 2,804,796 | reject | ✅ PASS |
+| wrong-adrs-type (c0) | 24,701 | 31.9 | 2,804,796 | reject | ✅ PASS |
+| forged-end (c20) | 24,855 | 34.3 | 2,804,796 | reject | ✅ PASS |
+| forged-start (c0) | 24,519 | 32.5 | 2,804,796 | reject | ✅ PASS |
+| forged-pk-seed | 25,326 | 33.3 | 2,804,796 | reject | ✅ PASS |
+
+### 8.3 所見
+
+1. **改竄 witness は全て「有効な Keccak-f 置換のみ」で構成**されており、M1 の回路（keccak-air 単体）なら全件 accept される。7/7 の reject はリンク制約のみによって成立しており、M1 の残課題 (a)(b) が実測で閉じた。改竄クラスはチェーン切断・ADRS 3 種（hash/chain addr, type）・public 偽造 3 種（start/end/pk_seed）をカバー。
+2. **リンク列のオーバーヘッドは無視できる**: 列数 +1.6%（2,633→2,675）、prove 時間は ~55 ms/実置換で M1 実測（~57 ms/置換）と同水準。proof サイズは trace 高さ（16,384 行）に律速され 2.80 MB — M0 の結論（wrapping 必須）に変化なし。
+3. **35 チェーンの ADRS を FIPS 205 レイアウトで制約**（M1 の stand-in ADRS を置換）。tweakable hash F の sha3 参照照合は M1 同様全置換で assert 済み。
+4. **M2 の残りスコープ**: 署名 digit 駆動の可変長チェーン（検証時は w-1-digit ステップ）、WOTS+ pk 圧縮（T_len）、FORS + hypertree の認証パス、FIPS 205 KAT。可変長チェーンは chain_step の開始値を witness 化し digit を public 束縛する拡張で、本 AIR の one-hot / カウンタ構造をそのまま流用できる。
+
+### 8.4 再現方法
+
+```bash
+cd src/crypto/circuits/wots-link-m2a
+cargo run --release   # honest 1 件 + 改竄 7 件を prove/verify、全 PASS で exit 0
 ```
