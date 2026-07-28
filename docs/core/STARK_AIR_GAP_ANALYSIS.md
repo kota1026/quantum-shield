@@ -68,7 +68,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 |---|------|--------------------|:------------:|
 | M0 | 技術選定: 自前スタック vs Plonky3 (keccak-air 再利用) の PoC 比較 | SHAKE256 1 置換の proof 生成/検証時間・proof サイズの実測比較レポート | ✅ **完了 → §5** |
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §6** |
-| M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7 |
+| M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | 🟡 **M2a/M2b-1/M2b-2 完了 → §8,§11**。残: keccak-air 差替 + M2c(FORS/hypertree) |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | G2, G3 |
 | **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
@@ -218,3 +218,120 @@ M0 で判明した「生 proof が大きすぎて L1 に載らない」問題に
 cd src/crypto/circuits/wrap-m05
 cargo run --release   # FRI パラメータを振って proof サイズを出力
 ```
+
+---
+
+## 8. M2 計画 + M2a 実測結果: チェーン結合の拘束 (2026-07-26)
+
+### 8.1 M2 の分解
+
+M2（SPHINCS+ 1 署名フル検証回路）を 3 段に分解:
+
+| 段 | 内容 | 状態 |
+|----|------|------|
+| **M2a** | **チェーン結合の拘束**（perm_i の出力 = perm_{i+1} の入力を回路内で強制）。M1 の keccak-air は各置換の正しさは証明するが、それらが連鎖している保証がない — ここが M2 の技術的最大リスク | ✅ **de-risk 完了 → §8.2** |
+| M2b | フル WOTS+ 公開鍵導出（len=35 チェーン）+ ADRS 構造の拘束 | 🔴 未着手 |
+| M2c | FORS（k 木）+ hypertree（d=7 層の WOTS+ 認証パス）+ ルート照合 | 🔴 未着手 |
+
+### 8.2 M2a 実測結果（`src/crypto/circuits/wots-link-m2`）
+
+カスタム Plonky3 `ChainAir` を実装し、**チェーン結合を transition 制約で強制できる**ことを実証。
+
+- 列 `state`、transition 制約 `next.state == round(local.state)`（`round(x)=x^5+RC` は tweakable hash F の低次代数スタンドイン）、public `[start, end]` を先頭/末尾行に束縛。
+- 結果:
+
+| ケース | 結果 |
+|--------|------|
+| 正当なチェーン | prove ok / **verify = true** |
+| public `end` 改竄 | **拒否** |
+| 中間ステップ改竄（1 行破壊） | **拒否** |
+
+**結論**: 「連続する行が固定の遷移に従う」ことを Plonky3 uni-stark AIR で強制でき、改竄は確実に検証失敗する。**M2 の最大リスク（チェーン結合の拘束可能性）は解消**。
+
+### 8.3 keccak-air との統合方式（M2b への橋渡し）
+
+M2a は `round` を代数関数にしているが、本番の F は SHAKE256 = Keccak-f。統合は**lookup 引数**で行う:
+1. keccak-air が全 Keccak-f 置換の (入力状態, 出力状態) テーブルを生成（M1 で実証済み）。
+2. リンク AIR（M2a 拡張）の `state` 列の各遷移 (x_i → x_{i+1}) を、上記テーブルへの **lookup** として拘束する（`x_{i+1}` は「x_i を入力とする Keccak-f の出力」であることを、keccak-air が別途証明した事実に紐付ける）。
+3. これにより「置換の正しさ（keccak-air）」＋「連鎖の正しさ（リンク AIR）」が 1 つの証明に合成される。
+
+Plonky3 は logup ベースの lookup をサポートするため、M2b はこの lookup 配線 + ADRS エンコードの拘束が中心となる。
+
+---
+
+## 9. M0.5-impl 仕様（SNARK wrap 実装 — 専用 CI 環境向け）
+
+§7 で生 STARK proof が L1 投稿不可（最小 843KB）と確定したため、最終段で SNARK wrap が必須。本サンドボックスでは wrap ツールチェーンがビルド不可のため、実装は専用 CI に委譲するが、以下を確定仕様とする。
+
+### 9.1 推奨実装（方式 C: 再帰集約 → Groth16 wrap）
+
+1. **再帰集約**: フル署名の ~8000 Keccak-f 置換を複数の STARK proof に分割生成し、Plonky3 の再帰（proof-of-proofs）で 1 つの STARK に畳む。
+2. **最終 SNARK wrap**: 集約 STARK 検証器を Groth16 回路として表現し、最終 proof を ~200 bytes に圧縮。EVM 検証 ~250K gas。
+   - ツール候補: `gnark`（Go、成熟）または `halo2`（setup 不要だが verifier がやや大）。
+   - Groth16 は回路固有 trusted setup（Powers of Tau + 回路固有 phase2）が必要。運用は「1 回のセレモニー → CRS を公開・オンチェーン検証器に埋め込み」。
+
+### 9.2 成果物（CI で満たすべき完了条件）
+
+- [ ] 集約 STARK proof の生成（複数 keccak proof → 1 proof）
+- [ ] wrap した最終 proof のサイズ ≤ 10 KB、EVM 検証ガス ≤ 300K の実測
+- [ ] Solidity 検証器コントラクト（Groth16Verifier）+ forge テスト（正当 proof 受理 / 改竄 proof revert）
+- [ ] `L1Vault` / `STARKVerifier.sol` からの呼び出し配線（M4）
+
+### 9.3 環境要件
+
+- Go + gnark あるいは Rust + halo2 のビルド（外部 crate/module 取得可能な CI）
+- Powers of Tau ceremony 成果物（既存の公開 ptau を再利用可）
+
+---
+
+## 10. 次アクション（優先順）
+
+1. **M2b**: リンク AIR ↔ keccak-air の lookup 配線（§8.3）+ フル WOTS+（len=35）。本環境で着手可能。
+2. **M0.5-impl**: §9 仕様に基づき専用 CI で SNARK wrap 実装。
+3. **R-1 受け入れ基準 3 の証跡**: 新 Vault (`0x314703AC…`) で不正署名 Unlock の revert tx を取得し `ACTUAL_STATE.md` に記録（FR-THRESH-4 フル検証経路の強制実証）。
+4. **M2c → M3 → M4 → M5**: FORS/hypertree → 集約/閾値 → オンチェーン統合 → E2E。
+
+---
+
+## 11. M2b 実測結果 + M2b-2 仕様 (2026-07-26)
+
+### 11.1 M2b-1: フル WOTS+ 導出（`src/crypto/circuits/wots-full-m2`）
+
+M1（単一チェーン）を **完全な WOTS+ インスタンス**へ拡張: メッセージダイジェストの base-w 分解 + チェックサム + len=35 チェーンを実装し、導出が行う全 Keccak-f 置換を keccak-air で証明。各 F は `sha3` 参照と一致を assert。
+
+| 単位 | 置換数 | prove (ms) | verify (ms) | proof (bytes) | ok |
+|------|------:|-----------:|------------:|--------------:|:--:|
+| フル WOTS+ 公開鍵 | 300 | 12,802 | 24.2 | 2,709,812 | ✅ |
+
+- 置換数 300 は検証側チェーン（各桁 `w-1-d_i` ステップ）の合計。全置換の keccak-air 証明が verify 成功。
+- per-perm ~42.7ms → **フル署名 ~8000 置換で ~5.7 分**（単一スレッド・保守 FRI）。M0/M1 と整合し NFR-3 (≤1h) を満たす。
+
+### 11.2 M2b-2 実測: chain ↔ producer の cross-table lookup（実装・実証済み）
+
+Plonky3 に **`p3-lookup`（logup）+ `p3-batch-stark`** が存在し、本 pinned rev に **2 テーブル global-lookup の動作テスト**（`batch-stark/tests/simple.rs` の MulAir↔FibAir）があることを確認済み。keccak-air は `export` 列（multiset equality 用）と `preimage`（入力状態）/ `a_prime_prime_prime`（出力状態）を公開しており、**lookup の Send 側として設計されている**。
+
+実装方式（M2b-2, 専用実装タスク）:
+1. **keccak テーブル**（`KeccakAir`）: 各置換行が `export` フラグ付きで `(preimage, output)` を **`Direction::Send`**（`Kind::Global("keccak_f")`）。
+2. **chain テーブル**（M2a `ChainAir` 拡張）: 各遷移行が `(local.state, next.state)` を **`Direction::Receive`**（同 `Kind::Global`）。round 制約は持たず、「その遷移は keccak テーブルが証明した Keccak-f である」ことを lookup で束縛。
+3. **合成**: `CommonData::from_airs_and_degrees` → `StarkInstance::new_multiple` → `LogUpGadget::new()` → `prove_batch` / `verify_batch`。
+4. multiplicity バランス（各置換 1 送信 = 各遷移 1 受信）とパディング行のセレクタ処理が実装上の要点。
+
+これにより「置換の暗号的正しさ（keccak-air, M1）」＋「連鎖順序（chain AIR, M2a）」が **1 つの batch STARK 証明**に合成される。API 実現可能性は確認済み（参照テストあり）で、残るは配線実装のみ。
+
+**実装・実測（`src/crypto/circuits/wots-lookup-m2b`）**: 上記方式を `p3-batch-stark` + `p3-lookup`（`LogUpGadget`）で実装。**producer テーブル**（`(in,out)` を Send）と **chain テーブル**（`(state,next_state)` を Receive、transition 制約で `next_state` を次行に束縛）を 1 つの batch STARK に合成:
+
+| ケース | 結果 |
+|--------|------|
+| 正当な合成（chain の全遷移が producer に裏付けられる） | **verify = true** |
+| producer 改竄（1 ペア破壊 → chain 遷移が裏付け無し） | **拒否** |
+
+→ **cross-table lookup で「chain の各遷移」を「producer が証明した (in,out) ペア」に束縛でき、multiset が崩れると検証失敗する**ことを動作コードで実証。producer をアルゴリズムスタンドインから **keccak-air（`export`/`preimage`/出力列）**に差し替えれば、M2a（連鎖）＋ M1（Keccak-f 正しさ）が **1 証明に合成**される。M2 の最後のクリティカルパスを de-risk 完了。
+
+### 11.3 マイルストーン更新
+
+| | 状態 |
+|--|--|
+| M2a（チェーン結合拘束） | ✅ §8 |
+| M2b-1（フル WOTS+ スケール実証） | ✅ §11.1 |
+| M2b-2（chain↔producer cross-table lookup） | ✅ 実装・実証 → §11.2（keccak-air 差替で M2 合成完成） |
+| M2c（FORS + hypertree） | 🔴 未着手 |
