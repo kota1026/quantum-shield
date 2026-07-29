@@ -69,13 +69,15 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M0 | 技術選定: 自前スタック vs Plonky3 (keccak-air 再利用) の PoC 比較 | SHAKE256 1 置換の proof 生成/検証時間・proof サイズの実測比較レポート | ✅ **完了 → §5** |
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §6** |
 | **M2a** | **リンク AIR: 置換間チェーン結合 + ADRS/パディング構造 + public 束縛**（M1 の明示的残課題） | 35 チェーン WOTS+ ユニットの honest proof が verify し、リンク構造のみを壊した改竄 witness（keccak 置換は全て有効）が reject される | ✅ **完了 → §8** |
-| M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7（M2a で一部完了） |
+| **M2b** | **署名検証形 WOTS+**: digit 駆動の可変長チェーン（開始 step = message digit）+ digit/checksum のネイティブ導出 + digit-15 チェーンのネイティブ検査 | 可変長 honest proof が verify し、digit 偽装・過走・不足・チェーンスキップ・public 偽造が全て reject される | ✅ **完了 → §9** |
+| M2c | 多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・hypertree 認証パス AIR | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測（方式は §9.5 spike 参照） | G1 |
+| M2d | フル署名結合 + FIPS 205 KAT + p99 計測（M2 完了条件） | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7 |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | G2, G3 |
 | **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
-**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2 (FORS + hypertree) → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
+**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c → M2d → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
 **M0 で判明した最重要事項**: 生の STARK proof は 2.8MB で L1 直接投稿不可。M4 の前に **M0.5 (proof wrapping)** が必須クリティカルパスになった。
 **リスク最大要素**: M2 の proof 生成時間。SPHINCS+ はハッシュ回数が多く、NFR-3 (≤1h) を満たせない場合は (a) 集約バッチの分割、(b) ハード増強、(c) 閾値検証のみ回路化し署名検証はフォールバック経路 (FR-THRESH-4) 併用継続 — の順に検討する。
 
@@ -261,4 +263,67 @@ cargo run --release   # FRI パラメータを振って proof サイズを出力
 ```bash
 cd src/crypto/circuits/wots-link-m2a
 cargo run --release   # honest 1 件 + 改竄 7 件を prove/verify、全 PASS で exit 0
+```
+
+---
+
+## 9. M2b 実測結果: 署名検証形 WOTS+ — digit 駆動可変長チェーン (2026-07-28)
+
+### 9.1 実施内容
+
+`src/crypto/circuits/wots-sig-m2b` に、FIPS 205 `wots_pkFromSig` の**検証形**を実装した。M2a は pk 生成形(全 35 チェーンが固定 15 ステップ)だったのに対し、検証はチェーン k を message digit d_k から w-2 まで走らせる(F 適用は 15−d_k 回)可変長・メッセージ依存の形になる。
+
+設計の要点:
+
+1. **digit はプローバから受け取らない**: len1 の message digit と len2 の checksum digit は検証側が message から `wots_digits` で導出する。checksum 等式は「public input のみから計算可能なものは AIR で制約せず検証側でネイティブに計算する」原則により回路外で成立し、短いチェーン(小さい digit)を主張する偽造は構造的に不可能。
+2. **digit = 15 のチェーンはネイティブ検査**: F を 1 回も適用しないため trace に一切現れない。pk_k == sig_k を検証側が proof を見る前にチェックする。
+3. **walk の再設計**: M2a の one-hot「+1 シフト」を「public な next_active テーブルへのジャンプ」に置き換え、inactive チェーンをスキップする。最終 active チェーンの next_active = 0 を「以降は padding」の番兵とする(正規の後続 index は常に > 0 なので健全。番兵経由でチェーン 0 に再入しても既に束縛済みセグメントの再証明にしかならず、チェーン 0 が inactive なら step=15 開始で終端不能となり最終行制約で reject される)。
+4. **チェーン入口の digit 束縛**: 先頭行と各チェーン境界で、突入チェーンの step カウンタ = public digit、M 入力 = public 署名要素を強制。
+5. **最終行は padding を強制** (`when_last_row`): これが無いと、全チェーンを歩き切る前に trace を打ち切り、残チェーンの pk 束縛を回避できる。**M2a にも(honest 高さ 16,384 では顕在化しないが、より小さい高さの不正 proof で悪用可能な)同種のギャップがあったため、同制約を M2a にも backport した**(§9.4)。
+
+追加制約は全て degree ≤ 3 を維持: public 値はスカラなので、one-hot 選択した public 結合(digit / next_active / sig / pk)は trace 列に関して degree 1 に留まる。リンク列は 40 列(M2a の 42 列から is_chain_first/inv_cf を削減 — チェーン先頭が step=0 とは限らなくなったため、先頭検出を境界遷移に統合)。
+
+### 9.2 実測値(8,192 行 × 2,673 列、33 active チェーン / 330 置換、FRI: log_blowup=3 / 100 queries / pow 16、単一スレッド)
+
+テスト message は digit のエッジケースを含む固定値: digit-15 チェーン 2 本(trace 非出現)、digit-0 チェーン(全長 15 ステップ)、先頭 active チェーン ≠ 0、checksum digit (1,2,1)。
+
+| ケース | prove (ms) | verify (ms) | proof (bytes) | 期待 | 結果 |
+|--------|-----------:|------------:|--------------:|:----:|:----:|
+| honest(33 チェーン / 330 置換) | 13,318 | 28.8 | 2,743,092 | accept | ✅ PASS |
+| break-chain (c5, s8) | 12,342 | 29.2 | 2,743,092 | reject | ✅ PASS |
+| wrong-start-digit (c12) | 14,661 | 28.8 | 2,743,092 | reject | ✅ PASS |
+| stop-early (c3) | 12,973 | 29.3 | 2,743,092 | reject | ✅ PASS |
+| overrun (c20) | 12,470 | 31.8 | 2,743,092 | reject | ✅ PASS |
+| skip-chain (c9) | 13,454 | 30.3 | 2,743,092 | reject | ✅ PASS |
+| forged-sig (c1) | 12,016 | 28.9 | 2,743,092 | reject | ✅ PASS |
+| forged-pk (c34, checksum チェーン) | 12,755 | 32.1 | 2,743,092 | reject | ✅ PASS |
+| forged-pk (c17, digit-15) | —(ネイティブ検査) | — | — | reject | ✅ PASS |
+
+### 9.3 所見
+
+1. **署名検証形が閉じた**: digit 偽装(1 ステップ手前から開始 = プレイメージ 1 段の偽造者が試みる形)・不足・過走・active チェーンのスキップが、全て有効な Keccak-f 置換のみからなる witness に対して制約側で reject された。checksum チェーン (c34) の pk 偽造も同様に reject。
+2. **prove は M1/M2a と同水準の ~40ms/実置換(高さ 8,192)**: trace が半分(16,384→8,192 行)になり prove ~13.3 秒。検証時間 ~29ms、proof 2.74MB は高さ依存で M0 の結論(wrapping 必須)に変化なし。
+3. **「public のみから計算可能なものは回路外」の設計原則が確立**: digit 導出・checksum 等式・digit-15 チェーンの pk==sig・next_active/first_active の導出は全て検証側ネイティブ計算で、AIR 制約ゼロで束縛される。この原則は M2c 以降の「public glue」(§9.5) に直結する。
+4. **M2 残りスコープ**: WOTS+ pk 圧縮 T_len(多ブロック吸収)、FORS + hypertree 認証パス(M2c)、H_msg 束縛 + フル署名結合 + FIPS 205 KAT(M2d)。
+
+### 9.4 M2a への backport
+
+`wots-link-m2a` の AIR に `when_last_row` の padding 強制を追加した(§9.1 の 5)。honest 高さでは挙動不変であることを全 8 ケースの再実行で確認済み(§9.6)。
+
+### 9.5 M2c spike: 多ブロック SHAKE256 吸収(XOR リンク)の実現性
+
+M2c の中核リスクは T_len(WOTS+ pk 圧縮: 入力 16+32+560 = 608 bytes → 5 ブロック)等の**多ブロック吸収**で、ブロック 2 以降の置換入力 = 「前置換出力 XOR 次ブロック」となり、体上で非線形な XOR が初めて必要になる。pinned keccak-air の列を調査した結果:
+
+- 置換出力は 16-bit limb 列(`a_prime_prime_prime`)で、**ビット列は lane (0,0) 以外に存在しない** → 出力ビットの再利用による XOR は不可。
+- ただし**吸収するブロックの中身が public 値であれば**、XOR に必要な追加列は「前置換出力 rate 部のビット分解 17 lane × 64 = 1,088 列」のみで済む: 出力ビット o_z(booleanity + limb への線形再構成で一意)と public ビット b_z に対し xor = o_z + b_z − 2·b_z·o_z は **o_z について線形**(b_z はスカラ)なので、吸収リンク制約は degree ≤ 3 を維持できる。列幅は 2,673 → ~3,761(+41%)、lookup 拡張は不要。
+- ブロックを public にする鍵が **public glue**: T_len の入力(35 個の pk 要素)は M2b で既に public input であり、T_len の出力(圧縮 pk)も public にして hypertree 側が public として消費する。各ハッシュ層の界面を public 値にすれば、witness 内の「散在する行から行への gather」(uni-stark に無い lookup/permutation 引数が必要)を完全に回避できる。FORS・hypertree の 2 入力ハッシュ H(入力 80 bytes)は単一ブロックのままで、M2a/M2b のリンク構造の変形で足りる。
+- 代償は public input の増加(界面ごとに 8 limb/値)と検証側の等値チェックだが、いずれも検証コストとして軽微。**M2c は「+1,088 ビット列 + public glue」方式で着手可能**と判断する。
+
+### 9.6 再現方法
+
+```bash
+cd src/crypto/circuits/wots-sig-m2b
+cargo run --release   # honest 1 件 + 改竄 proof 7 件 + ネイティブ検査 1 件、全 PASS で exit 0
+cd ../wots-link-m2a
+cargo run --release   # backport 後の M2a 全 8 ケース回帰確認
 ```

@@ -24,7 +24,10 @@ degree-≤3 constraints force:
    value; each chain's final output equals the public end value (one-hot
    selected public inputs, 578 public values total).
 5. **Shape** — the one-hot must walk chains 0..35 in order, 15 steps each;
-   padding cannot begin early and is terminal. The statement shape is fully
+   padding cannot begin early and is terminal, and the last trace row must be
+   padding (backported from M2b: without it, a proof at a dishonestly small
+   trace height could end mid-walk and leave later chains' end values
+   unbound). The statement shape is fully
    forced by the constraint system.
 
 ## What is NOT yet constrained (M2b+)
