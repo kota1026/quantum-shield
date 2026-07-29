@@ -1,0 +1,31 @@
+[package]
+name = "wots-link-m2a"
+version = "0.1.0"
+edition = "2021"
+description = "M2a: linking AIR over p3-keccak-air — constrains inter-permutation chaining, FIPS 205 ADRS layout and SHAKE256 padding for a full 35-chain WOTS+ (SPHINCS+-SHAKE-128s), with public-input binding of pk_seed/ADRS constants and per-chain start/end values."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-goldilocks = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+sha3 = "0.10"
+bincode = "1.3"
+
+[[bin]]
+name = "wots-link-m2a"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
