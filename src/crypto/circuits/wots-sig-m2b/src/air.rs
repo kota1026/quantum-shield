@@ -1,26 +1,37 @@
-//! M2a linking AIR: keccak-air plus chain-structure constraints.
+//! M2b signature-verification AIR: keccak-air plus digit-driven chain
+//! structure constraints.
 //!
 //! The trace is the p3-keccak-air trace (one Keccak-f[1600] permutation per
-//! 24 rows) horizontally extended with `LinkCols`. keccak-air proves each
-//! permutation is a correct Keccak-f; the link columns and the constraints in
-//! this module additionally force, for a full 35-chain WOTS+ unit
-//! (SPHINCS+-SHAKE-128s, w=16):
+//! 24 rows) horizontally extended with `LinkCols`. On top of M2a's linking
+//! constraints (SHAKE256 absorption structure, FIPS 205 WOTS_HASH ADRS
+//! layout, output->input chaining, public start/end binding), this AIR
+//! implements the *verification form* of WOTS+: chain k starts at hash
+//! address digit_k (the public base-w message digit) and runs to w-2, so
+//! chains have variable length and chains with digit = w-1 do not appear in
+//! the trace at all (their pk_k == sig_k check is native to the verifier).
 //!
-//!   1. every permutation input is a well-formed single-block SHAKE256
-//!      absorption of F(PK.seed, ADRS, M) — pad10*1 bytes and zero capacity,
-//!   2. the ADRS has the FIPS 205 WOTS_HASH layout: public layer/tree/keypair,
-//!      type = 0, chain address = the chain the permutation belongs to, hash
-//!      address = the step within the chain,
-//!   3. consecutive permutations of a chain are linked: the first 16 output
-//!      bytes of step s are the message input M of step s+1,
-//!   4. each chain's first M equals the public per-chain start value and each
-//!      chain's final output equals the public per-chain end value,
-//!   5. the trace contains exactly the 35 chains of 15 steps, in order —
-//!      the one-hot chain selector must walk 0..35 and padding cannot begin
-//!      before chain 34 completes (see the one-hot shift constraints).
+//! Differences from M2a's fixed-shape walk:
 //!
-//! All constraints have degree <= 3, the same budget keccak-air itself uses,
-//! so the quotient degree (and prover cost profile) is unchanged.
+//!   1. the one-hot "+1 shift" at chain boundaries is replaced by a jump to
+//!      the publicly-derived next active chain (`PI_NEXT_ACTIVE`), with 0 as
+//!      the "padding follows" sentinel on the last active chain — sound
+//!      because a genuine successor index is always > 0; re-entering chain 0
+//!      after the last active chain merely re-proves an already-bound
+//!      segment (and diverges into an unfinishable segment if chain 0 is
+//!      inactive, which the last-row constraint rejects),
+//!   2. at every chain entry (first trace row and every boundary) the step
+//!      counter is bound to the chain's public digit and the message input M
+//!      to the chain's public signature element,
+//!   3. the last trace row must be padding. Without this a prover could end
+//!      the trace mid-walk and leave the remaining chains' pk values
+//!      unbound. (M2a's fixed 35x15 walk has the same exposure at smaller
+//!      trace heights; its runner always proved at the honest height, but
+//!      the constraint belongs in the AIR — carried here and to be
+//!      backported.)
+//!
+//! All constraints have degree <= 3, the same budget keccak-air itself uses:
+//! public values are scalars, so one-hot-selected public combinations stay
+//! degree 1 in the trace columns.
 
 use core::borrow::{Borrow, BorrowMut};
 use core::mem::size_of;
@@ -31,22 +42,18 @@ use p3_keccak_air::{KeccakAir, KeccakCols, NUM_KECCAK_COLS, NUM_ROUNDS};
 use p3_matrix::Matrix;
 use p3_uni_stark::SubAirBuilder;
 
-use crate::wots::{CHAIN_STEPS, WOTS_LEN};
+use crate::wots::{MAX_STEP, WOTS_LEN};
 
-/// Link columns appended after the keccak-air columns. All are constant across
-/// the 24 rows of a permutation (enforced by transition constraints).
+/// Link columns appended after the keccak-air columns. All are constant
+/// across the 24 rows of a permutation (enforced by transition constraints).
 #[repr(C)]
 pub struct LinkCols<T> {
-    /// 1 on the 525 witness permutations, 0 on power-of-two padding.
+    /// 1 on witness permutations, 0 on power-of-two padding.
     pub is_real: T,
-    /// Step within the current WOTS+ chain: 0..=14. 0 on padding.
+    /// Hash address of this permutation's F: digit_k ..= 14. 0 on padding.
     pub chain_step: T,
     /// 1 iff the next permutation continues this chain (real, step < 14).
     pub links_next: T,
-    /// 1 iff chain_step == 0 (forced both ways via `inv_cf`).
-    pub is_chain_first: T,
-    /// Inverse witness: chain_step * inv_cf = 1 - is_chain_first.
-    pub inv_cf: T,
     /// 1 iff chain_step == 14 (forced both ways via `inv_cl`).
     pub is_chain_last: T,
     /// Inverse witness: (chain_step - 14) * inv_cl = 1 - is_chain_last.
@@ -81,7 +88,8 @@ impl<T> BorrowMut<LinkCols<T>> for [T] {
     }
 }
 
-// ---- Public input layout (all values are 16-bit lane limbs) ----
+// ---- Public input layout ----
+// Lane values are 16-bit limbs; digits / walk entries are plain field values.
 
 /// PK.seed, input lanes 0-1 (16 bytes = 8 limbs).
 pub const PI_PK_SEED: usize = 0;
@@ -89,21 +97,27 @@ pub const PI_PK_SEED: usize = 0;
 pub const PI_LAYER_TREE: usize = 8;
 /// ADRS keypair address, high half of input lane 4 (2 limbs).
 pub const PI_KEYPAIR: usize = 16;
-/// 35 per-chain start values (M of step 0), 8 limbs each.
-pub const PI_STARTS: usize = 18;
-/// 35 per-chain end values (F output of step 14), 8 limbs each.
+/// 35 message/checksum digits (0..=15), one field value each.
+pub const PI_DIGITS: usize = 18;
+/// 35 next-active-chain indices (0 = padding-follows sentinel).
+pub const PI_NEXT_ACTIVE: usize = PI_DIGITS + WOTS_LEN;
+/// Index of the first active chain.
+pub const PI_FIRST_ACTIVE: usize = PI_NEXT_ACTIVE + WOTS_LEN;
+/// 35 per-chain signature elements (chain start values), 8 limbs each.
+pub const PI_STARTS: usize = PI_FIRST_ACTIVE + 1;
+/// 35 per-chain pk elements (chain end values), 8 limbs each.
 pub const PI_ENDS: usize = PI_STARTS + 8 * WOTS_LEN;
 pub const NUM_PUBLIC_VALUES: usize = PI_ENDS + 8 * WOTS_LEN;
 
-pub struct WotsLinkAir;
+pub struct WotsSigAir;
 
-impl<F> BaseAir<F> for WotsLinkAir {
+impl<F> BaseAir<F> for WotsSigAir {
     fn width(&self) -> usize {
         NUM_COLS
     }
 }
 
-impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsLinkAir {
+impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsSigAir {
     fn eval(&self, builder: &mut AB) {
         // Full Keccak-f[1600] round constraints on the leading keccak columns.
         {
@@ -141,10 +155,22 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsLinkAir {
         // F output limb: first 16 squeezed bytes = output lanes 0 (y=0,x=0) and 1 (y=0,x=1).
         let out = |lane: usize, limb: usize| kc.a_prime_prime_prime(0, lane, limb);
 
+        // One-hot-selected public combinations (degree 1: public values are
+        // scalars).
+        let sel_pi = |oh: &[AB::Var; WOTS_LEN], base: usize| {
+            (0..WOTS_LEN).fold(AB::Expr::ZERO, |acc, k| {
+                acc + oh[k].clone() * pis[base + k].clone()
+            })
+        };
+        let chain_idx_of = |oh: &[AB::Var; WOTS_LEN]| {
+            (0..WOTS_LEN).fold(AB::Expr::ZERO, |acc, k| {
+                acc + oh[k].clone() * AB::Expr::from_u8(k as u8)
+            })
+        };
+
         // -- 1. Booleans and flag/counter couplings (row-local) --------------
         builder.assert_bool(lc.is_real.clone());
         builder.assert_bool(lc.links_next.clone());
-        builder.assert_bool(lc.is_chain_first.clone());
         builder.assert_bool(lc.is_chain_last.clone());
         for k in 0..WOTS_LEN {
             builder.assert_bool(lc.onehot[k].clone());
@@ -162,14 +188,8 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsLinkAir {
         }
         builder.assert_zero((one.clone() - lc.is_real.clone()) * lc.chain_step.clone());
 
-        // is_chain_first <=> chain_step == 0 (inverse-witness trick).
-        builder.assert_zero(lc.is_chain_first.clone() * lc.chain_step.clone());
-        builder.assert_zero(
-            lc.chain_step.clone() * lc.inv_cf.clone()
-                - (one.clone() - lc.is_chain_first.clone()),
-        );
-        // is_chain_last <=> chain_step == 14.
-        let step_m14 = lc.chain_step.clone() - AB::Expr::from_u8(CHAIN_STEPS as u8 - 1);
+        // is_chain_last <=> chain_step == 14 (inverse-witness trick).
+        let step_m14 = lc.chain_step.clone() - AB::Expr::from_u8(MAX_STEP as u8 - 1);
         builder.assert_zero(lc.is_chain_last.clone() * step_m14.clone());
         builder
             .assert_zero(step_m14 * lc.inv_cl.clone() - (one.clone() - lc.is_chain_last.clone()));
@@ -216,14 +236,11 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsLinkAir {
         // hash address (BE u32, bytes 4-7) = chain_step. Both are < 256 so the
         // three high BE bytes are zero: limbs 0 and 2 vanish, limbs 1 and 3
         // carry the LSB in their high byte (value * 256).
-        let chain_idx = (0..WOTS_LEN).fold(AB::Expr::ZERO, |acc, k| {
-            acc + lc.onehot[k].clone() * AB::Expr::from_u8(k as u8)
-        });
         builder.assert_zero(g.clone() * pre(5, 0));
-        builder.assert_zero(g.clone() * (pre(5, 1) - c256.clone() * chain_idx));
+        builder.assert_zero(g.clone() * (pre(5, 1) - c256.clone() * chain_idx_of(&lc.onehot)));
         builder.assert_zero(g.clone() * pre(5, 2));
         builder.assert_zero(g.clone() * (pre(5, 3) - c256 * lc.chain_step.clone()));
-        // Lanes 6-7 are the message M — constrained by 3. and 4. below.
+        // Lanes 6-7 are the message M — constrained by 3. and 5. below.
         // Lane 8: SHAKE256 pad10*1 begins right after the 64-byte input: 0x1F.
         builder.assert_zero(g.clone() * (pre(8, 0) - AB::Expr::from_u8(0x1F)));
         for j in 1..4 {
@@ -247,24 +264,10 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsLinkAir {
             }
         }
 
-        // -- 3. Chain start binding ------------------------------------------
-        // On the first permutation of each chain, M equals the public start
-        // value selected by the one-hot. (On padding rows is_chain_first is 1
-        // but preimage and one-hot are all zero, so the constraint holds.)
-        let g_start = s0 * lc.is_chain_first.clone();
-        for l in 0..2 {
-            for j in 0..4 {
-                let sel = (0..WOTS_LEN).fold(AB::Expr::ZERO, |acc, k| {
-                    acc + lc.onehot[k].clone() * pis[PI_STARTS + 8 * k + 4 * l + j].clone()
-                });
-                builder.assert_zero(g_start.clone() * (pre(6 + l, j) - sel));
-            }
-        }
-
-        // -- 4. Chain end binding --------------------------------------------
+        // -- 3. Chain end binding --------------------------------------------
         // is_real - links_next is 1 exactly on the last permutation of a chain
         // (and 0 on padding), so this binds each chain's final F output to the
-        // public end value.
+        // public pk element.
         let g_end = sf.clone() * (lc.is_real.clone() - lc.links_next.clone());
         for l in 0..2 {
             for j in 0..4 {
@@ -275,18 +278,28 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsLinkAir {
             }
         }
 
-        // -- 5. Boundary: the trace starts at chain 0, step 0, real ----------
-        builder.when_first_row().assert_one(lc.is_real.clone());
-        builder.when_first_row().assert_zero(lc.chain_step.clone());
-        builder.when_first_row().assert_one(lc.onehot[0].clone());
-        // The last trace row must be padding. Without this, a proof at a
-        // trace height too small for all 35 chains could end mid-walk and
-        // leave the remaining chains' end values unbound (M2b backport).
+        // -- 4. Boundary rows -------------------------------------------------
+        // First trace row: the walk enters the first active chain at its digit
+        // with its public signature element as M.
+        {
+            let mut fr = builder.when_first_row();
+            fr.assert_one(lc.is_real.clone());
+            fr.assert_zero(chain_idx_of(&lc.onehot) - pis[PI_FIRST_ACTIVE].clone());
+            fr.assert_zero(lc.chain_step.clone() - sel_pi(&lc.onehot, PI_DIGITS));
+        }
+        for l in 0..2 {
+            for j in 0..4 {
+                let sel = (0..WOTS_LEN).fold(AB::Expr::ZERO, |acc, k| {
+                    acc + lc.onehot[k].clone() * pis[PI_STARTS + 8 * k + 4 * l + j].clone()
+                });
+                builder.when_first_row().assert_zero(pre(6 + l, j) - sel);
+            }
+        }
+        // Last trace row must be padding: otherwise the prover could end the
+        // trace mid-walk and leave the remaining chains' pk values unbound.
         builder.when_last_row().assert_zero(lc.is_real.clone());
 
-        // -- 6. Transition constraints ---------------------------------------
-        // (is_transition contributes no symbolic degree in p3-uni-stark, so
-        // every constraint below still fits the degree-3 budget.)
+        // -- 5. Transition constraints ---------------------------------------
         let not_sf = one.clone() - sf.clone();
         let g_link = sf.clone() * lc.links_next.clone();
         let g_break = sf.clone() * (lc.is_real.clone() - lc.links_next.clone());
@@ -301,42 +314,53 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for WotsLinkAir {
                 t.assert_zero(not_sf.clone() * (lc_next.onehot[k].clone() - lc.onehot[k].clone()));
             }
 
-            // Step counter: +1 within a chain, reset to 0 at a chain boundary.
+            // Within a chain: step counter +1, one-hot held, and the chaining
+            // link itself — the next permutation's message lanes (input lanes
+            // 6-7) equal the first 16 output bytes (output lanes 0-1).
             t.assert_zero(
                 g_link.clone()
                     * (lc_next.chain_step.clone() - lc.chain_step.clone() - one.clone()),
             );
-            t.assert_zero(g_break.clone() * lc_next.chain_step.clone());
-
-            // One-hot: held within a chain, shifted by one at a chain
-            // boundary, never wrapping. Together with "sum = 1 on real rows"
-            // and "all zero on padding" this forces the trace to walk chains
-            // 0..35 completely, in order, before padding may begin.
             for k in 0..WOTS_LEN {
                 t.assert_zero(
                     g_link.clone() * (lc_next.onehot[k].clone() - lc.onehot[k].clone()),
                 );
             }
-            for k in 0..WOTS_LEN - 1 {
-                t.assert_zero(
-                    g_break.clone() * (lc_next.onehot[k + 1].clone() - lc.onehot[k].clone()),
-                );
-            }
-            t.assert_zero(g_break.clone() * lc_next.onehot[0].clone());
-
-            // Padding is terminal: once is_real drops to 0 it stays 0.
-            t.assert_zero(
-                sf.clone() * (one.clone() - lc.is_real.clone()) * lc_next.is_real.clone(),
-            );
-
-            // The chaining link itself: the next permutation's message lanes
-            // (input lanes 6-7) equal the first 16 output bytes (output lanes
-            // 0-1) of this permutation.
             for l in 0..2 {
                 for j in 0..4 {
                     t.assert_zero(g_link.clone() * (pre_next(6 + l, j) - out(l, j)));
                 }
             }
+
+            // At a chain boundary the walk jumps to the public next active
+            // chain. If padding follows instead, the next one-hot is all zero
+            // and the constraint degenerates to next_active = 0 — the
+            // sentinel carried only by the last active chain, so padding
+            // cannot begin early.
+            t.assert_zero(
+                g_break.clone()
+                    * (chain_idx_of(&lc_next.onehot) - sel_pi(&lc.onehot, PI_NEXT_ACTIVE)),
+            );
+            // The entered chain starts at its public digit with its public
+            // signature element as M (all zero on padding rows).
+            t.assert_zero(
+                g_break.clone()
+                    * (lc_next.chain_step.clone() - sel_pi(&lc_next.onehot, PI_DIGITS)),
+            );
+            for l in 0..2 {
+                for j in 0..4 {
+                    let sel = (0..WOTS_LEN).fold(AB::Expr::ZERO, |acc, k| {
+                        acc + lc_next.onehot[k].clone()
+                            * pis[PI_STARTS + 8 * k + 4 * l + j].clone()
+                    });
+                    t.assert_zero(g_break.clone() * (pre_next(6 + l, j) - sel));
+                }
+            }
+
+            // Padding is terminal: once is_real drops to 0 it stays 0.
+            t.assert_zero(
+                sf.clone() * (one.clone() - lc.is_real.clone()) * lc_next.is_real.clone(),
+            );
         }
     }
 }
