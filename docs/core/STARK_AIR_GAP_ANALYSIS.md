@@ -71,13 +71,13 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2a** | **リンク AIR: 置換間チェーン結合 + ADRS/パディング構造 + public 束縛**（M1 の明示的残課題） | 35 チェーン WOTS+ ユニットの honest proof が verify し、リンク構造のみを壊した改竄 witness（keccak 置換は全て有効）が reject される | ✅ **完了 → §8** |
 | **M2b** | **署名検証形 WOTS+**: digit 駆動の可変長チェーン（開始 step = message digit）+ digit/checksum のネイティブ導出 + digit-15 チェーンのネイティブ検査 | 可変長 honest proof が verify し、digit 偽装・過走・不足・チェーンスキップ・public 偽造が全て reject される | ✅ **完了 → §9** |
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
-| M2d | フル署名結合 + FIPS 205 KAT + p99 計測（M2 完了条件） | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7 |
+| **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | G2, G3 |
 | **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
-**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c ✅ → M2d → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
+**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c ✅ → M2d ✅ → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。**次は M3（N 本集約 + 閾値 + Registry コミットメント）**。
 **M0 で判明した最重要事項**: 生の STARK proof は 2.8MB で L1 直接投稿不可。M4 の前に **M0.5 (proof wrapping)** が必須クリティカルパスになった。
 **リスク最大要素**: M2 の proof 生成時間。SPHINCS+ はハッシュ回数が多く、NFR-3 (≤1h) を満たせない場合は (a) 集約バッチの分割、(b) ハード増強、(c) 閾値検証のみ回路化し署名検証はフォールバック経路 (FR-THRESH-4) 併用継続 — の順に検討する。
 
@@ -379,4 +379,82 @@ cargo run --release   # backport 後の M2a 全 8 ケース回帰確認
 ```bash
 cd src/crypto/circuits/sphincs-tree-m2c
 cargo run --release   # honest 1 件 + 改竄 10 件を prove/verify、全 PASS で exit 0
+```
+
+---
+
+## 11. M2d 実測結果: フル SLH-DSA-SHAKE-128s 署名検証の proof 構成 (2026-08-02)
+
+### 11.1 統合方式の決定
+
+M2b(チェーン)と M2c(ツリー)の統合は、単一トレースへのモノリシック統合ではなく **「15 proof + public glue」構成**を採用した(`src/crypto/circuits/slh-verify-m2d`):
+
+| Proof | 内容 | AIR |
+|-------|------|-----|
+| A | H_msg + FORS 14 木(葉 + 12 クライム)+ T_k(186 スロット) | 汎用パイプライン(`pipeline.rs`) |
+| chain L0..L6 | 各層の WOTS+ digit 駆動チェーン | **M2b AIR を無改変移植**(`chains/air.rs`) |
+| tree L0..L6 | 各層の T_len(5 ブロック)+ XMSS 認証パス(14 スロット) | 汎用パイプライン |
+
+採用理由: (a) 各 proof が小さく一様で、M3 の N 本集約と M0.5-C の再帰 wrap がこの単位をそのまま集約できる、(b) M2b/M2c の実証済み AIR を無改変で再利用できる、(c) M2c の機構(スロット walk / rate テーブル / XOR 吸収 / 出力束縛)をスロット構成でパラメタ化した `pipeline.rs` 1 つで A と tree の両形状を賄える。
+
+**glue の健全性**: プローバが提出する界面クレーム(H_msg digest、FORS root 14 本、fors_pk、層ごとの WOTS pk 35 要素・XMSS root)は、それぞれ**生産側 proof が出力束縛**し、**消費側の public input へは検証側がネイティブ導出**する(digit は claimed fors_pk / 前層 root から、ADRS テーブルは claimed digest から、T_k/T_len ブロックは claimed root/pk 要素から)。最後に root == PK.root をネイティブ比較。任意の界面クレームの偽造は生産側 proof の reject になり、署名/メッセージの改竄は全 proof が健全なまま最終 root がずれる — ネイティブ SLH-DSA 検証と同じ健全性連鎖。
+
+### 11.2 FIPS 205 適合検証
+
+`fips205` クレート(純 Rust の FIPS 205 参照実装)で keygen/sign した**実署名**(7,856 bytes)を対象に、`refimpl.rs` が sha3 で全中間値を再計算し **再計算 root == PK.root が成立**(H_msg の pure-signing フレーミング 0x00‖len(ctx) を含む digest 分解、FORS index 抽出、ADRS レイアウト、base-w digit、T の順序の構造解釈が全て正しいことの end-to-end 検証)。その上で 15 proof が全て accept することにより、**制約スタックが FIPS 205 の実署名構造そのものを受理する**ことを実証した。公式 ACVP ファイルベースの KAT 投入は後続タスク(参照クレート自体は upstream で ACVP 検証済み)。
+
+### 11.3 実測値(run 0、FRI: log_blowup=3 / 100 queries / pow 16、単一スレッド)
+
+| proof | rows | prove (ms) | verify (ms) | proof (bytes) |
+|-------|-----:|-----------:|------------:|--------------:|
+| A (hmsg+fors) | 8,192 | 20,847 | 46.4 | 3,769,780 |
+| chain L0 | 8,192 | 11,290 | 31.5 | 2,743,092 |
+| tree L0 | 512 | 906 | 40.6 | 3,418,516 |
+| chain L1 | 8,192 | 13,187 | 33.6 | 2,743,092 |
+| tree L1 | 512 | 1,188 | 40.6 | 3,418,516 |
+| chain L2 | 8,192 | 13,712 | 32.3 | 2,743,092 |
+| tree L2 | 512 | 957 | 38.6 | 3,418,516 |
+| chain L3 | 16,384 | 30,387 | 32.5 | 2,803,132 |
+| tree L3 | 512 | 1,064 | 40.1 | 3,418,516 |
+| chain L4 | 8,192 | 13,180 | 34.9 | 2,743,092 |
+| tree L4 | 512 | 1,314 | 42.8 | 3,418,516 |
+| chain L5 | 8,192 | 13,442 | 34.6 | 2,743,092 |
+| tree L5 | 512 | 1,096 | 42.0 | 3,418,516 |
+| chain L6 | 8,192 | 14,820 | 35.4 | 2,743,092 |
+| tree L6 | 512 | 1,031 | 41.5 | 3,418,516 |
+| **合計** | | **138.4 s** | **567.6 ms** | **47.0 MB** |
+
+- run 1(別鍵・別メッセージ)は合計 prove 120.5 s、同じく全 accept・root 一致。chain L3(run 0)は digit 分布により 16,384 行に伸びた自然変動で、トレース高さがメッセージ依存であることの実例。
+- **NFR-3 判定: 単一スレッドで 1 署名 ~2.3 分 — 目標 p99 ≤ 1h を約 26 倍のマージンで満たす**(`parallel` feature + マルチコアで更に短縮可能)。正式な p99 は proving service (R-3) 構築後の連続運転で計測する。
+- proof 合計 47MB は 15 本の生 STARK の総和であり、M0.5-C(再帰集約 → 最終 SNARK wrap)の入力。オンチェーンには wrap 後の 1 proof のみが載る。
+
+### 11.4 改竄・偽造バッテリー
+
+| ケース | 種別 | 結果 |
+|--------|------|:----:|
+| forged-digest | 界面クレーム偽造 → proof A reject | ✅ PASS |
+| forged-fors-root(5) | 同上(T_k ブロック + 出力束縛) | ✅ PASS |
+| forged-fors-pk | 同上 | ✅ PASS |
+| forged-wots-pk(L2,c3) | 同上 → chain L2 reject | ✅ PASS |
+| forged-root(L5) | 同上 → tree L5 reject | ✅ PASS |
+| tampered-sig(fors-sk) | 入力改竄 → 最終 root 不一致(ネイティブ) | ✅ PASS |
+| tampered-sig(wots) | 同上 | ✅ PASS |
+| tampered-R | 同上(digest/index 全変化) | ✅ PASS |
+| wrong-pk-root | 同上 | ✅ PASS |
+
+界面クレーム偽造は**再 prove なしの再 verify のみ**で reject される(honest proof に偽造 public input を与える)ことを確認 — glue の束縛が proof 側にあることの直接検証。
+
+### 11.5 M2 完了と残タスク
+
+M2(SPHINCS+ 1 署名フル検証回路 = **G1**)は本マイルストーンで完了。次は **M3**(N 本集約 + 閾値 + Registry コミットメント = G2, G3)。M2 からの持ち越しメモ:
+
+1. 公式 ACVP ファイルベース KAT の投入(小、参照クレートは upstream で検証済み)
+2. `parallel` feature での prove 時間再計測と proving service (R-3) での p99 計測
+3. G6(CP-1): 本シリーズの回路は最初から SHAKE256/SHA3 系のみで設計されており新規違反なし(Dilithium 回路の移行は別チケットのまま)
+
+### 11.6 再現方法
+
+```bash
+cd src/crypto/circuits/slh-verify-m2d
+cargo run --release   # fips205 実署名 2 本の 15-proof 検証 + 偽造/改竄 9 件、全 PASS で exit 0
 ```

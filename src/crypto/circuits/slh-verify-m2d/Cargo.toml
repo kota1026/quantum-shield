@@ -1,0 +1,32 @@
+[package]
+name = "slh-verify-m2d"
+version = "0.1.0"
+edition = "2021"
+description = "M2d: full SLH-DSA-SHAKE-128s signature verification as a 15-proof composition — one H_msg + FORS + T_k pipeline proof, and per hypertree layer a WOTS+ chain proof (M2b AIR) plus a T_len + XMSS auth-path pipeline proof (generalized M2c AIR) — glued by public interface values (digest, FORS roots, FORS pk, per-layer WOTS pk elements and XMSS roots), conformance-checked against the fips205 reference implementation, with prove-time measurement (NFR-3)."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-goldilocks = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+sha3 = "0.10"
+bincode = "1.3"
+fips205 = "0.4"
+
+[[bin]]
+name = "slh-verify-m2d"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
