@@ -70,14 +70,14 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §6** |
 | **M2a** | **リンク AIR: 置換間チェーン結合 + ADRS/パディング構造 + public 束縛**（M1 の明示的残課題） | 35 チェーン WOTS+ ユニットの honest proof が verify し、リンク構造のみを壊した改竄 witness（keccak 置換は全て有効）が reject される | ✅ **完了 → §8** |
 | **M2b** | **署名検証形 WOTS+**: digit 駆動の可変長チェーン（開始 step = message digit）+ digit/checksum のネイティブ導出 + digit-15 チェーンのネイティブ検査 | 可変長 honest proof が verify し、digit 偽装・過走・不足・チェーンスキップ・public 偽造が全て reject される | ✅ **完了 → §9** |
-| M2c | 多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・hypertree 認証パス AIR | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測（方式は §9.5 spike 参照） | G1 |
+| **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | M2d | フル署名結合 + FIPS 205 KAT + p99 計測（M2 完了条件） | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | G1, G7 |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | G2, G3 |
 | **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
-**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c → M2d → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
+**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c ✅ → M2d → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。
 **M0 で判明した最重要事項**: 生の STARK proof は 2.8MB で L1 直接投稿不可。M4 の前に **M0.5 (proof wrapping)** が必須クリティカルパスになった。
 **リスク最大要素**: M2 の proof 生成時間。SPHINCS+ はハッシュ回数が多く、NFR-3 (≤1h) を満たせない場合は (a) 集約バッチの分割、(b) ハード増強、(c) 閾値検証のみ回路化し署名検証はフォールバック経路 (FR-THRESH-4) 併用継続 — の順に検討する。
 
@@ -326,4 +326,57 @@ cd src/crypto/circuits/wots-sig-m2b
 cargo run --release   # honest 1 件 + 改竄 proof 7 件 + ネイティブ検査 1 件、全 PASS で exit 0
 cd ../wots-link-m2a
 cargo run --release   # backport 後の M2a 全 8 ケース回帰確認
+```
+
+---
+
+## 10. M2c 実測結果: 多ブロック吸収 + FORS/XMSS 認証パス (2026-07-29)
+
+### 10.1 実施内容
+
+`src/crypto/circuits/sphincs-tree-m2c` に、SPHINCS+ 署名のツリー側メカニズムを固定 30 置換のパイプラインとして実装した:
+
+| スロット | ステージ | メカニズム |
+|---------|---------|-----------|
+| 0 | FORS 葉 F(sk) | 単一ブロック吸収 |
+| 1–12 | FORS 認証パス (a=12) | H クライム + 方向ビット結合 |
+| 13–15 | T_k(FORS root 14 本、272 B) | **多ブロック: データ 2 + pad 1** |
+| 16–20 | T_len(WOTS+ pk 35 要素、608 B) | **多ブロック: 5 ブロック** |
+| 21–29 | XMSS 認証パス (h'=9) | H クライム + 方向ビット結合 |
+
+§9.5 spike の方式をそのまま実装し、成立を実証した:
+
+1. **XOR リンク多ブロック吸収**(M2c の中核リスク): 継続置換は「rate 部 = 前置換出力 XOR 次ブロック、capacity 部 = そのまま持ち越し」。前置換出力 rate 部のビット分解 17 lane × 64 = **1,088 コミット列**を追加し(booleanity + limb 再構成で一意束縛)、吸収ブロックは public(pk 要素・兄弟 root・パディング)なので XOR `o + b − 2bo` は コミットビット o について線形。**全制約が degree ≤ 3 のまま成立し、lookup 引数は不要**。
+2. **認証パス結合**: 走行中の Merkle ノードは public 方向ビット(c67/c89 フラグ)が指す H 入力位置(左 = lanes 6-7 / 右 = lanes 8-9)に遷移制約で結合し、兄弟 auth ノードは反対側に public 束縛。
+3. **ステージ間 in-trace 結合**: 隣接ステージは trace 内で直接チェーン(FORS root → T_k ブロック 0、T_len 出力 → XMSS クライム 1)。public な外部界面は FORS pk(= layer-0 WOTS+ が署名するメッセージ、M2b への glue)と XMSS root のみ。
+4. **構造の public テーブル束縛**: PK.seed、スロット別 FIPS 205 ADRS(FORS_TREE/FORS_ROOTS/WOTS_PK/TREE、tree height/index)、SHAKE256 パディング、ゼロ capacity を、検証側がネイティブ導出する per-slot rate テーブル(52 limb × 30)+ lanes 6-9 の mask/rate 対で束縛。プローバから構造情報は一切受け取らない。
+
+### 10.2 実測値（1,024 行 × 3,751 列、public 8,704 値、FRI: log_blowup=3 / 100 queries / pow 16、単一スレッド）
+
+| ケース | prove (ms) | verify (ms) | proof (bytes) | 期待 | 結果 |
+|--------|-----------:|------------:|--------------:|:----:|:----:|
+| honest（30 置換） | 1,814 | 40.9 | 3,479,068 | accept | ✅ PASS |
+| tampered-tlen-block (b2) | 1,787 | 41.0 | 3,479,068 | reject | ✅ PASS |
+| broken-capacity (s17) | 1,918 | 38.0 | 3,479,068 | reject | ✅ PASS |
+| wrong-auth-node (f6) | 1,878 | 39.9 | 3,479,068 | reject | ✅ PASS |
+| wrong-direction (x4) | 1,906 | 38.0 | 3,479,068 | reject | ✅ PASS |
+| wrong-tree-height (f8) | 1,813 | 42.0 | 3,479,068 | reject | ✅ PASS |
+| forged-sk | 1,790 | 38.7 | 3,479,068 | reject | ✅ PASS |
+| forged-pk0（fresh ブロック） | 1,855 | 39.0 | 3,479,068 | reject | ✅ PASS |
+| forged-pk20（cont ブロック） | 1,774 | 39.7 | 3,479,068 | reject | ✅ PASS |
+| forged-fors-pk | 1,674 | 41.1 | 3,479,068 | reject | ✅ PASS |
+| forged-root | 1,754 | 39.2 | 3,479,068 | reject | ✅ PASS |
+
+### 10.3 所見
+
+1. **§9.5 spike の方式が実測で成立**: XOR リンク(ブロック改竄・capacity 切断の両方を検出)、方向ビット結合(方向スワップ・auth 偽造を検出)、ADRS テーブル束縛(tree height 改竄を検出)、public forgery 5 種の全てが reject。改竄 witness は全て有効な Keccak-f 置換のみで構成。
+2. **列幅 +42%(2,633 → 3,751)は §9.5 の見積り(+41%)どおり**。prove は 1.8 秒 / 30 置換(1,024 行)で ~60ms/置換 — ビット列追加後も M0〜M2b と同水準。verify ~40ms。proof 3.48MB は列数増で M2b 比 +27%(wrapping 必須の結論は不変)。
+3. **フル署名の構成要素が全て実測済みになった**: WOTS+ チェーン(M2b)、pk 圧縮 T_len、FORS(葉 + 認証パス + T_k)、XMSS 認証パス(M2c)。1 XMSS 層のフル検証 = 本パイプライン + M2b チェーン ~262 置換で、7 層 + FORS で ~2,300 置換 ≈ 単一スレッド 2〜3 分と外挿でき、NFR-3 (≤1h) に大きな余裕。
+4. **M2d 残りスコープ**: M2b(チェーン)と M2c(ツリー)の trace 統合(pk 要素 35 個の public glue を in-trace 結合に置換するか、public glue のまま 2-proof 構成にするかの選定)、hypertree 7 層の繰り返し、H_msg / PRF_msg による digit・FORS index のメッセージ束縛、FIPS 205 KAT、p99 計測。
+
+### 10.4 再現方法
+
+```bash
+cd src/crypto/circuits/sphincs-tree-m2c
+cargo run --release   # honest 1 件 + 改竄 10 件を prove/verify、全 PASS で exit 0
 ```
