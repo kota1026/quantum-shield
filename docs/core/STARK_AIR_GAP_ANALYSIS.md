@@ -72,12 +72,12 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2b** | **署名検証形 WOTS+**: digit 駆動の可変長チェーン（開始 step = message digit）+ digit/checksum のネイティブ導出 + digit-15 チェーンのネイティブ検査 | 可変長 honest proof が verify し、digit 偽装・過走・不足・チェーンスキップ・public 偽造が全て reject される | ✅ **完了 → §9** |
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
-| M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | G2, G3 |
+| **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
 | **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
-**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c ✅ → M2d ✅ → M3 → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。**次は M3（N 本集約 + 閾値 + Registry コミットメント）**。
+**逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c ✅ → M2d ✅ → M3 ✅ → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。**回路側マイルストーンは完走。次は M0.5-impl（wrap、専用 CI 環境）と M4（オンチェーン統合）**。
 **M0 で判明した最重要事項**: 生の STARK proof は 2.8MB で L1 直接投稿不可。M4 の前に **M0.5 (proof wrapping)** が必須クリティカルパスになった。
 **リスク最大要素**: M2 の proof 生成時間。SPHINCS+ はハッシュ回数が多く、NFR-3 (≤1h) を満たせない場合は (a) 集約バッチの分割、(b) ハード増強、(c) 閾値検証のみ回路化し署名検証はフォールバック経路 (FR-THRESH-4) 併用継続 — の順に検討する。
 
@@ -457,4 +457,60 @@ M2(SPHINCS+ 1 署名フル検証回路 = **G1**)は本マイルストーンで�
 ```bash
 cd src/crypto/circuits/slh-verify-m2d
 cargo run --release   # fips205 実署名 2 本の 15-proof 検証 + 偽造/改竄 9 件、全 PASS で exit 0
+```
+
+---
+
+## 12. M3 実測結果: 2/N 閾値検証構成 — Registry メンバーシップ + 集約 (2026-08-02)
+
+### 12.1 実施内容
+
+`src/crypto/circuits/threshold-m3` に FR-THRESH-1 の回路側ステートメント「**閾値 t 本以上の相異なる Prover(公開鍵が Registry 集合コミットメント C に含まれる)が メッセージ M に有効な SLH-DSA 署名を持つ**」の 2/5 デモを実装した。署名者 1 人あたり:
+
+| コンポーネント | proof 数 | 内容 |
+|--------------|--------:|------|
+| SLH-DSA フル検証 | 15 | M2d 構成(`slhproof.rs` としてライブラリ化) |
+| Registry メンバーシップ | 1 | SHA3-256 leaf ハッシュ + 高さ 3 の Merkle クライムを C に束縛 |
+
+### 12.2 設計判断
+
+1. **G2 の集約層は回路ではなくネイティブ**: 閾値カウント・署名者重複排除・「メンバーシップ leaf = 署名検証に使った公開鍵の SHA3-256」の同一性は、全て **public 値上の検査**である(FR-THRESH-1 では署名者は公開情報)。public glue アーキテクチャの下ではこれらは検証側ネイティブチェックであり、オンチェーンでは wrap 済み proof(M0.5-C)に併置される安価な public input 比較になる。署名間に秘密の情報流が無いため、署名を跨ぐ回路は不要 — G2 当初想定の「1 trace に N 本」は、M2d で確定した多 proof 構成により**集約は再帰 wrap 段(M0.5-C)の責務**へ移った。
+2. **SHA3-256 を同一パイプライン AIR で処理**: SHA3-256 は SHAKE256 と Keccak-f[1600]・rate 136 bytes を共有し、差分はドメインパディング(0x06 vs 0x1F)のみ = public ブロックバイトに閉じる。`pipeline.rs` v2 はレーングループ別 public mask/rate(lanes 0-3 / 4-5 / 6-7 / 8-9)と **32 バイトチェーン c03/c47**(出力 lanes 0-3 → 次入力 lanes 0-3 / 4-7)を追加し、2 子 SHA3-256 Merkle ノード H(left‖right) を SHAKE256 系と同じ制約機構・degree ≤ 3 で結合する。
+3. **Registry**: N=5 Prover、leaf = SHA3-256(PK.seed‖PK.root)、8 leaf に pad、高さ 3。FR-THRESH-5 のオンチェーン側(コミットメント維持)は別項目として残る。
+
+### 12.3 実測値(fips205 実鍵 5 個・実署名、FRI: log_blowup=3 / 100 queries / pow 16、単一スレッド)
+
+| コンポーネント | prove (ms) | verify (ms) | proof (bytes) | 結果 |
+|--------------|-----------:|------------:|--------------:|:----:|
+| slh(p1) ×15 proof | 116,446 | 490 | 46,901,036 | ✅ PASS |
+| member(p1) | 277 | 30.2 | 3,325,316 | ✅ PASS |
+| slh(p3) ×15 proof | 119,106 | 502 | 46,901,036 | ✅ PASS |
+| member(p3) | 498 | 29.6 | 3,325,316 | ✅ PASS |
+| **合計(2/5)** | **236.3 s** | **1,051** | **100.5 MB** | — |
+
+ネイティブ検査: distinct ✓ / count 2 ≥ 2 ✓ / 各 root == PK.root ✓。
+
+バッテリー(全 reject):
+
+| ケース | 検出箇所 | 結果 |
+|--------|---------|:----:|
+| non-member-signer(非登録鍵で C を主張) | メンバーシップ proof の root 束縛 | ✅ PASS |
+| wrong-leaf-slot(他スロットの path で C を主張) | 同上 | ✅ PASS |
+| forged-registry-root(honest proof + 偽 C) | 同上(public 偽造) | ✅ PASS |
+| duplicate-signer | ネイティブ重複排除 | ✅ PASS |
+| below-threshold | ネイティブ閾値カウント | ✅ PASS |
+| invalid-signature(改竄署名) | ネイティブ最終 root 比較 | ✅ PASS |
+
+### 12.4 所見
+
+1. **FR-THRESH-1 の回路側ステートメントが端から端まで実測で閉じた**: M0→M3 の全マイルストーンで、Keccak 置換 → チェーン結合 → 可変長署名形 → 多ブロック吸収/認証パス → フル署名(fips205 適合) → 閾値+集合コミットメントまで、各段の honest accept / 改竄 reject を実測済み。
+2. **2/5 で prove 合計 236 秒(単一スレッド)**は NFR-3 (≤1h) に対し余裕 15 倍。署名者数に線形(1 署名 ≈ 118 秒)で、2/N の N は Registry サイズにのみ log で効く(メンバーシップ proof は ~0.3-0.5 秒)。
+3. **proof 総量 100.5 MB** が次の実務課題であり、M0.5-impl(再帰集約 + SNARK wrap)の必要性を改めて定量化した。32 proof を 1 つの wrap 済み proof に畳むのが M0.5-C の役割。
+4. **残作業はオンチェーン側へ移行**: M0.5-impl(専用 CI 環境での wrap 実装)、M4(G4 オンチェーン AIR 評価 + G5 ProofCodec 橋渡し + FR-THRESH-5 オンチェーン)、M5(E2E)。回路側の残りは G6(dilithium-stark の Keccak256→SHA3-256 移行、別チケット)のみ。
+
+### 12.5 再現方法
+
+```bash
+cd src/crypto/circuits/threshold-m3
+cargo run --release   # 2/5 honest(2×16 proof)+ バッテリー 6 件、全 PASS で exit 0
 ```
