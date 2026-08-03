@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use dilithium_stark::{Witness, keccak256, N};
+use dilithium_stark::{Witness, sha3_256, N};
 use dilithium_stark::witness::generate_full_trace;
 use dilithium_stark::hash::generate_keccak_trace;
 use dilithium_stark::ntt::{ntt_forward, ntt_inverse, generate_ntt_trace};
@@ -208,15 +208,15 @@ fn main() {
     // 3. Hash Operations
     // ==========================================================================
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    println!("  SECTION 3: Keccak256 Hash Operations");
+    println!("  SECTION 3: SHA3-256 Hash Operations");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    let result = benchmark("Keccak256 (public key, 1952 bytes)", 10000, || {
-        keccak256(&pk_bytes)
+    let result = benchmark("SHA3-256 (public key, 1952 bytes)", 10000, || {
+        sha3_256(&pk_bytes)
     });
     result.print();
 
-    let result = benchmark("Keccak256 Trace Generation", 1000, || {
+    let result = benchmark("SHA3-256 Trace Generation", 1000, || {
         generate_keccak_trace(&pk_bytes)
     });
     result.print();

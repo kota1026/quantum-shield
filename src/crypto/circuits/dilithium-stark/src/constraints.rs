@@ -4,7 +4,7 @@
 //!
 //! # Constraint Categories
 //!
-//! 1. **Hash Constraints**: Verify Keccak256 computations
+//! 1. **Hash Constraints**: Verify SHA3-256 (FIPS 202) computations
 //! 2. **NTT Constraints**: Verify polynomial transformations
 //! 3. **Range Constraints**: Verify coefficient bounds
 //! 4. **Verification Constraints**: Verify the Dilithium equation
@@ -193,7 +193,7 @@ pub fn generate_constraints(layout: &TraceLayout) -> Vec<Constraint> {
     constraints
 }
 
-/// Generate constraints for Keccak256 hash computation
+/// Generate constraints for SHA3-256 hash computation
 fn generate_hash_constraints(layout: &TraceLayout) -> Vec<Constraint> {
     let mut constraints = Vec::new();
 
