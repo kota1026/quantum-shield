@@ -7,7 +7,7 @@ use std::time::Instant;
 
 use dilithium_stark::{
     Witness, DilithiumStarkProof, FriProof, QueryResponse, ProofMetadata,
-    keccak256,
+    sha3_256,
 };
 use dilithium_stark::witness::generate_full_trace;
 
@@ -33,9 +33,9 @@ struct SolidityProofOutput {
 
 #[derive(Serialize)]
 struct SolidityPublicInputs {
-    /// bytes32 - Keccak256 hash of Dilithium public key
+    /// bytes32 - SHA3-256 (FIPS 202) hash of Dilithium public key
     public_key_hash: String,
-    /// bytes32 - Keccak256 hash of message
+    /// bytes32 - SHA3-256 (FIPS 202) hash of message
     message_hash: String,
     /// bool - Whether signature is valid
     signature_valid: bool,
@@ -128,9 +128,9 @@ fn compute_trace_commitment(trace_matrix: &[Vec<u64>]) -> [u8; 32] {
 
     if data.is_empty() {
         // Empty trace - use placeholder for testing
-        keccak256(b"empty_trace_placeholder")
+        sha3_256(b"empty_trace_placeholder")
     } else {
-        keccak256(&data)
+        sha3_256(&data)
     }
 }
 
@@ -143,7 +143,7 @@ fn generate_fri_proof(_trace_matrix: &[Vec<u64>]) -> FriProof {
 
     for i in 0..num_layers {
         let layer_data = format!("fri_layer_{}", i);
-        layer_commitments.push(keccak256(layer_data.as_bytes()));
+        layer_commitments.push(sha3_256(layer_data.as_bytes()));
     }
 
     // Final polynomial (simulated)
@@ -222,7 +222,7 @@ fn encode_query_responses_for_solidity(
         data.extend_from_slice(trace_commitment);
         data.extend_from_slice(&response.trace_values);
         data.extend_from_slice(&(i as u64).to_le_bytes());
-        to_hex_string(&keccak256(&data))
+        to_hex_string(&sha3_256(&data))
     }).collect()
 }
 

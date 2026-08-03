@@ -11,8 +11,8 @@
 //! ├─────────────────────────────────────────────────────────────────────────────┤
 //! │                                                                              │
 //! │  Public Inputs:                                                              │
-//! │  ├─ public_key_hash: [u8; 32]    (Keccak256 of pk)                          │
-//! │  ├─ message_hash: [u8; 32]        (Keccak256 of message)                     │
+//! │  ├─ public_key_hash: [u8; 32]    (SHA3-256 of pk)                          │
+//! │  ├─ message_hash: [u8; 32]        (SHA3-256 of message)                     │
 //! │  └─ signature_valid: bool         (result of verification)                   │
 //! │                                                                              │
 //! │  Private Witness:                                                            │
@@ -22,7 +22,7 @@
 //! │                                                                              │
 //! │  Circuit Structure:                                                          │
 //! │  ┌─────────────────────────────────────────────────────────────────────────┐ │
-//! │  │  1. Hash Verification (Keccak256)                                       │ │
+//! │  │  1. Hash Verification (SHA3-256)                                       │ │
 //! │  │     ├─ Verify: hash(public_key) == public_key_hash                      │ │
 //! │  │     └─ Verify: hash(message) == message_hash                            │ │
 //! │  ├─────────────────────────────────────────────────────────────────────────┤ │
@@ -52,7 +52,7 @@ pub mod ffi;
 // STARK proving system (Winterfell)
 pub mod stark;
 
-use sha3::{Digest, Keccak256};
+use sha3::{Digest, Sha3_256};
 use serde::{Deserialize, Serialize};
 
 // =============================================================================
@@ -85,10 +85,10 @@ pub const MAX_COEFFICIENT_BOUND: u32 = 1 << 16;
 /// These are the values that will be verified on-chain
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PublicInputs {
-    /// Keccak256 hash of the Dilithium public key
+    /// SHA3-256 (FIPS 202) hash of the Dilithium public key
     pub public_key_hash: [u8; 32],
 
-    /// Keccak256 hash of the message
+    /// SHA3-256 (FIPS 202) hash of the message
     pub message_hash: [u8; 32],
 
     /// Whether the signature verification succeeded
@@ -107,7 +107,7 @@ pub struct PublicInputs {
 impl PublicInputs {
     /// Compute the commitment hash for on-chain verification
     pub fn commitment_hash(&self) -> [u8; 32] {
-        let mut hasher = Keccak256::new();
+        let mut hasher = Sha3_256::new();
         hasher.update(&self.public_key_hash);
         hasher.update(&self.message_hash);
         hasher.update(&[self.signature_valid as u8]);
@@ -188,8 +188,8 @@ impl Witness {
 
     /// Compute public inputs from witness
     pub fn compute_public_inputs(&self, nonce: u64) -> PublicInputs {
-        let public_key_hash = keccak256(&self.public_key);
-        let message_hash = keccak256(&self.message);
+        let public_key_hash = sha3_256(&self.public_key);
+        let message_hash = sha3_256(&self.message);
 
         // Verify signature using pqcrypto
         let signature_valid = verify_dilithium_signature(
@@ -278,9 +278,9 @@ pub struct ProofMetadata {
 // Helper Functions
 // =============================================================================
 
-/// Compute Keccak256 hash
-pub fn keccak256(data: &[u8]) -> [u8; 32] {
-    let mut hasher = Keccak256::new();
+/// Compute SHA3-256 (FIPS 202) hash
+pub fn sha3_256(data: &[u8]) -> [u8; 32] {
+    let mut hasher = Sha3_256::new();
     hasher.update(data);
     hasher.finalize().into()
 }
@@ -367,7 +367,7 @@ mod tests {
         assert_eq!(public_inputs.nonce, 1);
         assert_eq!(
             public_inputs.public_key_hash,
-            keccak256(pk.as_bytes())
+            sha3_256(pk.as_bytes())
         );
     }
 

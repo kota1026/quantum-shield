@@ -52,7 +52,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **G3** | Registry 集合コミットメント | 「署名者公開鍵が指定ブロック時点の active 集合に含まれる」の回路内 Merkle 検証 (SHA3-256)。オンチェーン側は ProverRegistry に集合コミットメントの維持を実装 (FR-THRESH-5) | 中 | なし（G1 と並行可） |
 | **G4** | オンチェーン AIR 評価の組込み | `STARKVerifier.verifyProofFull` は現在 transcript を計算するのみで、**回路固有の制約評価 (AIRConstraints) を constraint commitment に対して検証していない**。DEEP-ALI 相当の consistency check を追加し、public input を回路の boundary constraint に束縛する。これが完了するまで proof は「構造・FRI 健全性」までしか強制されない | 中〜大 | G1 の制約定義 |
 | **G5** | proof フォーマット橋渡し | Rust prover の出力 (hex JSON) と Solidity `ProofCodec` bytes の正準シリアライズが未接続。golden テスト（同一 proof を両側で検証）が存在しない | 小 | なし |
-| **G6** | CP-1 整合 | `dilithium-stark/src/hash.rs` は **Keccak256** を使用（「Ethereum 互換のため」と明記）。public input のハッシュも Keccak256。NFR-1 (SHA3-256/SHAKE256 のみ) に違反しており、SPHINCS+ 回路では最初から SHA3 系で設計する。Dilithium 回路も移行が必要 | 小〜中 | なし |
+| **G6** ✅ | CP-1 整合（→ §13 で是正済み） | `dilithium-stark/src/hash.rs` は **Keccak256** を使用（「Ethereum 互換のため」と明記）。public input のハッシュも Keccak256。NFR-1 (SHA3-256/SHAKE256 のみ) に違反しており、SPHINCS+ 回路では最初から SHA3 系で設計する。Dilithium 回路も移行が必要 | 小〜中 | なし |
 | **G7** | KAT 完全化 | Dilithium 回路の真の NIST KAT は「PARTIALLY IMPLEMENTED」（`keygen_from_seed` 欠落）。SPHINCS+ 回路では FIPS 205 KAT (SPHINCS+-SHAKE-128s) を最初から通す | 小 | G1 |
 
 ### スコープ判断メモ
@@ -74,7 +74,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
 | **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
-| M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
+| M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **部分完了 → §13**（FR-THRESH-5 + 閾値ネイティブ層 + golden。wrap 依存部は M0.5-impl 待ち） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
 **逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c ✅ → M2d ✅ → M3 ✅ → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。**回路側マイルストーンは完走。次は M0.5-impl（wrap、専用 CI 環境）と M4（オンチェーン統合）**。
@@ -513,4 +513,45 @@ cargo run --release   # fips205 実署名 2 本の 15-proof 検証 + 偽造/改�
 ```bash
 cd src/crypto/circuits/threshold-m3
 cargo run --release   # 2/5 honest(2×16 proof)+ バッテリー 6 件、全 PASS で exit 0
+```
+
+---
+
+## 13. M4 進捗: オンチェーン側第一弾 — FR-THRESH-5 + 閾値ネイティブ層 + G6 是正 (2026-08-03)
+
+### 13.1 実施内容
+
+M3 完了を受け、オンチェーン側のうち **wrap 実装に依存しない部分**を先行実装した。
+
+1. **`RegistrySetCommitment.sol`(FR-THRESH-5)**: ProverRegistry の active 集合に対する SHA3-256 Merkle コミットメントを block-stamped スナップショットとして維持。leaf = SHA3-256(sphincsPublicKey)、node = SHA3-256(left‖right)、ゼロ leaf で 2 冪へ pad — **回路側 (`threshold-m3/src/registry.rs`) とバイト互換**で、同じ root C がオンチェーンネイティブ検査と回路内メンバーシップ証明の両方を係留する。`verifyMembership` によるネイティブ Merkle 検証も提供(log N ハッシュ)。
+2. **`ThresholdVerifier.sol`(FR-THRESH-1 ネイティブ層)**: M3 で確定した「public 値上の検査はネイティブ」の設計をオンチェーンに反映。閾値カウント・署名者重複排除(leaf ハッシュ昇順の強制で O(n))・epoch 指定のメンバーシップ検証を実施し、署名有効性は `IWrapVerifier` インターフェース(M0.5-impl の差し込み点)の wrap 済み proof に委譲。wrap proof は publicInputsDigest = SHA3-256(message ‖ pk_0 ‖ … ‖ pk_{k-1}) で署名者集合とメッセージに束縛される。
+3. **golden fixture によるクロススタック検証**: `threshold-m3/src/bin/fixture.rs`(`sha3` クレート)が生成した 5 prover の pk・leaf・root・path を Solidity テストに固定し、**オンチェーン snapshot() の root が Rust 計算の root とバイト一致**することを確認(G5 の趣旨をコミットメント層で実現)。
+4. **G6 是正**: `dilithium-stark` の Keccak256 を SHA3-256 (FIPS 202) に移行(`sha3_256` へ改名、既知ベクタ更新)。NFR-1/CP-1 違反を解消。crate テスト 58/58 パス(FFI KAT は C ライブラリ不在の既存環境制約で従来から無効)。
+
+### 13.2 テスト結果(forge 16/16 パス)
+
+| テスト | 内容 | 結果 |
+|--------|------|:----:|
+| SnapshotMatchesCircuitGoldenRoot | オンチェーン root == Rust 計算 root(golden) | ✅ |
+| Membership honest / wrong-index / non-member / forged-path | ネイティブ Merkle 検証 4 件 | ✅ |
+| SnapshotEpochsTrackSetChanges | 集合変化で root 変化・旧 epoch 参照可 | ✅ |
+| HonestThresholdVerifies | 2/5 正常系(mock wrap) | ✅ |
+| Below-threshold / duplicate / non-member / forged-path / wrong-path-length | ネイティブ検査 reject 5 件 | ✅ |
+| WrapProofInvalid / WrapVerifierUnset / OnlyOwner / DigestBinding | wrap 境界 4 件 | ✅ |
+
+ガス参考値(pure-Solidity SHA3-256): snapshot(5 prover) ~10.2M gas、メンバーシップ検証 ~3.3M gas/署名者。**pure-Solidity SHA3 は高コスト**であり、本番は (a) スナップショットのオフチェーン計算 + オンチェーンは root 受理のみ(FR-THRESH-5 の運用設計で決定)、(b) メンバーシップはネイティブでなく回路内証明(M3 で実測済み、wrap に同梱)に寄せる、のいずれかで削減する。NFR-2 (≤1M gas) の評価は wrap 検証器確定後の M4 完了時に行う。
+
+### 13.3 残作業
+
+- **M0.5-impl**(専用 CI 環境): 再帰集約 + SNARK wrap。完了後 `IWrapVerifier` 実装を接続。
+- **M4 完了条件**: wrap 検証器接続後の不正 proof revert テスト + 実測ガス ≤ 1M 判定 + L1Vault の Unlock 経路への `ThresholdVerifier.verifyThreshold` 組込み。
+- **M5**: テストネット E2E(proof-based Unlock tx + 不正 proof revert tx の記録)。
+
+### 13.4 再現方法
+
+```bash
+cd src/l1/contracts
+forge test --match-contract "RegistrySetCommitmentTest|ThresholdVerifierTest"
+cd ../../crypto/circuits/threshold-m3 && cargo run --release --bin fixture   # golden 値の再生成
+cd ../dilithium-stark && cargo test --release --no-default-features          # G6 移行後 58 テスト
 ```

@@ -20,15 +20,15 @@
 //! └───────────────────────────────────────────────────────────────┘
 //! ```
 
-use sha3::{Digest, Keccak256};
+use sha3::{Digest, Sha3_256};
 
 // =============================================================================
 // Hash Functions
 // =============================================================================
 
-/// Compute Keccak256 hash
-pub fn keccak256(data: &[u8]) -> [u8; 32] {
-    let mut hasher = Keccak256::new();
+/// Compute SHA3-256 (FIPS 202) hash
+pub fn sha3_256(data: &[u8]) -> [u8; 32] {
+    let mut hasher = Sha3_256::new();
     hasher.update(data);
     hasher.finalize().into()
 }
@@ -37,7 +37,7 @@ pub fn keccak256(data: &[u8]) -> [u8; 32] {
 ///
 /// Returns true if the hash of `data` equals `expected_hash`
 pub fn verify_hash(data: &[u8], expected_hash: &[u8; 32]) -> bool {
-    keccak256(data) == *expected_hash
+    sha3_256(data) == *expected_hash
 }
 
 // =============================================================================
@@ -206,19 +206,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_keccak256_known_vector() {
+    fn test_sha3_256_known_vector() {
         // Empty string hash
-        let empty_hash = keccak256(b"");
-        let expected = hex::decode("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")
+        let empty_hash = sha3_256(b"");
+        let expected = hex::decode("a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
             .unwrap();
         assert_eq!(&empty_hash[..], &expected[..]);
     }
 
     #[test]
-    fn test_keccak256_message() {
-        let hash = keccak256(b"hello");
+    fn test_sha3_256_message() {
+        let hash = sha3_256(b"hello");
         // Known hash for "hello"
-        let expected = hex::decode("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8")
+        let expected = hex::decode("3338be694f50c5f338814986cdf0686453a888b84f424d792af4b9202398f392")
             .unwrap();
         assert_eq!(&hash[..], &expected[..]);
     }
@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn test_verify_hash() {
         let data = b"test data";
-        let hash = keccak256(data);
+        let hash = sha3_256(data);
         assert!(verify_hash(data, &hash));
 
         let wrong_hash = [0u8; 32];
