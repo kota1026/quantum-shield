@@ -1,0 +1,32 @@
+[package]
+name = "threshold-m3"
+version = "0.1.0"
+edition = "2021"
+description = "M3: SPHINCS+ 2/N threshold verification composition — per signer a full SLH-DSA-SHAKE-128s proof composition (M2d) plus a SHA3-256 registry Merkle membership pipeline proof (32-byte chain extension of the M2c/M2d pipeline AIR), with native threshold/dedup/set-commitment checks over public values."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-goldilocks = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+sha3 = "0.10"
+bincode = "1.3"
+fips205 = "0.4"
+
+[[bin]]
+name = "threshold-m3"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
