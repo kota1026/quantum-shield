@@ -1,0 +1,25 @@
+[package]
+name = "wrap-groth16"
+version = "0.1.0"
+edition = "2021"
+description = "M0.5-impl on-chain plumbing: generates a real BN254 Groth16 proof whose public inputs carry the ThresholdVerifier publicInputsDigest, and emits the verifying key / proof as Solidity fixtures for Groth16WrapVerifier.sol (EVM pairing precompiles). The Groth16 statement is a placeholder pending the STARK-verifier R1CS circuit — the deliverable is the complete, gas-measured on-chain wrap path."
+
+[dependencies]
+ark-bn254 = "0.4"
+ark-ec = "0.4"
+ark-ff = "0.4"
+ark-groth16 = "0.4"
+ark-relations = "0.4"
+ark-serialize = "0.4"
+ark-snark = "0.4"
+ark-std = "0.4"
+sha3 = "0.10"
+
+[[bin]]
+name = "wrap-groth16"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
