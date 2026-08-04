@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
-| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 選定 / §14 wrap配管 / §15 方式A確定 / §16 Merkle開示AIR**（残: FRI fold + transcript + DEEP-ALI の再帰AIR） |
+| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 / §14 wrap配管 / §15 方式A確定 / §16 Merkle開示 / §17 FRI fold**（残: transcript + DEEP-ALI） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **ほぼ完了 → §13/§14**（不正 proof revert + Vault 接続 + wrap 検証 204k gas 実測済み。残: 実 wrap 回路の VK 差し替えのみ） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -713,5 +713,47 @@ cargo run --release   # Keccak-MMCS vs Poseidon2-MMCS 比較表
 
 ```bash
 cd src/crypto/circuits/recursion-merkle-m05
+cargo run --release   # honest accept + 改竄 5 件 reject
+```
+
+---
+
+## 17. M0.5-impl 方式 A: FRI folding 検証 AIR (2026-08-04)
+
+### 17.1 位置づけ
+
+§16(Merkle 開示検証)に続く方式 A の**第二構成要素**。再帰 FRI 検証器が各クエリで行うもう一方の内側ループ — **fold-and-check** — を native-field AIR 化する。`src/crypto/circuits/fri-fold-m05`。
+
+### 17.2 制約構造
+
+FRI クエリ 1 本につき各行が 1 折り畳みラウンド。走行評価値 `e_i`(層 i のクエリ点評価)、2 つの兄弟開示 `a_i = p_i(x_i)` / `c_i = p_i(-x_i)`、ラウンドチャレンジ `beta_i`、ドメイン点 `x_i` を保持:
+
+- **整合性**: `e_i` = 実クエリ点の開示(public index ビットが `a_i` / `c_i` を選択)
+- **折り畳み**: `2·x_i·e_{i+1} = x_i·(a_i + c_i) + beta_i·(a_i − c_i)`(= `e_{i+1} = (a+c)/2 + beta·(a−c)/(2x)`)を次ラウンドにチェーン
+- **ドメイン二乗**: `x_{i+1} = x_i²`
+- **境界**: 先頭ラウンドで初期層評価とドメイン点を、最終ラウンドで最終折り畳み値を束縛
+
+開示・チャレンジ・index ビットは public(FRI proof + transcript 由来)、走行評価値とドメイン点は witness でチェーン。全制約 degree ≤ 3。除算を含む折り畳み式を `2x` 倍して多項式制約化。
+
+### 17.3 実測(BabyBear、R=8)
+
+| ケース | prove (ms) | verify (ms) | proof (bytes) | 期待 | 結果 |
+|--------|-----------:|------------:|--------------:|:----:|:----:|
+| honest | 148.0 | 2.2 | 105,364 | accept | ✅ |
+| forged-opening(r3) | 88.0 | 3.6 | 105,364 | reject | ✅ |
+| flipped-bit(r4) | 249.6 | 2.2 | 105,364 | reject | ✅ |
+| wrong-beta(r2) | 55.8 | 2.1 | 105,364 | reject | ✅ |
+| forged-final | 141.9 | 2.4 | 105,364 | reject | ✅ |
+| forged-init | 110.9 | 2.4 | 105,364 | reject | ✅ |
+
+### 17.4 所見と残り
+
+- 折り畳み代数(整合性・fold・二乗・境界)を AIR で表現し、開示偽造・index 反転・チャレンジ改竄・最終/初期値偽造の 5 種を全て reject。純代数のため SubAir 不要で 13 列と軽量。
+- **方式 A の 2 つの per-query 内側ループ(§16 Merkle 開示 / §17 FRI fold)が揃った**。残る構成要素は: (c) **Fiat-Shamir transcript の in-circuit 再生**(`beta_i` とクエリ index を challenger 再生で導出し、本 AIR の public 入力に束縛)、(d) **制約/quotient 整合(DEEP-ALI)**。これらを結合すると完全な再帰検証器 AIR となり、最終 proof を §14 の Groth16 経路で wrap する。
+
+### 17.5 再現方法
+
+```bash
+cd src/crypto/circuits/fri-fold-m05
 cargo run --release   # honest accept + 改竄 5 件 reject
 ```

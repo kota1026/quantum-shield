@@ -1,0 +1,29 @@
+[package]
+name = "fri-fold-m05"
+version = "0.1.0"
+edition = "2021"
+description = "M0.5-impl method-A component 2: a FRI folding-consistency AIR. Each row checks one query's per-round fold relation 2*x*e_{i+1} = x*(a_i + c_i) + beta_i*(a_i - c_i), chains the folded evaluation into the next round's running value, squares the domain point, and binds the round challenges, sibling openings and query-index bits to public inputs — the fold-and-check the recursive FRI verifier runs per query, as a native-field AIR."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+bincode = "1.3"
+
+[[bin]]
+name = "fri-fold-m05"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
