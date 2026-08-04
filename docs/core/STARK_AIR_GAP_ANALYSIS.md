@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
-| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 / §14 wrap配管 / §15-§19 方式A 4構成要素コンプリート**（残: 4部品の統合 → 再帰AIR → Groth16 VK差替） |
+| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 / §14 wrap配管 / §15-§19 方式A / §20 統合(public glue)**（残: 集約→単一proof→Groth16 VK差替） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **ほぼ完了 → §13/§14**（不正 proof revert + Vault 接続 + wrap 検証 204k gas 実測済み。残: 実 wrap 回路の VK 差し替えのみ） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -855,4 +855,56 @@ DEEP quotient 恒等式: `C(t(zeta), t(zeta·g)) = Z_H(zeta) · q(zeta)`(`Z_H(x)
 ```bash
 cd src/crypto/circuits/deep-ali-m05
 cargo run --release   # honest accept + 改竄 5 件 reject
+```
+
+---
+
+## 20. M0.5-impl 方式 A: 再帰検証器の統合(public glue 合成) (2026-08-04)
+
+### 20.1 位置づけ
+
+§16-19 で完成した 4 構成要素を結線し、内部 FRI proof の**端から端までの検証**を実演する。`src/crypto/circuits/recursion-verify-m05`。
+
+### 20.2 統合方式
+
+単一ランナーが 4 セグメントを各自の AIR で証明し、界面を **public glue** で束ねる(M2d の 15-proof 署名・M3 の閾値と同じ合成):
+
+- **glue-1**: transcript の最初の observed commitment == Merkle root
+- **glue-2**: 各 FRI-fold `beta_i` == transcript の squeeze チャレンジ
+- **glue-3**: fold の初期評価値 == 開示された Merkle leaf
+- **glue-4**: DEEP の trace 開示 == fold の最終評価値
+
+honest では 4 proof 全 verify + 4 glue チェック成立。セグメント跨ぎの改竄(fold beta ≠ transcript チャレンジ等)は各 proof は valid のまま glue リンクを壊す → reject。
+
+### 20.3 実測(BabyBear)
+
+| ケース | 結果 | 備考 |
+|--------|:----:|------|
+| honest-end-to-end | ✅ ACCEPT | 4 proof 合計 ~0.9 s / ~0.7 MB、glue ok |
+| break glue-1 (root) | ✅ reject | glue 検査で捕捉 |
+| break glue-2 (beta) | ✅ reject | 同上 |
+| break glue-3 (leaf→init) | ✅ reject | 同上 |
+| break glue-4 (fold→deep) | ✅ reject | 同上 |
+
+### 20.4 到達点と残り
+
+- 4 AIR が界面整合の下で内部 proof を端から端まで検証することを実証。**再帰検証器のロジックは完成・合成可能**。
+- **残る M0.5-impl は「合成を succinct にする」1 点**: (a) 4 セグメントを単一トレースに畳み glue をネイティブランナーでなく in-AIR 制約で強制、または (b) 4 proof を再帰集約 — したうえで、最終 proof を §14 で構築・ガス実測済みの Groth16 経路で wrap(`Groth16WrapVerifier.sol` の VK 差し替え)。
+- 現状は「4 proof + ネイティブ glue」で、M2d/M3 と同じ**検証可能だが非集約**の段階。集約(a/b)は §14 の再帰集約(方式 C)の実装であり、gnark 等の外部ツール or 自作 P3 再帰 AIR の選定を伴う次工程。
+
+### 20.5 M0.5-impl の全体到達点(更新)
+
+| ステップ | 状態 |
+|---------|------|
+| wrap 方式選定(§7)+ Groth16 オンチェーン配管・ガス実測(§14) | ✅ |
+| 再帰方式 A 確定 + Poseidon2 換装(§15) | ✅ |
+| 再帰検証器 4 構成要素(§16-19) | ✅ |
+| 4 構成要素の統合(public glue、§20) | ✅ |
+| **集約 → 単一 proof 化 → Groth16 VK 差替** | ⏳ 残(最終段) |
+
+### 20.6 再現方法
+
+```bash
+cd src/crypto/circuits/recursion-verify-m05
+cargo run --release   # honest end-to-end accept + glue 改竄 4 件 reject
 ```
