@@ -988,3 +988,74 @@ honest 受理 + 界面改竄 3 件 + digest 改竄 1 件をすべて棄却。公
 cd src/crypto/circuits/recursion-aggregate-m05
 cargo run --release   # honest interface commitment accept + tamper 4 件 reject
 ```
+
+## 22. M0.5-impl 方式 A: opening のコミット束縛 — commitment-bound FRI query (2026-08-04)
+
+### 22.1 位置づけ
+
+§17(`fri-fold-m05`)は per-query の FRI fold 連鎖を検証するが、各層の opening
+`(aᵢ, cᵢ)` を **公開入力として主張**するだけで、コミットには束縛されていない。
+§20.4 / §21.5 が残課題として挙げた「opening が主張のまま、コミット未束縛」の
+ギャップを閉じるのが本工程。§16(Poseidon2 Merkle 開示)と §17(fold)を
+§20 と同じ **public glue** で合成し、FRI query の入口 opening をコミットに束縛する。
+
+### 22.2 構成(public glue 合成)
+
+- **fold proof**(§17 AIR): R ラウンドの fold 連鎖を検証。
+- **Merkle proof**(§16 AIR): leaf が層 0 の root にコミットされていることを検証。
+- **glue**: fold のラウンド 0 opening 対 `(a₀, c₀)` が、そのコミット済み leaf に一致
+  (`leaf = [a₀, c₀, 0…]`)。
+
+合成は「両 proof が verify **かつ** glue 成立」で受理。これで fold の入口 opening は
+自由な公開入力から「コミット root に束縛された値」へ格上げされる。
+
+### 22.3 束縛が成立する理由
+
+**固定された**層 0 root(実コードワードへの公開コミット)に対し、Merkle AIR は
+`leaf‖path` がその root にハッシュする場合のみ受理する。固定 root に対して別の leaf
++有効 path は作れないため、入口 opening は偽造不能:
+
+- fold の `a₀` を偽造しつつコミットを保持 → glue が破れる(fold opening ≠ コミット leaf)。
+- 偽造 opening を Merkle leaf 側で再コミットしようとし root を保持 → Poseidon2 path が
+  root にハッシュせず Merkle proof が棄却。
+
+### 22.4 実測(BabyBear、R=8、D=8、FRI: log_blowup=3 / 100 queries / pow 16)
+
+```
+                        case |   total_ms |  total_bytes |  expected | result
+                      honest |      352.3 |       340136 |    accept |   PASS
+         forge-fold-a0(glue) |      415.0 |       340136 |    reject |   PASS
+         recommit-leaf(root) |      215.6 |       340136 |    reject |   PASS
+                  forge-root |      354.5 |       340136 |    reject |   PASS
+          forge-fold-mid(r3) |      294.4 |       340136 |    reject |   PASS
+            forge-fold-final |      314.0 |       340136 |    reject |   PASS
+```
+
+honest 受理 + 改竄 5/5 棄却。
+
+### 22.5 到達点と残り(全体更新)
+
+| ステップ | 状態 |
+|---------|------|
+| wrap 方式選定(§7)+ Groth16 オンチェーン配管・ガス実測(§14) | ✅ |
+| 再帰方式 A 確定 + Poseidon2 換装(§15) | ✅ |
+| 再帰検証器 4 構成要素(§16-19) | ✅ |
+| 4 構成要素の統合(public glue、§20) | ✅ |
+| 公開面の縮約 → 単一 Poseidon2 digest(§21) | ✅ |
+| FRI 入口 opening のコミット束縛(§22) | ✅ |
+| **全層 opening の束縛(R-fold 反復)** | ⏳ 機械反復(サンドボックス内で可能・未実施) |
+| **4 セグメント proof の in-circuit 検証(root を実 proof のコミットに束縛)** | ⏳ env-gated |
+| 集約 proof の Groth16 VK 差替 → M5 テストネット E2E | ⏳ env-gated |
+
+本工程は FRI query を層 0 のコミット済みコードワードに **anchor** する。各後続層の
+opening も同じ構成でそれぞれの層 root に束縛できる(本構成の R-fold 反復)。残る本質は
+不変で env-gated:4 セグメント proof を in-circuit 検証し、ここで用いる root を「供給された
+path」ではなく「内側 proof の実コミット」にすること(フル再帰、集約回路の Groth16 VK
+再生成は proving CI を要す)。
+
+### 22.6 再現方法
+
+```bash
+cd src/crypto/circuits/fri-commit-query-m05
+cargo run --release   # honest 受理 + tamper 5 件 reject
+```
