@@ -908,3 +908,83 @@ honest では 4 proof 全 verify + 4 glue チェック成立。セグメント�
 cd src/crypto/circuits/recursion-verify-m05
 cargo run --release   # honest end-to-end accept + glue 改竄 4 件 reject
 ```
+
+## 21. M0.5-impl 方式 A: 公開面の縮約 — 界面コミットメント AIR (2026-08-04)
+
+### 21.1 位置づけ
+
+§20 の統合は 4 AIR を **public glue** で束ねる。その結果、合成全体の公開面は
+「4 セグメント分の界面値の集合」— Merkle root、FRI-fold の各 `beta_i`、fold の
+初期/最終評価、DEEP トレース開示 — になる。§14 の Groth16 wrap が消費する公開入力は
+本来 1 個(`publicInputsDigest`)であるべきで、この不整合を埋めるのが本工程。
+
+界面集合全体を **1 個の Poseidon2 digest** に畳む interface-commitment AIR を実装し、
+公開面を「界面値の集合」から「1 ハッシュ」へ縮約した。
+
+### 21.2 制約構造
+
+界面集合を `NBLOCKS = 3` の rate ブロックに配置:
+`[Merkle root(8)]`, `[fold betas(8)]`, `[f_init, f_final, d_t0, pad…]`。
+これを幅 16 の Poseidon2 スポンジ(overwrite mode、rate = capacity = 8、
+置換は `p3-poseidon2-air` を `SubAirBuilder` 経由で制約)へ吸収し、
+squeeze した digest を単一の公開出力に束縛する。
+
+行ごとに `LinkCols { is_real, links_next, onehot[NBLOCKS] }` を持ち、3 吸収行を
+one-hot で歩く:
+
+- **absorb**: 置換入力 rate レーン `i` が one-hot 選択した公開界面ブロックのレーンに一致
+  (`inp(i) == Σ_r onehot[r]·pi_iface[r·RATE+i]`)。
+- **first row**: capacity IV = 0、`onehot[0] = 1`、`is_real = 1`。
+- **capacity carry**: 連結遷移で次行入力 capacity = 当行置換出力 capacity
+  (overwrite-mode スポンジ)、one-hot index を 1 つシフト。
+- **digest binding**: 最終実ブロック(`is_real·(1−links_next)`)で出力 rate = 公開 digest。
+
+界面レーンを 1 つでも改竄しつつ honest digest を保つと当行の absorb 制約が破れ、
+digest を改竄すると binding が破れる。
+
+### 21.3 実測(BabyBear、FRI: log_blowup=3 / 100 queries / pow 16)
+
+```
+poseidon2_cols=313 link_cols=5 public_values=32 (iface 24 + digest 8)
+
+                      case |   prove_ms |  verify_ms |  proof_bytes |  expected | result
+                    honest |      101.0 |        5.3 |       207344 |    accept |   PASS
+        forged-iface(root) |      136.4 |        4.5 |       207344 |    reject |   PASS
+        forged-iface(beta) |      165.0 |        4.4 |       207344 |    reject |   PASS
+     forged-iface(f_final) |       96.4 |        4.4 |       207344 |    reject |   PASS
+             forged-digest |      143.6 |        4.7 |       207344 |    reject |   PASS
+```
+
+honest 受理 + 界面改竄 3 件 + digest 改竄 1 件をすべて棄却。公開面は 1 digest に確定。
+
+### 21.4 Groth16 wrap との接続
+
+この digest が §14 の `Groth16WrapVerifier.sol` が消費する単一公開入力になる。
+オンチェーン側は既に `publicInputsDigest = SHA3-256(message‖pks)` を 1 個の公開入力として
+検証する形(§14、ガス実測 ~204k < NFR-2 1M)で、VK 差し替えのみで接続できる。
+
+### 21.5 到達点と残り(全体更新)
+
+| ステップ | 状態 |
+|---------|------|
+| wrap 方式選定(§7)+ Groth16 オンチェーン配管・ガス実測(§14) | ✅ |
+| 再帰方式 A 確定 + Poseidon2 換装(§15) | ✅ |
+| 再帰検証器 4 構成要素(§16-19) | ✅ |
+| 4 構成要素の統合(public glue、§20) | ✅ |
+| 公開面の縮約 → 単一 Poseidon2 digest(§21) | ✅ |
+| **4 セグメント proof の in-circuit 検証(界面値を実 proof に束縛)** | ⏳ env-gated |
+| 集約 proof の Groth16 VK 差替 → M5 テストネット E2E | ⏳ env-gated |
+
+**残る唯一のコード作業(サンドボックス外)**: §21 の digest に吸収される界面値は現状
+「公開入力として主張」されている。これを **実際のセグメント proof に束縛**するには、
+4 proof を in-circuit で検証する必要がある(in-circuit FRI/PCS verifier = full recursion)。
+これは集約回路の VK を再生成する proving CI を要し、env-gated(SP1 zkVM 403 / crates.io 上の
+再帰スタックいずれも重量級)。到達可能性 probe は §15.5 に記録済み。M5 は §14.5 / §15.6 の
+2 条件(RPC allowlist + funded `QS__L1_PRIVATE_KEY`)が揃い次第そのまま実施可能。
+
+### 21.6 再現方法
+
+```bash
+cd src/crypto/circuits/recursion-aggregate-m05
+cargo run --release   # honest interface commitment accept + tamper 4 件 reject
+```
