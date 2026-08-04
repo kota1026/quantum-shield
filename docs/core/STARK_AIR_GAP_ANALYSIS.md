@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
-| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **選定 §7 / オンチェーン配管完了 → §14**（残: STARK 検証器の回路化 §14.4） |
+| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **選定 §7 / オンチェーン配管 §14 / 再帰方式 A 確定 + Poseidon2 換装実測 §15**（残: 再帰検証 AIR） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **ほぼ完了 → §13/§14**（不正 proof revert + Vault 接続 + wrap 検証 204k gas 実測済み。残: 実 wrap 回路の VK 差し替えのみ） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -603,4 +603,73 @@ cd src/crypto/circuits/wrap-groth16 && cargo run --release   # 実Groth16生成 
 cd ../../../l1/contracts
 forge test --match-path "test/Groth16WrapVerifierTest.t.sol"   # 実ペアリング 9 テスト
 forge test --match-path "test/L1VaultProofUnlock.t.sol"        # Vault 組込み 6 テスト
+```
+
+---
+
+## 15. M0.5-impl 再帰アーキテクチャ選定: コミットメントハッシュ換装の実測 (2026-08-03)
+
+### 15.1 問題の再定式化
+
+§14.4 の残課題「STARK 構成検証器の回路化 + 再帰集約」の本質的コストは**内側 proof の検証器を回路内で安く評価できるか**である。FRI の各クエリは Merkle パスを開示し、再帰検証器はそのノードを回路内で再ハッシュする。M0〜M4 の本番構成は **Keccak-MMCS**(ノードあたり Keccak-f[1600] ≈ **150k R1CS 制約**)であり、1 検証で queries × layers 個のノードを再ハッシュするため、Keccak のまま Groth16 化すると制約数が 10^8 超で**非現実的**。標準解は**コミットメントを回路親和ハッシュ(Poseidon2、ノードあたり ≈ 300 制約)に換装**してから再帰すること。
+
+### 15.2 実測: Keccak-MMCS vs Poseidon2-MMCS
+
+`src/crypto/circuits/wrap-recursion-m05` で、**同一 keccak-air バッチ・同一 Goldilocks 体・同一 FRI パラメータ**(M0 §5 と同条件)を両 MMCS 構成で prove/verify:
+
+| 置換数 | MMCS | prove (ms) | verify (ms) | proof (bytes) | ok |
+|------:|------|-----------:|------------:|--------------:|:--:|
+| 16 | Keccak | 1,437 | 34.3 | 2,501,652 | ✅ |
+| 16 | Poseidon2 | 4,079 | 105.1 | 2,501,652 | ✅ |
+| 128 | Keccak | 6,777 | 35.2 | 2,652,972 | ✅ |
+| 128 | Poseidon2 | 27,837 | 108.5 | 2,652,972 | ✅ |
+| 512 | Keccak | 36,909 | 38.2 | 2,769,852 | ✅ |
+| 512 | Poseidon2 | 143,331 | 114.3 | 2,769,852 | ✅ |
+
+### 15.3 所見
+
+1. **proof サイズは完全に同一**(コミットメント方式によらず trace 高さ律速)、**native verify も同オーダー**(~35ms vs ~110ms)。両構成とも全ケース検証成功。
+2. **native prove は Poseidon2 が ~4 倍遅い**が、これは**このリビジョンの `Poseidon2Goldilocks` が未最適化実装**であることに起因する(ライブラリソースに "the internal layers are unoptimized" と明記; BabyBear 版はベクトル化済みだが Goldilocks 版は未対応)。本番では (a) BabyBear/KoalaBear 系への移行、(b) Goldilocks Poseidon2 のベクトル化、(c) Merkle capping で解消可能な**実装課題**であり、方式選定の本質的欠点ではない。
+3. **再帰で効く指標は native prove ではなく in-circuit ノードコスト**であり、そこは Keccak 150k → Poseidon2 300 制約の**~500 倍**。この換装なしに再帰集約は成立せず、換装により初めて現実的になる — **M0.5-impl は Poseidon2-MMCS への換装を第一歩とする**ことが実測で確定した。
+
+### 15.4 再帰集約アーキテクチャ決定マトリクス
+
+| 方式 | 内容 | サンドボックス到達性 | 評価 |
+|------|------|:---:|------|
+| **A. P3 Poseidon2 換装 + 自作再帰検証 AIR** | 全 QS proof を Poseidon2-MMCS で再生成し、STARK 検証器を AIR 化して再帰集約、最終段を §14 の Groth16 で wrap | ✅ 換装は実測済み(本節)。再帰 AIR は要実装 | ◎ 既存 P3 スタックと連続。最有力 |
+| **B. Plonky2 移植** | Plonky2 のネイティブ再帰(FRI + Poseidon)を利用、最終 SNARK wrap | △ crates.io 経由で可能性あり(未検証) | ○ 再帰が枯れている。スタック二重化のコスト |
+| **C. SP1 / RISC0 zkVM wrap** | ネイティブ検証器を RISC-V で実行し zkVM proof を Groth16 wrap | ✗ **SP1 は GitHub プロキシがスコープ外リポジトリを 403 で遮断、導入不可**(§15.5) | △ 実装は最小だが本環境では不可 |
+
+**推奨: 方式 A**。§14 の Groth16 wrap 配管(最終段)と本節の Poseidon2 換装(前処理)が両端で実測済みであり、中間の「再帰検証 AIR」のみが残る。
+
+### 15.5 環境制約の確定(到達性 probe 結果)
+
+| 依存 | 取得元 | 結果 |
+|------|--------|:----:|
+| arkworks (ark-groth16 等) | crates.io(プロキシ許可) | ✅ 導入・実行可(§14) |
+| foundry / solc | GitHub releases(プロキシ許可) | ✅ 導入可(§13) |
+| Plonky3 (pinned) | 既存 vendored | ✅ |
+| **SP1 zkVM** | GitHub `succinctlabs/sp1`(**スコープ外**) | ✗ プロキシが 403 で遮断 |
+| **Sepolia RPC** | `rpc.sepolia.org` 等 | ✗ プロキシが CONNECT 403 |
+
+→ サンドボックスで進められる M0.5-impl の次段は**方式 A の再帰検証 AIR 実装**(crates.io / vendored のみに依存)。方式 C と M5 は環境ポリシー変更が前提。
+
+### 15.6 M5 の解除手順(2 条件が揃い次第そのまま実施可能)
+
+1. **RPC 許可**: ネットワークポリシーで Sepolia RPC(例 `https://rpc.sepolia.org`)への CONNECT を許可、または `QS__L1_RPC_URL` に到達可能な RPC を設定
+2. **資金付き鍵**: `QS__L1_PRIVATE_KEY`(Sepolia ETH 保有)を設定
+3. 実行:
+   ```bash
+   cd src/l1/contracts
+   forge script script/DeployProverRegistry.s.sol --rpc-url "$QS__L1_RPC_URL" --broadcast
+   # RegistrySetCommitment / ThresholdVerifier / Groth16WrapVerifier をデプロイ、
+   # L1Vault に proposeThresholdVerifier → approve → execute で設置後、
+   # requestUnlockWithProof の成功 tx と改竄 proof の revert tx を記録(受け入れ基準 3)
+   ```
+
+### 15.7 再現方法
+
+```bash
+cd src/crypto/circuits/wrap-recursion-m05
+cargo run --release   # Keccak-MMCS vs Poseidon2-MMCS 比較表
 ```

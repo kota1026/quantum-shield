@@ -1,0 +1,32 @@
+[package]
+name = "wrap-recursion-m05"
+version = "0.1.0"
+edition = "2021"
+description = "M0.5-impl recursion groundwork: proves identical keccak-air batches under the production Keccak-MMCS configuration and a recursion-friendly Poseidon2-MMCS configuration (same Goldilocks field, FRI parameters and trace), measuring prove/verify time and proof size. Quantifies the commitment-hash swap that makes recursive aggregation of the QS proof composition tractable (Poseidon2 is a few hundred constraints per permutation in-circuit vs ~150k for Keccak-f[1600])."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-goldilocks = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-poseidon2 = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+rand = "0.9"
+bincode = "1.3"
+
+[[bin]]
+name = "wrap-recursion-m05"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
