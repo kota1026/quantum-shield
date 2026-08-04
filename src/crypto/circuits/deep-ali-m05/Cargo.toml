@@ -1,0 +1,29 @@
+[package]
+name = "deep-ali-m05"
+version = "0.1.0"
+edition = "2021"
+description = "M0.5-impl method-A component 4 (final): a DEEP-ALI constraint-consistency AIR. Given a random out-of-domain point zeta and the opened trace/quotient evaluations, it verifies the DEEP quotient identity C(t(zeta), t(zeta*g)) = Z_H(zeta) * q(zeta) — computing the vanishing polynomial Z_H(zeta) = zeta^n - 1 via an in-AIR squaring chain and binding openings and quotient to public inputs. The last of method A's four recursive-verifier components."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+bincode = "1.3"
+
+[[bin]]
+name = "deep-ali-m05"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]

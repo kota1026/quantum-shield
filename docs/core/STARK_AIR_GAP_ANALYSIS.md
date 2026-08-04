@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
-| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 / §14 wrap配管 / §15 方式A / §16 Merkle開示 / §17 FRI fold / §18 transcript**（残: DEEP-ALI §19） |
+| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 / §14 wrap配管 / §15-§19 方式A 4構成要素コンプリート**（残: 4部品の統合 → 再帰AIR → Groth16 VK差替） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **ほぼ完了 → §13/§14**（不正 proof revert + Vault 接続 + wrap 検証 204k gas 実測済み。残: 実 wrap 回路の VK 差し替えのみ） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -797,4 +797,62 @@ cargo run --release   # honest accept + 改竄 5 件 reject
 ```bash
 cd src/crypto/circuits/fri-transcript-m05
 cargo run --release   # honest accept + 改竄 4 件 reject
+```
+
+---
+
+## 19. M0.5-impl 方式 A: DEEP-ALI 整合 AIR — 方式 A 構成要素コンプリート (2026-08-04)
+
+### 19.1 位置づけ
+
+方式 A の**第四(最終)構成要素**。STARK 検証の最終段 — 開示された trace/quotient 評価値が out-of-domain 点 `zeta` で AIR 制約を満たすことの検査 — を in-circuit 化する。`src/crypto/circuits/deep-ali-m05`。
+
+DEEP quotient 恒等式: `C(t(zeta), t(zeta·g)) = Z_H(zeta) · q(zeta)`(`Z_H(x) = x^n − 1` は サイズ `n` の trace ドメインの vanishing 多項式)。
+
+### 19.2 制約構造
+
+デモ内部制約 `C = t(zeta·g) − t(zeta)²`(二乗遷移 AIR)に対し:
+
+- **zeta^n の再計算**: in-AIR 二乗チェーン(`p_0 = zeta`, `p_{i+1} = p_i²`, `p_LOG_N = zeta^n`)。プローバは `zeta^n` を偽れない
+- 開示 `t0 = t(zeta)` / `t1 = t(zeta·g)`、quotient `q = q(zeta)`、`zeta` を public 束縛
+- 最終チェーン行で `t1 − t0² == (zeta^n − 1)·q` を assert
+
+### 19.3 実測(BabyBear、n=2^10)
+
+| ケース | prove (ms) | verify (ms) | proof (bytes) | 期待 | 結果 |
+|--------|-----------:|------------:|--------------:|:----:|:----:|
+| honest | 141.7 | 2.4 | 128,888 | accept | ✅ |
+| forged-opening(t1) | 146.5 | 2.2 | 128,888 | reject | ✅ |
+| forged-opening(t0) | 139.7 | 2.7 | 128,888 | reject | ✅ |
+| forged-quotient | 108.3 | 2.2 | 128,888 | reject | ✅ |
+| forged-zeta(pub) | 196.4 | 2.2 | 128,888 | reject | ✅ |
+| wrong-ood-point | 75.4 | 2.2 | 128,888 | reject | ✅ |
+
+### 19.4 方式 A: 構成要素コンプリート
+
+再帰検証器の 4 構成要素が全て実装・実測済みになった:
+
+| 構成要素 | クレート | §  |
+|---------|---------|---|
+| Merkle 開示(クエリごとの再ハッシュ) | `recursion-merkle-m05` | §16 |
+| FRI fold(クエリごとの fold-and-check) | `fri-fold-m05` | §17 |
+| Fiat-Shamir transcript 再生 | `fri-transcript-m05` | §18 |
+| DEEP-ALI 制約整合 | `deep-ali-m05` | §19 |
+
+**M0.5-impl の残作業は統合のみ**: 4 部品を 1 つの再帰検証器 AIR に結線し(内部 proof をフル検証)、その最終 proof を §14 で構築・ガス実測済みの Groth16 経路で wrap する。個別部品の健全性(各 §16-19 の改竄 reject)と再帰親和性(BabyBear+Poseidon2 で proof ~0.1-0.2MB / verify ~2-5ms)は実測で確立済み。
+
+### 19.5 M0.5-impl 全体の到達点
+
+| ステップ | 状態 |
+|---------|------|
+| wrap 方式選定(§7)+ オンチェーン Groth16 配管・ガス実測(§14) | ✅ |
+| 再帰方式 A 確定 + Poseidon2 換装実測(§15) | ✅ |
+| 再帰検証器 4 構成要素(§16-19) | ✅ |
+| **統合**(4 部品結線 → 再帰 AIR → Groth16 wrap の VK 差し替え) | ⏳ 残 |
+
+### 19.6 再現方法
+
+```bash
+cd src/crypto/circuits/deep-ali-m05
+cargo run --release   # honest accept + 改竄 5 件 reject
 ```
