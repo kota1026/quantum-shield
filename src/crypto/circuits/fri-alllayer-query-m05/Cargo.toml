@@ -1,0 +1,32 @@
+[package]
+name = "fri-alllayer-query-m05"
+version = "0.1.0"
+edition = "2021"
+description = "M0.5-impl method-A binding step (§23): all-layer commitment-bound FRI query verification. §22 (fri-commit-query-m05) bound only the layer-0 entry opening (a0,c0) to the layer-0 Poseidon2 root. This crate applies the same construction to every FRI fold round: each round i's opening pair (a_i,c_i) is glued to a leaf committed under that layer's own root_i, so every opening the fold chain consumes — not just the entry — is provably bound to a per-layer commitment. This is the R-fold repetition named in §22.5: the FRI query is anchored to a committed codeword at each layer, closing the residual 'inner layers asserted, not committed' gap."
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-poseidon2 = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-poseidon2-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+rand = "0.9"
+bincode = "1.3"
+
+[[bin]]
+name = "fri-alllayer-query-m05"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+[workspace]
