@@ -1127,3 +1127,68 @@ FRI query は各層でコミット済みコードワードに anchor された�
 cd src/crypto/circuits/fri-alllayer-query-m05
 cargo run --release   # honest 受理 + tamper 7 件 reject
 ```
+
+## 24. M0.5-impl 方式 A: 単一コミット root への複数クエリ開示 — multi-query openings (2026-08-04)
+
+### 24.1 位置づけ
+
+§22 / §23 は FRI opening をコミットに束縛したが、各 opening は**自前の fabricated root**
+(random 兄弟で組んだ Merkle path)を持っていた。実際の FRI 層はその逆の形 — **1 つの**
+コードワード root をコミットし、**~100 個の異なるクエリ index** を同一 root に開示する。
+再帰検証器は各クエリの認証パスをその**唯一のコミット**に再ハッシュする。本工程はその形を
+構築し、§23 の「per-opening fabricated root」からフル再帰へ一歩進める。
+
+### 24.2 構成
+
+- **commit**: `2^D = 256` 個の leaf digest から成る実コードワードを、§16 AIR が再ハッシュ
+  するのと**同一の** 2-to-1 truncated permutation で bottom-up に 1 本の Poseidon2 Merkle
+  木へコミット(`layers[D][0]` が root)。
+- **open**: `K = 8` 個の異なるクエリ index を開示。各々が実 leaf・パス上の実兄弟 digest・
+  index 由来の方向ビットを与える。
+- **verify**: 各 opening を §16 再帰 Merkle 開示 AIR で検証し、**全クエリが同一 root** を
+  持つことを要求。
+
+### 24.3 単一 root 束縛が成立する理由
+
+各クエリのパスは木が構築した実ノード鎖であり、実 root にハッシュする。検証器は
+`leaf‖path` が主張 root にハッシュする場合のみ受理:
+
+- あるクエリの兄弟 / leaf を偽造、または方向ビットを反転 → **そのクエリのみ** root に届かない。
+- 共有 root を偽造 → **全クエリ**が棄却(単一 root 束縛)。
+- あるクエリを**別コードワード**の root で検証 → 棄却。opening は**このコミット**に束縛。
+
+### 24.4 実測(BabyBear、D=8、K=8、index 5/42/79/116/153/190/227/8、Q=3)
+
+```
+                        case |   total_ms |  total_bytes |  expected | result
+    honest(K queries,1 root) |      765.5 |      1878176 |    accept |   PASS
+            forge-sibling[q] |      716.7 |      1878176 |    reject |   PASS
+             flip-dir-bit[q] |      836.3 |      1878176 |    reject |   PASS
+               forge-leaf[q] |      890.4 |      1878176 |    reject |   PASS
+      forge-shared-root(all) |     1001.3 |      1878176 |    reject |   PASS
+             foreign-root[q] |      759.8 |      1878176 |    reject |   PASS
+```
+
+honest `8/8` クエリが単一コミット root に対して検証 + 改竄 5/5 棄却。
+
+### 24.5 到達点と残り(env-gate 境界の明確化)
+
+再帰 Merkle 開示検証器は、**単一の実コミットコードワードに対する実マルチクエリ開示集合**
+を消費するようになった — 実 inner proof の層別 opening が持つ構造であり、§23 の per-opening
+fabricated root から一歩前進。残る 2 項目はいずれも**サンドボックス外**で確定:
+
+| 残項目 | ブロッカー(実測確定) |
+|--------|----------------------|
+| この root を実 inner proof の transcript / FRI / DEEP 関係に束縛(= root を「供給パス」でなく「内側 proof の実コミット」に) + 集約回路の Groth16 VK 再生成 | **proving CI**(大規模再帰回路のトラステッドセットアップ/証明生成、§14.4) |
+| M5 テストネット E2E(proof-based Unlock 成功 tx + 不正 proof revert tx) | **Sepolia RPC proxy 403 + 資金付き `QS__L1_PRIVATE_KEY` 不在**(§14.5 / §15.5) |
+
+方式 A の再帰検証 AIR 群(§16–§24)はサンドボックス内で構築・実測可能な範囲を**完走**した。
+最終段(実 inner proof への結線 + Groth16 wrap の VK 再生成 + テストネット記録)は上表 2 条件が
+揃い次第そのまま実施できる(§15.6 の解除手順)。
+
+### 24.6 再現方法
+
+```bash
+cd src/crypto/circuits/recursion-multiquery-m05
+cargo run --release   # honest 8/8 受理 + tamper 5 件 reject
+```
