@@ -6,6 +6,7 @@ import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol"
 import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
 import {IProverRegistry} from "./interfaces/IProverRegistry.sol";
 import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
+import {ThresholdVerifier} from "./ThresholdVerifier.sol";
 import {SHA3_256} from "./libraries/SHA3_256.sol";
 
 /// @title L1Vault - Quantum Shield L1 Vault Contract
@@ -172,6 +173,12 @@ contract L1Vault is ReentrancyGuard, Pausable {
     event SPHINCSVerifierProposed(address indexed newVerifier, uint256 executableAt);
     event SPHINCSVerifierApproved(address indexed newVerifier);
     event SPHINCSVerifierProposalCancelled(address indexed cancelledVerifier);
+    /// @notice FR-THRESH-1 proof-based unlock events
+    event ThresholdVerifierProposed(address indexed newVerifier, uint256 executableAt);
+    event ThresholdVerifierApproved(address indexed newVerifier);
+    event ThresholdVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    event ThresholdVerifierProposalCancelled(address indexed cancelledVerifier);
+    event ProofBasedUnlockRequested(bytes32 indexed lockId, uint256 indexed epoch, uint256 signerCount);
 
     /// @notice Emitted when prover registry is updated
     /// @dev v3.0: Prover management is now handled by separate registry
@@ -278,6 +285,16 @@ contract L1Vault is ReentrancyGuard, Pausable {
     address public pendingSphincsVerifier;
     uint256 public verifierProposedAt;
     bool public verifierUpdateApproved;
+
+    /// @notice FR-THRESH-1: proof-based unlock verifier (wrap path).
+    ///         Optional until M0.5-impl completes; requestUnlock's
+    ///         per-signature SPHINCS+ verification remains the FR-THRESH-4
+    ///         fallback. Governed by the same propose/approve/execute
+    ///         three-step as the SPHINCS+ verifier.
+    ThresholdVerifier public thresholdVerifier;
+    address public pendingThresholdVerifier;
+    uint256 public thresholdVerifierProposedAt;
+    bool public thresholdVerifierUpdateApproved;
 
     /// @notice External Prover Registry contract (v3.0 architecture)
     /// @dev When set, prover lookups use registry instead of local mapping
@@ -496,6 +513,52 @@ contract L1Vault is ReentrancyGuard, Pausable {
         uint256 unlockNonce = unlockNonceCounter++;
         _createUnlockRequest(lockId, recipient, lockData.amount, stateRoot, bytes32(0), false, 0, validSignatures, unlockNonce);
         lockData.status = LockStatus.PENDING_UNLOCK;
+    }
+
+    /// @notice FR-THRESH-1: proof-based unlock. One wrapped proof attests
+    ///         "threshold-many distinct registered provers signed
+    ///         SHA3-256(lockId, stateRoot)"; membership against the registry
+    ///         set commitment at `epoch`, deduplication and the count are
+    ///         verified natively by the ThresholdVerifier, replacing the
+    ///         per-signature on-chain SPHINCS+ verification of
+    ///         requestUnlock. SMT-proof semantics mirror requestUnlockLegacy.
+    function requestUnlockWithProof(
+        bytes32 lockId,
+        address recipient,
+        bytes32[] calldata smtProof,
+        bytes32 stateRoot,
+        uint256 epoch,
+        ThresholdVerifier.SignerProof[] calldata signerProofs,
+        bytes calldata wrappedProof
+    ) external whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
+        if (recipient == address(0)) revert ZeroAddress();
+        if (address(thresholdVerifier) == address(0)) revert VerifierNotSet();
+
+        if (!_verifySMTProof(lockId, smtProof, stateRoot)) revert InvalidProof();
+
+        // Same message binding as _verifyThresholdSignatures.
+        bytes32 message = SHA3_256.hashPair(lockId, stateRoot);
+        if (!thresholdVerifier.verifyThreshold(message, epoch, signerProofs, wrappedProof)) {
+            revert InsufficientSignatures();
+        }
+
+        uint256 unlockNonce = unlockNonceCounter++;
+        _createUnlockRequest(
+            lockId,
+            recipient,
+            lockData.amount,
+            stateRoot,
+            bytes32(0),
+            false,
+            0,
+            signerProofs.length,
+            unlockNonce
+        );
+        lockData.status = LockStatus.PENDING_UNLOCK;
+        emit ProofBasedUnlockRequested(lockId, epoch, signerProofs.length);
     }
 
     /// @notice Request emergency unlock with bond payment
@@ -1086,6 +1149,50 @@ contract L1Vault is ReentrancyGuard, Pausable {
         verifierProposedAt = 0;
         verifierUpdateApproved = false;
         emit SPHINCSVerifierProposalCancelled(cancelled);
+    }
+
+    // -- FR-THRESH-1 threshold-verifier governance (mirrors the SPHINCS+
+    // verifier three-step: owner proposes, council approves, anyone
+    // executes after the timelock) --
+
+    function proposeThresholdVerifier(address _thresholdVerifier) external onlyOwner {
+        if (_thresholdVerifier == address(0)) revert VerifierNotSet();
+        pendingThresholdVerifier = _thresholdVerifier;
+        thresholdVerifierProposedAt = block.timestamp;
+        thresholdVerifierUpdateApproved = false;
+        emit ThresholdVerifierProposed(_thresholdVerifier, block.timestamp + VERIFIER_UPDATE_DELAY);
+    }
+
+    function approveThresholdVerifier(address _thresholdVerifier) external onlySecurityCouncil {
+        if (pendingThresholdVerifier == address(0)) revert NoPendingVerifier();
+        if (_thresholdVerifier != pendingThresholdVerifier) revert NoPendingVerifier();
+        thresholdVerifierUpdateApproved = true;
+        emit ThresholdVerifierApproved(_thresholdVerifier);
+    }
+
+    function executeThresholdVerifierUpdate() external {
+        address newVerifier = pendingThresholdVerifier;
+        if (newVerifier == address(0)) revert NoPendingVerifier();
+        if (!thresholdVerifierUpdateApproved) revert VerifierUpdateNotApproved();
+        if (block.timestamp < thresholdVerifierProposedAt + VERIFIER_UPDATE_DELAY) {
+            revert VerifierTimelockActive();
+        }
+        address oldVerifier = address(thresholdVerifier);
+        thresholdVerifier = ThresholdVerifier(newVerifier);
+        pendingThresholdVerifier = address(0);
+        thresholdVerifierProposedAt = 0;
+        thresholdVerifierUpdateApproved = false;
+        emit ThresholdVerifierUpdated(oldVerifier, newVerifier);
+    }
+
+    function cancelThresholdVerifierUpdate() external {
+        if (msg.sender != owner && msg.sender != securityCouncil) revert NotOwner();
+        if (pendingThresholdVerifier == address(0)) revert NoPendingVerifier();
+        address cancelled = pendingThresholdVerifier;
+        pendingThresholdVerifier = address(0);
+        thresholdVerifierProposedAt = 0;
+        thresholdVerifierUpdateApproved = false;
+        emit ThresholdVerifierProposalCancelled(cancelled);
     }
 
     /// @notice Set the external Prover Registry contract

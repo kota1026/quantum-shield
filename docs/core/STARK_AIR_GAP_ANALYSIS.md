@@ -73,8 +73,8 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
-| **M0.5** | **proof wrapping/recursion 戦略の選定**（M0 で判明した proof をオンチェーン投稿可能サイズに畳む） | proof サイズ下限の実測 + wrap 方式決定マトリクス（実 wrap 実装は M0.5-impl） | 🟡 **選定完了 → §7**（wrap 実装は専用 CI 環境で後続） |
-| M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **部分完了 → §13**（FR-THRESH-5 + 閾値ネイティブ層 + golden。wrap 依存部は M0.5-impl 待ち） |
+| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **選定 §7 / オンチェーン配管完了 → §14**（残: STARK 検証器の回路化 §14.4） |
+| M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **ほぼ完了 → §13/§14**（不正 proof revert + Vault 接続 + wrap 検証 204k gas 実測済み。残: 実 wrap 回路の VK 差し替えのみ） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
 **逐次依存**: M0 ✅ → M1 ✅ → M2a ✅ → M2b ✅ → M2c ✅ → M2d ✅ → M3 ✅ → (M0.5 選定 ✅ / wrap 実装は並行) → M4 → M5。**回路側マイルストーンは完走。次は M0.5-impl（wrap、専用 CI 環境）と M4（オンチェーン統合）**。
@@ -554,4 +554,53 @@ cd src/l1/contracts
 forge test --match-contract "RegistrySetCommitmentTest|ThresholdVerifierTest"
 cd ../../crypto/circuits/threshold-m3 && cargo run --release --bin fixture   # golden 値の再生成
 cd ../dilithium-stark && cargo test --release --no-default-features          # G6 移行後 58 テスト
+```
+
+---
+
+## 14. M0.5-impl 前進 + M4 オンチェーン第二弾: Groth16 wrap 配管 + Vault 組込み (2026-08-03)
+
+### 14.1 前提の更新: 「専用 CI 環境が必要」の再評価
+
+§7.5 の「wrap ツールチェーンは本サンドボックスでビルド不可」は、プロキシ経由で crates.io / GitHub リリースに到達できると判明する**前**の判断だった。実測の結果:
+
+- **arkworks (ark-groth16 / ark-bn254, pure Rust) はサンドボックスでビルド・実行可能** — 実 BN254 Groth16 の trusted setup・証明生成・ネイティブ検証まで成功
+- foundry / solc も GitHub リリースから導入済み(§13)
+- 残る環境制約は **Sepolia RPC(プロキシ 403)と資金付き秘密鍵の不在**(→ §14.5)
+
+### 14.2 実施内容
+
+1. **`wrap-groth16`(Rust)**: 実 BN254 Groth16 proof を生成。public inputs は `ThresholdVerifier` の publicInputsDigest = SHA3-256(message ‖ pks) の 128-bit 上下半分で、**wrap proof を署名者集合とメッセージに束縛する配線を実物で敷設**。Groth16 のステートメント本体は placeholder 関係式であり、**STARK 構成検証器の R1CS 化(M0.5-impl の中核)が残課題** — それを差し替えても検証等式・calldata エンコーディング・ガスプロファイルは不変。
+2. **`Groth16WrapVerifier.sol`**: EVM ペアリング precompile (0x06/0x07/0x08) による Groth16 検証器を `IWrapVerifier` 実装として提供。VK はデプロイ時固定。**precompile への forwarded gas を上限化**(不正な曲線点で全ガスを焼く griefing を実測で確認し、~1B gas → ~424k gas に抑制)。
+3. **E2E(forge)**: ProverRegistry → RegistrySetCommitment → ThresholdVerifier → Groth16WrapVerifier を**実ペアリング proof** で貫通(fixture は wrap-groth16 生成の golden)。
+4. **L1Vault 組込み(M4)**: `requestUnlockWithProof` を追加 — SMT 検証(requestUnlockLegacy と同意味論)+ message = SHA3-256(lockId ‖ stateRoot) を ThresholdVerifier に渡し、per-signature SPHINCS+ 検証(FR-THRESH-4 経路)を 1 本の wrap proof で置換する FR-THRESH-1 経路。verifier の設置は既存 SPHINCS+ verifier と同じ **propose/approve/execute 3 段階ガバナンス(48h timelock)** をミラー。
+
+### 14.3 テスト結果(forge、新規 15/15 パス)
+
+| スイート | 内容 | 結果 |
+|---------|------|:----:|
+| Groth16WrapVerifierTest (6) | 実 proof accept(**204,430 gas**)/ 偽 digest・改竄 A/C・長さ不正 reject / digest 一致 | ✅ |
+| ThresholdGroth16E2ETest (3) | 実ペアリングでの閾値 E2E accept + 別メッセージ/改竄 proof revert | ✅ |
+| L1VaultProofUnlockTest (6) | proof ベース Unlock 成立 / wrap 拒否・非登録署名者・閾値未満・verifier 未設置 revert / timelock 強制 | ✅ |
+
+**NFR-2 評価**: wrap proof 検証単体 **204,430 gas ≤ 1M ✅**。閾値検証全体(2 署名者、ネイティブメンバーシップ込み)は ~6.05M gas — 支配項は pure-Solidity SHA3 のメンバーシップ/digest 計算であり、§13.2 の削減方針(メンバーシップを wrap 回路側に同梱し、オンチェーンは digest 計算のみに縮小)で 1M 以下が視野に入る。
+
+### 14.4 M0.5-impl の残課題(正確なスコープ)
+
+**「STARK 構成検証器(FRI + Fiat-Shamir + Merkle 開示)を R1CS/回路化し、15+1 proof × k 署名者を再帰集約して単一 Groth16 に畳む」回路構築のみ**が残り。トラステッドセットアップ・証明生成・オンチェーン検証・public input 束縛・ガバナンス設置は本節で実装・実測済み。回路構築は大規模(Groth16 内 STARK 検証器)であり、gnark の std ライブラリ再利用等の選定を含め独立プロジェクトとして計画する。
+
+### 14.5 M5 の環境要件(実測で確定)
+
+- Sepolia RPC への到達: プロキシが `rpc.sepolia.org` / `ethereum-sepolia-rpc.publicnode.com` への CONNECT を 403 で遮断
+- `QS__L1_PRIVATE_KEY` 未設定(資金付きデプロイ鍵が必要)
+
+→ M5(proof-based Unlock 成功 tx + 不正 proof revert tx のテストネット記録)は、ネットワークポリシーで RPC を許可した環境 + 資金付き鍵の 2 条件が揃い次第、本節のコントラクト群をデプロイして実施できる。
+
+### 14.6 再現方法
+
+```bash
+cd src/crypto/circuits/wrap-groth16 && cargo run --release   # 実Groth16生成 + fixture出力
+cd ../../../l1/contracts
+forge test --match-path "test/Groth16WrapVerifierTest.t.sol"   # 実ペアリング 9 テスト
+forge test --match-path "test/L1VaultProofUnlock.t.sol"        # Vault 組込み 6 テスト
 ```
