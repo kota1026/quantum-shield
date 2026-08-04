@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
-| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 / §14 wrap配管 / §15 方式A確定 / §16 Merkle開示 / §17 FRI fold**（残: transcript + DEEP-ALI） |
+| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 / §14 wrap配管 / §15 方式A / §16 Merkle開示 / §17 FRI fold / §18 transcript**（残: DEEP-ALI §19） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **ほぼ完了 → §13/§14**（不正 proof revert + Vault 接続 + wrap 検証 204k gas 実測済み。残: 実 wrap 回路の VK 差し替えのみ） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -756,4 +756,45 @@ FRI クエリ 1 本につき各行が 1 折り畳みラウンド。走行評価�
 ```bash
 cd src/crypto/circuits/fri-fold-m05
 cargo run --release   # honest accept + 改竄 5 件 reject
+```
+
+---
+
+## 18. M0.5-impl 方式 A: Fiat-Shamir transcript 再生 AIR (2026-08-04)
+
+### 18.1 位置づけ
+
+§16(Merkle 開示)・§17(FRI fold)に続く方式 A の**第三構成要素**。再帰検証器は FRI チャレンジ(`beta_i`・クエリ index)を、プローバ主張値を信用せず**自分で in-circuit 導出**する必要がある。`src/crypto/circuits/fri-transcript-m05` で、recursion-merkle-m05 と同じ BabyBear width-16 Poseidon2 による **duplex sponge**(overwrite モード、rate = capacity = 8)として実装。
+
+### 18.2 制約構造
+
+各行 = 1 transcript ラウンド: observed commitment を rate に吸収 → 走行 capacity 保持 → Poseidon2 置換(`p3-poseidon2-air` を SubAir 内包)→ squeeze した出力 rate がそのラウンドのチャレンジ。
+
+- **吸収**: 入力 rate = public observed commitment
+- **capacity IV**: 先頭ラウンドの capacity = 0
+- **squeeze**: 出力 rate = public チャレンジ(§17 の fold AIR が消費)
+- **capacity carry**: 各ラウンドの入力 capacity = 前ラウンドの出力 capacity(sponge チェーン)
+- one-hot ラウンド歩進(§16/§17 と同型)
+
+### 18.3 実測(BabyBear、R=8)
+
+| ケース | prove (ms) | verify (ms) | proof (bytes) | 期待 | 結果 |
+|--------|-----------:|------------:|--------------:|:----:|:----:|
+| honest | 185.9 | 4.9 | 234,340 | accept | ✅ |
+| forged-observed(r4) | 250.2 | 6.1 | 234,340 | reject | ✅ |
+| forged-challenge(r2) | 157.2 | 5.0 | 234,340 | reject | ✅ |
+| forged-index-lane(r6) | 165.1 | 5.0 | 234,340 | reject | ✅ |
+| reordered-transcript | 68.5 | 5.2 | 234,340 | reject | ✅ |
+
+### 18.4 所見と残り
+
+- observed commitment 偽造(導出チャレンジが変化)、チャレンジ主張の偽造(squeeze 束縛で不一致)、transcript 順序入れ替え(capacity チェーン破壊)を全て reject。in-circuit Fiat-Shamir が成立。
+- 本番 QS proof は Keccak challenger を使うが、本構成要素は方式 A が採用する再帰親和 Poseidon2 sponge で transcript を実演する(§15/§16 の Monty31 移行方針と一貫)。
+- **方式 A の残り 1 構成要素**: (d) **DEEP-ALI**(制約/quotient 整合 — 開示された評価値を AIR 制約に束縛する consistency check)。§16 Merkle 開示 / §17 FRI fold / §18 transcript と合わせ 4 部品が揃えば完全な再帰検証器 AIR となり、最終 proof を §14 の Groth16 経路で wrap する。
+
+### 18.5 再現方法
+
+```bash
+cd src/crypto/circuits/fri-transcript-m05
+cargo run --release   # honest accept + 改竄 4 件 reject
 ```
