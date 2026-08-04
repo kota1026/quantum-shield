@@ -1043,7 +1043,7 @@ honest 受理 + 改竄 5/5 棄却。
 | 4 構成要素の統合(public glue、§20) | ✅ |
 | 公開面の縮約 → 単一 Poseidon2 digest(§21) | ✅ |
 | FRI 入口 opening のコミット束縛(§22) | ✅ |
-| **全層 opening の束縛(R-fold 反復)** | ⏳ 機械反復(サンドボックス内で可能・未実施) |
+| 全層 opening の束縛(R-fold 反復、§23) | ✅ |
 | **4 セグメント proof の in-circuit 検証(root を実 proof のコミットに束縛)** | ⏳ env-gated |
 | 集約 proof の Groth16 VK 差替 → M5 テストネット E2E | ⏳ env-gated |
 
@@ -1058,4 +1058,72 @@ path」ではなく「内側 proof の実コミット」にすること(フル�
 ```bash
 cd src/crypto/circuits/fri-commit-query-m05
 cargo run --release   # honest 受理 + tamper 5 件 reject
+```
+
+## 23. M0.5-impl 方式 A: 全層 opening の束縛 — all-layer commitment-bound FRI query (2026-08-04)
+
+### 23.1 位置づけ
+
+§22 は FRI の**入口** opening `(a₀, c₀)` のみを層 0 の Poseidon2 コミットに束縛した。
+`i > 0` の各**内層** opening `(aᵢ, cᵢ)` は依然として自由な公開入力であり、fold 連鎖の
+中では自己整合しているが、その層の実コミットには束縛されていなかった。§22.5 が挙げた
+残課題「全層 opening の束縛(R-fold 反復)」を閉じるのが本工程 — §22 の構成を FRI の
+**全 fold ラウンドに反復適用**する。
+
+### 23.2 構成(R 層への public glue 反復)
+
+- **fold proof**(§17 AIR): R ラウンドの fold 連鎖を検証(1 本)。
+- 各層 `i` の **Merkle proof**(§16 AIR): その層の opening leaf `[aᵢ, cᵢ, 0…]` が
+  **独立した層 root `rootᵢ`** にコミットされていることを検証(R 本)。
+- 各層の **glue**: fold のラウンド `i` opening 対 `(aᵢ, cᵢ)` が、その層のコミット済み
+  leaf に一致。
+
+合成は「fold proof が verify **かつ** 全層で(Merkle proof verify **かつ** glue 成立)」
+で受理。これで FRI query は入口だけでなく**各層**でコミット済みコードワードに anchor される。
+
+### 23.3 層ごとの束縛が成立する理由
+
+各層 `i` は**自層の**固定 root `rootᵢ`(その層コードワードへの公開コミット)を持つ。
+層 `i` の Merkle AIR は `leafᵢ‖pathᵢ` が `rootᵢ` にハッシュする場合のみ受理するため、
+どの層の opening も偽造不能:
+
+- fold の `aᵢ` を偽造しコミットを保持 → 層 `i` の glue が破れる。
+- 偽造 opening を層 `i` の leaf 側で再コミットし `rootᵢ` を保持 → その層の Poseidon2
+  path が `rootᵢ` にハッシュしない。
+- ある層の root を別の層の root と**入替** → 各 honest path は自層 root にハッシュする
+  ため、PI root を差し替えられた層が一致しなくなる。fold 連鎖はこれを検知できない
+  (opening 不変・連鎖は有効なまま)——**per-layer コミット束縛のみ**が棄却する。これが
+  §23 の識別的性質。
+
+### 23.4 実測(BabyBear、R=8、D=8、MID=4、LAST=7、FRI: log_blowup=3 / 100 queries / pow 16)
+
+```
+                        case |   total_ms |  total_bytes |  expected | result
+                      honest |      761.6 |      1983540 |    accept |   PASS
+     forge-fold-a[mid](glue) |      799.6 |      1983540 |    reject |   PASS
+    recommit-leaf[mid](root) |      757.0 |      1983540 |    reject |   PASS
+             forge-root[mid] |      844.8 |      1983540 |    reject |   PASS
+         recommit-leaf[last] |      705.7 |      1983540 |    reject |   PASS
+            forge-root[last] |      796.3 |      1983540 |    reject |   PASS
+       cross-layer-root-swap |      753.4 |      1983540 |    reject |   PASS
+            forge-fold-final |      913.6 |      1983540 |    reject |   PASS
+```
+
+honest 受理 + 改竄 7/7 棄却。proof 総量 = fold proof + R=8 層別 Merkle proof。
+`recommit-leaf[last]` は §22(入口のみ束縛)が検知できなかった**最終層**の束縛、
+`cross-layer-root-swap` は各層が**自層の**コミットに束縛されていることを示す。
+
+### 23.5 到達点と残り
+
+本工程で fold 連鎖が消費する**全** FRI 層 opening が層別 Poseidon2 コミットに束縛され、
+FRI query は各層でコミット済みコードワードに anchor された。§22.5 の残課題「全層 opening
+の束縛(R-fold 反復)」は完了。残る本質は不変で env-gated:4 セグメント proof を in-circuit
+検証し、ここで用いる層 root を「供給された path」ではなく「内側 proof の実コミット」にする
+こと(フル再帰、集約回路の Groth16 VK 再生成は proving CI を要す)。
+
+### 23.6 再現方法
+
+```bash
+cd src/crypto/circuits/fri-alllayer-query-m05
+cargo run --release   # honest 受理 + tamper 7 件 reject
 ```
