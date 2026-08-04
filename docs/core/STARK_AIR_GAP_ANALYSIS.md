@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | **M2c** | **多ブロック SHAKE256 吸収（T_len / T_k の XOR リンク）+ FORS・XMSS 認証パス AIR** | pk 圧縮・認証パスを含む honest accept / 改竄 reject の実測 | ✅ **完了 → §10** |
 | **M2d** | **フル署名結合 + FIPS 205 適合検証 + prove 時間計測（M2 完了条件）** | fips205 参照実装の実署名を 15-proof 構成で検証、改竄/偽造 reject、NFR-3 判定 | ✅ **完了 → §11**（**M2 = G1 完了**） |
 | **M3** | **N 本集約 + 閾値 + Registry コミットメント** | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | ✅ **完了 → §12** |
-| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **選定 §7 / オンチェーン配管 §14 / 再帰方式 A 確定 + Poseidon2 換装実測 §15**（残: 再帰検証 AIR） |
+| **M0.5** | **proof wrapping/recursion 戦略の選定 + 実装** | proof サイズ下限の実測 + wrap 方式決定 + wrap 実装 | 🟡 **§7 選定 / §14 wrap配管 / §15 方式A確定 / §16 Merkle開示AIR**（残: FRI fold + transcript + DEEP-ALI の再帰AIR） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | 🟡 **ほぼ完了 → §13/§14**（不正 proof revert + Vault 接続 + wrap 検証 204k gas 実測済み。残: 実 wrap 回路の VK 差し替えのみ） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -672,4 +672,46 @@ forge test --match-path "test/L1VaultProofUnlock.t.sol"        # Vault 組込み
 ```bash
 cd src/crypto/circuits/wrap-recursion-m05
 cargo run --release   # Keccak-MMCS vs Poseidon2-MMCS 比較表
+```
+
+---
+
+## 16. M0.5-impl 方式 A 着手: Poseidon2 Merkle 開示検証 AIR (2026-08-04)
+
+### 16.1 位置づけ
+
+§15 で決定した方式 A(P3 Poseidon2 換装 + 自作再帰検証 AIR)の**第一構成要素**を実装した。再帰 FRI 検証器は各クエリで開示された Merkle ノードを回路内で再ハッシュする — §15 で特定した支配的コスト。その内側ループ(Poseidon2 Merkle 認証パス検証)を AIR 化する。
+
+`src/crypto/circuits/recursion-merkle-m05`: 各行が 1 回の 2-to-1 Poseidon2 圧縮で、`p3-poseidon2-air` が `SubAirBuilder` 経由で置換の正しさを制約(M2a/M2c の keccak-air 内包と同型)。リンク列で行を Merkle パスに結合し、leaf/root/兄弟/index ビットを public input に束縛する。
+
+**BabyBear + Poseidon2 で構築**(Goldilocks ではなく): pinned Plonky3 は Poseidon2 の**AIR** linear layer を Monty31(BabyBear/KoalaBear)と Mersenne31 にのみ提供する。これは §15 の推奨そのもの — 再帰は in-circuit で安い Poseidon2 を持つ Monty31 体で行う。
+
+### 16.2 制約構造
+
+- keccak-air(24 行/置換)と違い Poseidon2Air は **1 行/置換**でリンクが単純。
+- リンク列(11 列): `is_real` / `links_next` / `dir`(左右子選択ビット)/ D 幅 one-hot レベルセレクタ。
+- 制約: (1) 兄弟子 = one-hot 選択した public 兄弟、(2) `dir` = public index ビット(FRI クエリ index を束縛)、(3) レベル 0 の走行ノード = public leaf、(4) 最終レベル出力 = public root、(5) 遷移で走行ノードを次レベル入力にチェーン + one-hot 歩進。
+
+### 16.3 実測(BabyBear、D=8、FRI: log_blowup=3 / 100 queries / pow 16)
+
+| ケース | prove (ms) | verify (ms) | proof (bytes) | 期待 | 結果 |
+|--------|-----------:|------------:|--------------:|:----:|:----:|
+| honest | 97.8 | 5.2 | 234,772 | accept | ✅ |
+| forged-root | 79.8 | 5.0 | 234,772 | reject | ✅ |
+| forged-leaf | 76.8 | 5.0 | 234,772 | reject | ✅ |
+| forged-sibling(l3) | 88.2 | 5.0 | 234,772 | reject | ✅ |
+| flipped-dir(l5) | 196.4 | 5.1 | 234,772 | reject | ✅ |
+| wrong-path-vs-root | 110.9 | 7.6 | 234,772 | reject | ✅ |
+
+### 16.4 所見
+
+1. **BabyBear + Poseidon2 の再帰親和性が実測で裏付いた**: proof **235 KB**(M0〜M4 の Keccak/Goldilocks は 2.5〜2.8 MB → **~1/12**)、verify **~5 ms**(Keccak は ~35 ms → **~1/7**)。§15 で native prove が遅かったのは Goldilocks Poseidon2 の未最適化実装が原因という診断と整合し、Monty31 では逆に軽い。
+2. **改竄 5 種を全て reject**(root/leaf/兄弟偽造・index ビット反転・別パス偽装)。改竄トレースも全て有効な Poseidon2 置換のみを含み、reject はリンク制約のみで成立(M2a と同じ健全性論法)。
+3. **方式 A の残構成要素**(後続 M0.5-impl): (a) FRI folding(各ラウンドの fold-and-check)、(b) Fiat-Shamir transcript(challenger の in-circuit 再生)、(c) 制約/quotient 整合(DEEP-ALI)。これらを結合すると完全な再帰検証器 AIR になり、その最終 proof を §14 で構築済みの Groth16 経路で wrap する。本節はそのうち**支配的コストの Merkle 開示部**を実装・実測した。
+
+### 16.5 再現方法
+
+```bash
+cd src/crypto/circuits/recursion-merkle-m05
+cargo run --release   # honest accept + 改竄 5 件 reject
 ```
