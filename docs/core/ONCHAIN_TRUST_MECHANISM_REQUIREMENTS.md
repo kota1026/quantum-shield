@@ -167,7 +167,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 |----|------|--------|
 | NFR-1 | **量子耐性 (CP-1)**: proof システムを含む全ハッシュは SHA3-256/SHAKE256 (FIPS 202)。keccak256・ECDSA・SHA-256 の新規導入禁止（EVM ネイティブ制約による既存例外を除く） | 128-bit PQ セキュリティ |
 | NFR-2 | **ガス上限**: proof-based Unlock の L1 検証ガスは、現行 Unlock 総ガス目標（~490K gas, SEQUENCES §2）の 2 倍以内 | ≤ 1M gas / unlock |
-| NFR-3 | **Proof 生成時間**: Normal Unlock の 24h タイムロック内に十分収まること | ≤ 1h (p99) |
+| NFR-3 | **Proof 生成時間**: Normal Unlock の 24h タイムロック内に十分収まること（🟢 2026-08-06 実測: 1 署名 ~5 分 / 2-of-N ~10 分オーダー。`STARK_AIR_GAP_ANALYSIS.md` §9.3。ただし proving ホストに RAM 要件あり — §9.4） | ≤ 1h (p99) |
 | NFR-4 | **フォールバック可用性**: proof 生成系が全停止しても FR-THRESH-4 経路で資産回収可能 | RTO = 0（常時有効） |
 | NFR-5 | **監査**: 簡易経路削除・verifier 統合の diff は外部監査（または Slither + 手動レビューの二重チェック）を経ること。`slither-reports/` に結果を残す | Critical/High 0 件 |
 | NFR-6 | **テスト**: 新規/変更エンドポイント・コントラクト関数ごとに成功系 + 失敗系（不正 proof、閾値未達、非 active prover、リプレイ）を最低 1 件ずつ。E2E は「proof 検証失敗で revert すること」自体を検証する（HTTP 200 のみのスモーク禁止 — testing.md 準拠） | 全パス |
@@ -214,18 +214,18 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 
 | 要件 | 対応コード/ドキュメント | 検証手段 | 状況 (2026-07-24) |
 |------|------------------------|----------|-------------------|
-| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🟡 ギャップ分析完了 → `STARK_AIR_GAP_ANALYSIS.md` (M0〜M5) |
-| FR-THRESH-2,6 | `L1Vault.sol`: `_verifySimplified` 削除、verifier 必須化 | 受け入れ基準 1 | 🟢 実装済み |
+| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🟡 進行中 → `STARK_AIR_GAP_ANALYSIS.md`: M0 ✅ / M1 ✅ (`sphincs-m1`) / **M2 ✅ (2026-08-06, `sphincs-m2` — SPHINCS+ フル検証を独立実装でクロス検証、NFR-3 大幅クリア)** / **M3 の DAG 連結 ✅ (`sphincs-m3`: LogUp PoC §10 + Keccak 束縛による健全性確立 §11。フル構成 1 署名 ~6 分)** / M0.5 方式選定済 (§8) / M3 残（集約・閾値・Registry 束縛）+ M4/M5 |
+| FR-THRESH-2,6 | `L1Vault.sol`: `_verifySimplified` 削除、verifier 必須化 | 受け入れ基準 1 | 🟢 実装済み + **Sepolia デプロイ済み (2026-08-06, R-1)**。不正署名 revert 実 tx `0x2ce65793…c9031d` 取得（ACTUAL_STATE.md） |
 | FR-THRESH-4 | `L1Vault.sol` `_verifyWithSPHINCSVerifier` + `SPHINCSVerifier.sol` | forge test（フル検証経路） | 🟢 実装済み（唯一の経路に） |
-| FR-THRESH-5 | `ProverRegistry.sol` | forge test + proof public input 整合テスト | 🔴 未着手 |
+| FR-THRESH-5 | `ProverRegistry.sol`: epoch 付き active 集合 Merkle コミットメント + checkpoint 履歴 | forge test (`ProverRegistryCommitment.t.sol` 15 件) | 🟢 実装済み（2026-08-05。ツリー構造ハッシュは EVM ネイティブ例外により keccak256、リーフの pubKeyHash は SHA3-256 維持 — 詳細はコントラクト内コメント） |
 | FR-L3-1,2,3 | `CoreLayer.sol` + `IStateVerifier` + `L3StateVerifier.sol` (STARKVerifier 接続) | 受け入れ基準 2, 3 | 🟢 実装済み（配線完了。STARK 健全性の深化は R-2） |
 | FR-L3-4 | `CoreLayer.stateVerifier` immutable | コードレビュー | 🟢 実装済み |
 | FR-L3-5 | `StateVerified` イベント emit | forge test | 🟢 実装済み |
-| FR-GOV-1 | `L1Vault.sol`: `setFullVerification` 削除、verifier unset 不可 | 受け入れ基準 4 | 🟢 実装済み |
+| FR-GOV-1 | `L1Vault.sol`: `setFullVerification` 削除、verifier unset 不可 | 受け入れ基準 4 | 🟢 実装済み + **on-chain 確認済み (2026-08-06)**: 新 Vault の ABI・バイトコードに `setFullVerification` 不在、`isFullVerificationEnabled()=true` |
 | FR-GOV-2 | `L1Vault.sol`: propose→SecurityCouncil 承認→48h Timelock→execute の 2 段階差替 | forge test (governance flow) | 🟢 実装済み |
 | FR-MSG-1 | `UNIFIED_SPEC.md` CP-5 | 受け入れ基準 5 | 🟢 実施済み |
 | FR-MSG-2 | 派生ドキュメント 3 件 | grep 検証 | 🟢 実施済み（archive は凍結） |
-| FR-MSG-3 | ピッチ資料・i18n | grep 検証 | 🔴 未着手 |
+| FR-MSG-3 | ピッチ資料・i18n | grep 検証 | 🟢 実施済み（i18n は PR #201、ピッチ資料は 2026-08-06 に FR-MSG-4 準拠の「実装中」注記を追加。「全てオンチェーンで検証可能」相当の断定表現の残存なしを grep 確認） |
 | NFR-1 | 全 .sol / proof 回路 | Slither + grep "keccak256" | 🟡 継続（新規コードは SHA3 のみ） |
 | NFR-6 | `src/l1/contracts/test/`, `src/l3/test/` | forge test | 🟢 失敗系テスト追加済み |
 

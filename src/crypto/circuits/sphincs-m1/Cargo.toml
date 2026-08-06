@@ -1,0 +1,38 @@
+[package]
+name = "sphincs-m1"
+version = "0.1.0"
+edition = "2021"
+description = "M1: SHAKE256 permutation AIR + single WOTS+ chain verification circuit (G1 of STARK_AIR_GAP_ANALYSIS). Wraps Plonky3 p3-keccak-air with cross-permutation chaining constraints for SPHINCS+-SHAKE-128s F-function chains."
+
+# Pinned to the same Plonky3 revision as circuits/keccak-m0 and circuits/plonky3-poc
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-goldilocks = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-keccak-air = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+bincode = "1.3"
+rand = "0.9"
+p3-poseidon2 = { git = "https://github.com/Plonky3/Plonky3", rev = "52b9e418813b83d51902cf163cd1d92b015512a3" }
+
+[[bin]]
+name = "sphincs-m1"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+
+# Tests prove real STARKs; keep debug assertions (constraint checking)
+# but optimize the field arithmetic. `test` inherits `dev`.
+[profile.dev]
+opt-level = 3
+
+[workspace]
