@@ -82,7 +82,7 @@
 
 | Contract | Address | 役割 |
 |:---------|:--------|:-----|
-| L1 Vault | `0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67` | 資産Lock/Unlock |
+| L1 Vault | `0x07012aeF87C6E423c32F2f8eaF81762f63337260` | 資産Lock/Unlock（2026-08-06 on-chain 照合: totalLocked 5.55 ETH の稼働中 Vault はこちら。旧記載 `0x6F889C00...511c67` はコードは存在するが totalLocked 0 の未使用デプロイ） |
 | Prover Registry | (TBD - 新規デプロイ予定) | Prover管理 |
 | SPHINCS Verifier | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` | 署名検証 |
 

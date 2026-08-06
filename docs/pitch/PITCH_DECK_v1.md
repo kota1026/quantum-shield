@@ -141,7 +141,7 @@ from the quantum threat — before it's too late.
 ```
 
 **Key Messages**:
-- **L1 Vault**: SPHINCS+（FIPS 205）でオンチェーン検証。一度デプロイしたら永久不変
+- **L1 Vault**: SPHINCS+（FIPS 205）でオンチェーン検証（Phase 2 で検証必須化を実装済み。テストネットは新 Vault へ移行中）。一度デプロイしたら永久不変
 - **L3 Aegis**: Dilithium（FIPS 204）でオフチェーン検証。ガス代を93%削減
 - **Prover Pool**: VRF選出 + Quadratic Slashing。2者共謀でステーク40%没収、3者で90%
 - **Auto-Claim**: 24時間後に自動で資産解放。ユーザー操作不要（競合は手動クレーム）

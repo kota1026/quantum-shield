@@ -90,12 +90,14 @@ l1:
 # L1 Sepolia Configuration (Phase 8-D)
 l1_rpc_url: "https://rpc.sepolia.org"  # Override via QS__L1_RPC_URL env var for production
 l1_chain_id: 11155111
-# L1 Vault address on Sepolia (v7.0.0 - 1min TimeLock DEMO + SHA3-256 domain separators)
-l1_vault_address: "0x07012aeF87C6E423c32F2f8eaF81762f63337260"
+# L1 Vault address on Sepolia (Phase 2: proof-based enforcement, deployed 2026-08-06 via R-1)
+# Legacy vault (unlock-only): 0x07012aeF87C6E423c32F2f8eaF81762f63337260
+l1_vault_address: "0x52890ff94965a819Ed10d721890161d2ce0D2A2a"
 # Prover Registry address on Sepolia (v3.0 architecture)
 l1_prover_registry_address: "0x08e1fc1A0d614bc132B48950760c7A291cCB8946"
-# SPHINCS+ Verifier on Sepolia
-l1_sphincs_verifier_address: "0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103"
+# SPHINCS+ Verifier on Sepolia (Phase 2, deployed 2026-08-06 with the new vault)
+# Legacy verifier: 0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103
+l1_sphincs_verifier_address: "0x0B8DC9065418eb474c4b35dC189705Da065B582d"
 # bridge_verifier_address: "0x..."  # Set when deployed
 # treasury_vault_address: "0x..."   # Set when deployed
 

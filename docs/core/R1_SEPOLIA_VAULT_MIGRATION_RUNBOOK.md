@@ -1,7 +1,7 @@
 # R-1 実行 Runbook: Sepolia 新 Vault デプロイ (Option B)
 
 > **Created**: 2026-07-24
-> **Status**: 承認済み (2026-07-24 オーナー指示により Option B 採用) — **実行待ち**
+> **Status**: ✅ **実行済み (2026-08-06)** — 全 Step 完了。デプロイアドレス・証跡 tx は `docs/ACTUAL_STATE.md`「R-1: Sepolia Phase 2 Vault 移行記録」参照。新 Vault: `0x52890ff94965a819Ed10d721890161d2ce0D2A2a`
 > **Parent**: `ONCHAIN_TRUST_MECHANISM_REQUIREMENTS.md` §12 (R-1 分析)
 > **Blocker**: リモート実行環境からは Sepolia RPC への egress がプロキシで遮断され (403)、`QS__L1_PRIVATE_KEY` も未設定のため、デプロイ tx はローカル環境から実行する必要がある
 
@@ -24,6 +24,10 @@ cast call 0x6F889C00a5e674ab0b9403AfBa0fBEbe30511c67 "totalLocked()(uint256)" --
 ```
 
 確定した方を `blockchain.md` / `SEQUENCES.md` の両方に「legacy (unlock-only)」として記載する。
+
+> **Step 0 実施結果 (2026-08-06)**:
+> - 稼働中 Vault = `0x07012aeF87C6E423c32F2f8eaF81762f63337260`（blockchain.md 側が正。totalLocked = **5.55 ETH** — 本書冒頭の「~0.18 ETH」想定より多い）。`0x6F889C00...511c67` はコード有・totalLocked 0 の未使用デプロイ。SEQUENCES.md を修正済み
+> - デプロイヤー残高 = **0.0327 ETH**（想定 ~0.39 ETH と乖離）。デプロイ見積 9.26M gas ≈ 0.020 ETH（2.18 gwei 時点、forge ドライラン実測）で実行自体は可能だが余裕僅少 → **faucet 補充後に Step 1 実行**の方針。Step 2 はステーク不要の `registerProverTestnet` を使用し、Step 3 の lock は 0.001 ETH に減額する
 
 ## Step 1: デプロイ
 

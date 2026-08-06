@@ -389,3 +389,41 @@ pkg/
 - 調査者: Claude (コード実態ベース、docs未参照で実施)
 - 対象コミット: `d8715e3e` (claude/research-competitors-22xDC HEAD)
 - 調査ツール: grep, find, cast (Foundry), curl, ファイル読み込みによる実コード確認
+
+---
+
+## R-1: Sepolia Phase 2 Vault 移行記録 (2026-08-06)
+
+`docs/core/R1_SEPOLIA_VAULT_MIGRATION_RUNBOOK.md` (Option B) を実行。
+Phase 2 版 L1Vault（簡易経路 `_verifySimplified` 削除・verifier 必須・`setFullVerification` 廃止・FR-GOV-2 二段階ガバナンス）を Sepolia にデプロイし、オンチェーン強制の実証跡を取得した。
+
+### デプロイ
+
+| Contract | Address | Tx | Gas |
+|----------|---------|----|----:|
+| SPHINCSVerifier (Phase 2) | `0x0B8DC9065418eb474c4b35dC189705Da065B582d` | `0x2a7068efe5ec00dd8ede4fe6fb9cb2a14007030df078ada86117d0851b818bd4` | 4,930,060 |
+| L1Vault (Phase 2) | `0x52890ff94965a819Ed10d721890161d2ce0D2A2a` | `0xe88d9e1677038365e3bdff73d45362d3854b8c6ea848cb876828c74af6d22ff8` | 2,197,204 |
+
+- Deployer / Owner / SecurityCouncil: `0xe69BB031877Cdf6c001BdAEDC0A615B40484CDC3`（テストネットのため council = deployer）
+- Prover 登録: `registerProverTestnet` × 2（`0x…0001` tx `0xa820d75fa7a1cdc8f081c6b28af59ec10ad552cbf5d9718f97b037923a5245c8`、`0x…0002` tx `0x73c09e505dda613371277e2ab9a468986aa47b1ab821ad37bd55169e675e63cc`）
+
+### 受け入れ基準 3 の証跡（オンチェーン強制）
+
+| 証跡 | Tx | 結果 |
+|------|----|------|
+| lock 成功（0.01 ETH、lockId `0x2b7771ee546668ba2a90315bd18fc5a88d165f196cee6dae9e90c00d68c4ca8c`） | `0x4be7ebd5522c2dbd7611630602cc3b8dc4c350d454c57606a3f6059d960f3235` | success (3,618,984 gas) |
+| **不正署名での requestUnlockLegacy → revert** | `0x2ce65793564c0ee3df9bb686a0c020fbd616734b99332db201c68632d4c9031d` | **on-chain revert (isError=1, 881,859 gas)** — SPHINCSVerifier が `InvalidSignatureLength()` (0x4be6321b) で拒否。lock status は ACTIVE のまま不変 |
+
+補足: 正規長（7,856 bytes）の偽署名によるフル検証失敗の実 tx は、フル SPHINCS+ 直接検証のガスがブロックガスリミットを超過するため取得不能（eth_call 100M gas 相当でも完走せず）。これは T-3 で文書化済みの制約の実測確認であり、proof-based 経路（M4/M5）の必要性の定量的裏付け。**「無検証経路が存在しない」ことの証跡**としては、(a) 不正入力の on-chain revert 実 tx、(b) 受け入れ基準 4（下記）で足りる。proof-based Unlock の成功/失敗 tx は M5 で取得する。
+
+### 受け入れ基準 4 の確認（検証強制の恒久性、2026-08-06 on-chain 照会）
+
+- `isFullVerificationEnabled()` → `true`（verifier 未設定デプロイは constructor で revert）
+- `sphincsVerifier()` → `0x0B8DC9065418eb474c4b35dC189705Da065B582d`
+- `setFullVerification(bool)` は ABI に存在せず、デプロイ済みバイトコードにもセレクタ (`0x…`) 不在を確認 → **owner による検証無効化は不可能**
+
+### 旧 Vault の扱い
+
+- 旧 Vault `0x07012aeF87C6E423c32F2f8eaF81762f63337260`（totalLocked 5.55 ETH）は **legacy (unlock-only)** として残置。既存 Lock の Unlock 経路には未変更（NFR-7 準拠、資産移動なし）
+- `SEQUENCES.md` 記載の `0x6F889C00…511c67` は totalLocked 0 の未使用デプロイと判明し、記載を修正済み
+- 設定切替: `config/default.yaml` の `l1_vault_address` / `l1_sphincs_verifier_address` を新アドレスへ更新済み（ロールバックは設定を旧アドレスに戻すだけ）

@@ -7,11 +7,13 @@
 | Network | Ethereum Sepolia |
 | Chain ID | 11155111 |
 | RPC URL | Set via `QS__L1_RPC_URL` env var (default: `https://rpc.sepolia.org`) |
-| Vault | `0x07012aeF87C6E423c32F2f8eaF81762f63337260` |
+| Vault (Phase 2) | `0x52890ff94965a819Ed10d721890161d2ce0D2A2a` (deployed 2026-08-06, R-1 migration — 検証必須・簡易経路なし・FR-GOV-2 ガバナンス) |
+| SPHINCS+ Verifier (Phase 2) | `0x0B8DC9065418eb474c4b35dC189705Da065B582d` |
+| Vault (legacy, unlock-only) | `0x07012aeF87C6E423c32F2f8eaF81762f63337260` (既存 Lock 5.55 ETH の Unlock 専用。新規 Lock 禁止) |
+| SPHINCS+ Verifier (legacy) | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` |
 | ProverRegistry | `0x08e1fc1A0d614bc132B48950760c7A291cCB8946` |
-| SPHINCS+ Verifier | `0xD090b5A627d9bd6D96a8b5f6F504ebCa79980103` |
 
-**CRITICAL**: Never create a new L1 deployment. Always use these existing Sepolia contracts.
+**CRITICAL**: Never create a new L1 deployment. Always use these existing Sepolia contracts. (R-1 の Phase 2 Vault 移行は 2026-08-06 実施済み — `docs/core/R1_SEPOLIA_VAULT_MIGRATION_RUNBOOK.md`)
 
 ## L3: Local Anvil
 
