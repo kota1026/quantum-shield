@@ -29,6 +29,10 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
     /// @notice Required SPHINCS+ public key length
     uint256 public constant SPHINCS_PUBKEY_LENGTH = 32;
 
+    /// @notice Maximum active provers (bounds the per-change commitment
+    ///         recomputation gas — FR-THRESH-5)
+    uint256 public constant MAX_ACTIVE_PROVERS = 64;
+
     // =========================================================================
     // State Variables
     // =========================================================================
@@ -59,6 +63,34 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
 
     /// @notice Testnet mode flag (allows registration without stake)
     bool public testnetMode;
+
+    // ------------------------------------------------------------------
+    // Active set commitment (FR-THRESH-5)
+    //
+    // The active prover set is committed to as a dense merkle tree whose
+    // leaves bind (proverAddress, sphincsPubKeyHash). STARK proofs for
+    // threshold verification (FR-THRESH-1) take the commitment as a public
+    // input and prove in-circuit that every signer's public key belongs to
+    // the committed set. Checkpoints keep every historical commitment so a
+    // proof can reference the set "as of" the epoch current when signatures
+    // were collected.
+    //
+    // Hashing: the tree structure uses EVM-native keccak256 (documented
+    // L1-contract exception to CP-1 — a pure-Solidity SHA3-256 costs ~1M gas
+    // per hash, making an O(n) recompute per membership change infeasible).
+    // The circuit side proves the same Keccak-f[1600] permutation via
+    // keccak-air, so circuit cost is identical to SHA3-256. The leaf payload
+    // sphincsPubKeyHash itself remains SHA3-256 (CP-1) as before.
+    // ------------------------------------------------------------------
+
+    /// @notice Current active set epoch (increments on every set change)
+    uint64 public activeSetEpoch;
+
+    /// @notice Checkpoint per epoch
+    mapping(uint64 => SetCheckpoint) internal setCheckpoints;
+
+    /// @notice Every commitment that was current at some epoch
+    mapping(bytes32 => bool) internal knownCommitments;
 
     // =========================================================================
     // Structs
@@ -95,6 +127,7 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
     error UnbondingNotComplete();
     error TransferFailed();
     error AlreadyUnbonding();
+    error ActiveProverSetFull();
 
     // =========================================================================
     // Modifiers
@@ -129,6 +162,10 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
         owner = msg.sender;
         securityCouncil = _securityCouncil;
         testnetMode = _testnetMode;
+
+        // Epoch 0 = empty set, so isKnownActiveSetCommitment is total over
+        // every epoch that ever existed
+        _writeActiveSetCheckpoint();
     }
 
     // =========================================================================
@@ -145,6 +182,7 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
     {
         if (proverData[msg.sender].status != ProverStatus.NONE) revert ProverAlreadyRegistered();
         if (sphincsPublicKey.length != SPHINCS_PUBKEY_LENGTH) revert InvalidPublicKeyLength();
+        if (activeProverList.length >= MAX_ACTIVE_PROVERS) revert ActiveProverSetFull();
 
         uint256 requiredStake = testnetMode ? 0 : MIN_STAKE_MAINNET;
         if (msg.value < requiredStake) revert InsufficientStake();
@@ -167,6 +205,7 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
         proverIndex[msg.sender] = activeProverList.length;
         activeProverList.push(msg.sender);
         totalStaked += msg.value;
+        _bumpActiveSet();
 
         emit ProverRegistered(msg.sender, pubKeyHash, msg.value);
         return true;
@@ -180,6 +219,7 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
         if (proverAddress == address(0)) revert ZeroAddress();
         if (proverData[proverAddress].status != ProverStatus.NONE) revert ProverAlreadyRegistered();
         if (sphincsPublicKey.length != SPHINCS_PUBKEY_LENGTH) revert InvalidPublicKeyLength();
+        if (activeProverList.length >= MAX_ACTIVE_PROVERS) revert ActiveProverSetFull();
 
         bytes32 pubKeyHash = SHA3_256.hash(sphincsPublicKey);
 
@@ -198,6 +238,7 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
 
         proverIndex[proverAddress] = activeProverList.length;
         activeProverList.push(proverAddress);
+        _bumpActiveSet();
 
         emit ProverRegistered(proverAddress, pubKeyHash, 0);
     }
@@ -212,6 +253,7 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
         data.unbondingStartedAt = block.timestamp;
 
         _removeFromActiveList(msg.sender);
+        _bumpActiveSet();
 
         emit ProverExitRequested(msg.sender, block.timestamp + UNBONDING_PERIOD);
     }
@@ -343,10 +385,11 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
         insuranceFund += actualSlash;
 
         // If stake falls below minimum, deactivate prover
-        if (data.stakedAmount < MIN_STAKE_MAINNET && !testnetMode) {
+        if (data.stakedAmount < MIN_STAKE_MAINNET && !testnetMode && data.isActive) {
             data.isActive = false;
             data.status = ProverStatus.SLASHED;
             _removeFromActiveList(proverAddress);
+            _bumpActiveSet();
         }
 
         emit ProverSlashed(proverAddress, actualSlash, reason);
@@ -400,6 +443,128 @@ contract ProverRegistry is IProverRegistry, ReentrancyGuard, Pausable {
         insuranceFund -= amount;
         (bool success, ) = treasury.call{value: amount}("");
         if (!success) revert TransferFailed();
+    }
+
+    // =========================================================================
+    // Active Set Commitment (FR-THRESH-5)
+    // =========================================================================
+
+    /// @notice Domain separator for leaf hashing
+    function LEAF_DOMAIN() public pure returns (bytes32) {
+        return keccak256("QS_PROVER_SET_LEAF_V1");
+    }
+
+    /// @notice Domain separator for internal node hashing
+    function NODE_DOMAIN() public pure returns (bytes32) {
+        return keccak256("QS_PROVER_SET_NODE_V1");
+    }
+
+    /// @notice Domain separator for the final commitment
+    function SET_DOMAIN() public pure returns (bytes32) {
+        return keccak256("QS_PROVER_SET_V1");
+    }
+
+    /// @inheritdoc IProverRegistry
+    function getActiveSetCommitment()
+        external
+        view
+        returns (bytes32 commitment, uint64 epoch)
+    {
+        epoch = activeSetEpoch;
+        commitment = setCheckpoints[epoch].commitment;
+    }
+
+    /// @inheritdoc IProverRegistry
+    function getActiveSetCheckpoint(uint64 epoch)
+        external
+        view
+        returns (SetCheckpoint memory checkpoint)
+    {
+        return setCheckpoints[epoch];
+    }
+
+    /// @inheritdoc IProverRegistry
+    function isKnownActiveSetCommitment(bytes32 commitment)
+        external
+        view
+        returns (bool known)
+    {
+        return knownCommitments[commitment];
+    }
+
+    /// @notice Compute the leaf for one active prover
+    /// @dev leaf = keccak256(LEAF_DOMAIN ‖ proverAddress ‖ sphincsPubKeyHash).
+    ///      Never bytes32(0), so padding leaves cannot collide with real ones
+    function computeSetLeaf(address proverAddress, bytes32 sphincsPubKeyHash)
+        public
+        pure
+        returns (bytes32 leaf)
+    {
+        return keccak256(abi.encodePacked(LEAF_DOMAIN(), proverAddress, sphincsPubKeyHash));
+    }
+
+    /// @notice Recompute root + commitment over the current active list
+    /// @dev Dense merkle tree in activeProverList order, zero-padded to the
+    ///      next power of two. commitment additionally binds the prover count
+    ///      so a padded and an unpadded set can never share a commitment.
+    ///      Empty set: root = bytes32(0)
+    function computeActiveSetCommitment()
+        public
+        view
+        returns (bytes32 root, bytes32 commitment)
+    {
+        uint256 count = activeProverList.length;
+
+        uint256 width = 1;
+        while (width < count) {
+            width <<= 1;
+        }
+
+        bytes32[] memory nodes = new bytes32[](width);
+        for (uint256 i = 0; i < count; i++) {
+            address prover = activeProverList[i];
+            nodes[i] = computeSetLeaf(prover, proverData[prover].sphincsPubKeyHash);
+        }
+        // nodes[count..width) stay bytes32(0) (padding)
+
+        bytes32 nodeDomain = NODE_DOMAIN();
+        while (width > 1) {
+            width >>= 1;
+            for (uint256 i = 0; i < width; i++) {
+                nodes[i] = keccak256(
+                    abi.encodePacked(nodeDomain, nodes[2 * i], nodes[2 * i + 1])
+                );
+            }
+        }
+
+        root = count == 0 ? bytes32(0) : nodes[0];
+        commitment = keccak256(abi.encodePacked(SET_DOMAIN(), root, count));
+    }
+
+    /// @notice Advance the epoch and checkpoint the new active set
+    function _bumpActiveSet() internal {
+        activeSetEpoch += 1;
+        _writeActiveSetCheckpoint();
+    }
+
+    /// @notice Checkpoint the current active set at the current epoch
+    function _writeActiveSetCheckpoint() internal {
+        (bytes32 root, bytes32 commitment) = computeActiveSetCommitment();
+        setCheckpoints[activeSetEpoch] = SetCheckpoint({
+            commitment: commitment,
+            root: root,
+            blockNumber: uint64(block.number),
+            proverCount: uint32(activeProverList.length)
+        });
+        knownCommitments[commitment] = true;
+
+        emit ActiveSetCommitmentUpdated(
+            activeSetEpoch,
+            commitment,
+            root,
+            activeProverList.length,
+            block.number
+        );
     }
 
     // =========================================================================
