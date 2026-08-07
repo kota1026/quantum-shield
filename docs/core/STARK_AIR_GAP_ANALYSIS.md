@@ -72,7 +72,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §7** |
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10〜§18**: DAG 連結・Keccak 束縛・membership・閾値/重複排除・判定配線・preimage 束縛・コミットメント public input 化・テーブル分割まで完了。残: 集約スロットと個別署名 witness の対応付け、`T_l` 尾部 (10.3%)、マルチブロック最終ブロック性 |
-| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟡 **方式選定 → §8 / EVM ガス実測 → §13**（NFR-2 予算の ~25% で収まると確定）。残るは wrap 回路（証明側）の実装のみ |
+| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟡 **§8 方式選定 / §13 EVM ガス実測 / §19 実測による方式修正**（自前 STARK を挟むより zkVM で SPHINCS+ を直接検証するほうが 228 倍安いと判明）。次は SP1/RISC Zero でのサイクル実測 |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -803,7 +803,7 @@ NFR-2 予算の ~25%）。残るのは「内側 STARK の検証器を SNARK 回�
 | ~~Merkle root → 公開コミットメントの public input 化~~ | ✅ §18 |
 | 集約スロットと個別署名 witness の対応付け | 未実装（中） |
 | §11.5-1 マルチブロック最終ブロック性 | 未実装（中〜大、§16.1 の設計が有力） |
-| wrap 回路（証明側） | **未着手（数週間規模、§16.2）** |
+| wrap 回路（証明側） | 方式を §19 で修正（zkVM 直接検証を推奨）。次は SP1/RISC Zero のサイクル実測 |
 | M4 オンチェーン統合 / M5 E2E | wrap 回路待ち |
 
 
@@ -940,3 +940,82 @@ commitment ── MERKLE_DAG + public input ──→ L1 が渡す値と一致 �
 - `rejects_a_commitment_the_chain_did_not_produce`: 回路が構築したのと違う
   active 集合を公開入力として主張すると拒否される
 - `two_signatures_share_a_registry_across_tables`: 上記のテーブルをまたぐ構成
+
+---
+
+## 19. wrap 方式の再評価: 測定が示した想定外の結論 (2026-08-07)
+
+§16.2 で「自前実装の前に既製の STARK-verifier 回路（SP1 / RISC Zero）を評価する」
+としていた技術判断を、推測ではなく**実測**で行った。結果、当初の前提を覆す
+結論が出た。
+
+### 19.1 前提の確認（コード実態調査）
+
+| 事実 | 含意 |
+|------|------|
+| pinned Plonky3 に**再帰クレートは存在しない** | フレームワーク内での再帰圧縮は選択肢にならない |
+| `p3-uni-stark` は `#![no_std]` | **Plonky3 の verifier を zkVM ゲストとして実行できる**。SNARK DSL に verifier を書き起こさずに済む可能性 |
+| Plonky3 に `bn254` クレートが同梱 | SNARK フレンドリーな体は利用可能 |
+
+2 番目が重要で、これが成り立つなら wrap は
+「**zkVM 内で Plonky3 verifier を走らせ、zkVM 標準の Groth16 wrapper を使う**」
+で済み、M1〜M3 の AIR 資産をそのまま活かせる。工数は数週間から数日規模に落ちる。
+
+### 19.2 決定的な比較
+
+しかし zkVM 経由で wrap するなら、比較すべきは次の 2 つである:
+
+- (a) **我々の STARK proof を zkVM 内で検証する**コスト
+- (b) **SPHINCS+ 検証を zkVM 内で直接やる**コスト
+
+両者は同じ通貨（Keccak 中心の計算量）で測れる。実測:
+
+| | 計算量 | ネイティブ実測 |
+|---|---:|---:|
+| (b) SLH-DSA-SHAKE-128s 検証 1 本 | **2,174 置換** | **621 µs**（`sphincs-m2` の `verify_cost`） |
+| (a) 我々の束縛 STARK proof 検証 1 署名分 | — | **141.5 ms**（§11.4 実測） |
+| **比** | | **228 倍** |
+
+置換あたり 0.286 µs から逆算すると、(a) は置換換算で **~495,000 相当**。
+両者とも Keccak MMCS 由来の Keccak が支配的なので、この比はそのまま
+zkVM のサイクル比に概ね転写される。
+
+**しかも zkVM ではこの差はさらに開く見込み**である。(a) には Goldilocks 体の
+算術（OOD 点での制約評価・FRI 折り畳み）が含まれ、32bit RISC-V 上の 64bit 体
+演算は相対的に高い。(b) は Keccak precompile を持つ zkVM ならさらに安くなる。
+
+### 19.3 損益分岐
+
+STARK 検証コストは署名本数にほぼ依存しない（succinct）ので、本数 N が増えれば
+いずれ (a) が勝つ。分岐点は概算で:
+
+```
+495,000 / 2,174 ≈ 228 本
+```
+
+**Quantum Shield の閾値は 2-of-N であり、必要な検証は 2 本**（+ Registry membership）。
+分岐点の 2 桁手前にいる。つまり **本用途では自前 STARK 層を挟むほうが一貫して高くつく**。
+
+### 19.4 結論と方式の修正
+
+| 方式 | 評価 |
+|------|------|
+| **B'. zkVM で SPHINCS+ 検証を直接実行** → zkVM の Groth16 wrapper → EVM verifier | **推奨**。M4/M5 への最短経路。EVM 側は §13 で実測済み（~254K gas、NFR-2 の 25%）。zkVM の wrap・EVM verifier・監査が既製 |
+| A. 自前 STARK + 手書き verifier 回路（SNARK DSL） | M1〜M3 を活かせる唯一の道だが数週間規模。§19.3 より、2-of-N では計算量でも不利 |
+| A'. 自前 STARK + zkVM 内で Plonky3 verifier を実行 | 工数は小さいが §19.2 より B' の 228 倍のコスト。**採る理由が無い** |
+
+**M1〜M3 の資産の位置づけ**: 破棄しない。(1) SPHINCS+ 検証の正確な仕様と
+witness 生成器（独立実装クロス検証済み）は zkVM ゲストにそのまま流用できる、
+(2) 署名本数が 2 桁に増える将来（Phase 3 の permissionless 化で N が増えた場合）に
+分岐点を超える、(3) ベンダ非依存・古典仮定を検証層に持ち込まない長期の選択肢として
+価値がある。特に (1) は実務上大きく、`sphincs-m2` の `slh_verify` は
+`no_std` 化すればそのまま zkVM ゲストになる。
+
+### 19.5 留保
+
+- zkVM のサイクル数はネイティブ実時間と厳密には比例しない。**B' に進む前に
+  SP1 または RISC Zero で実際にゲストを走らせ、サイクル数と proof 生成時間を
+  実測すべき**。これが次のアクション
+- Groth16 wrap は検証層に楕円曲線（古典）仮定を持ち込む。これは §8.3 で
+  「FR-THRESH-4 のフル SPHINCS+ 直接検証経路が常時担保するため受容」と
+  整理済みで、方式 A / B' のどちらでも同じ
