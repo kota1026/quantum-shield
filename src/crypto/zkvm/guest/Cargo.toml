@@ -1,0 +1,15 @@
+[package]
+name = "sphincs-guest"
+version = "0.1.0"
+edition = "2021"
+description = "SP1 zkVM guest: verifies one SLH-DSA-SHAKE-128s signature. Exists to measure the cycle cost of the wrap strategy chosen in docs/core/STARK_AIR_GAP_ANALYSIS.md §19."
+
+[dependencies]
+sp1-zkvm = "6.3.1"
+sphincs-m2 = { path = "../../circuits/sphincs-m2", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[workspace]
