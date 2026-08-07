@@ -627,4 +627,110 @@ mod tests {
             "a second verdict needs a second signature's producer"
         );
     }
+
+    // ---------------------------------------------------------------------
+    // Preimage-bound receiving (§16.1)
+    // ---------------------------------------------------------------------
+
+    /// With the Keccak table receiving its own value arguments, a FORS tree's
+    /// every internal edge is bound to an actual hash input — no separate
+    /// consumer table rows are needed at all.
+    #[test]
+    fn preimage_binding_covers_a_fors_tree() {
+        use crate::bound::{prove_tables, verify_tables, Table};
+        use crate::tables::build_preimage_tables;
+        use crate::witness::fors_tree_witness;
+
+        let settings = FriSettings::fast();
+        let trace = fors_tree_witness(0x42, 1234);
+        let dag = build_dag(&trace);
+
+        let tables = build_preimage_tables(&trace, &dag, settings.log_blowup, &[]);
+        assert_eq!(tables.preimage_edges, dag.edges.len());
+        assert_eq!(tables.spilled_edges, 0, "F and H fit entirely in the first block");
+
+        let bound = prove_tables(
+            vec![
+                Table::keccak(tables.keccak),
+                Table::consumer(tables.consumer),
+            ],
+            settings,
+        );
+        verify_tables(&bound).expect("preimage-bound edges must link");
+    }
+
+    /// The property the separate consumer table could not give us: claiming
+    /// that a hash input came from another hash, when it did not, is caught.
+    ///
+    /// The FORS leaf's `sk` and every authentication-path sibling are external
+    /// — they come from the signature. Marking one as internal leaves the
+    /// interaction unbalanced because no permutation produced it.
+    #[test]
+    fn rejects_an_external_input_claimed_as_internal() {
+        use crate::bound::{prove_tables, verify_tables, Table};
+        use crate::tables::{build_preimage_tables, forge_preimage_receive};
+        use crate::witness::fors_tree_witness;
+
+        let settings = FriSettings::fast();
+        let trace = fors_tree_witness(0x42, 1234);
+        let dag = build_dag(&trace);
+
+        let mut tables = build_preimage_tables(&trace, &dag, settings.log_blowup, &[]);
+        // Permutation 0 is the leaf `F`, whose only value argument is the
+        // secret key from the signature — external by construction.
+        forge_preimage_receive(&mut tables, 0, 0);
+
+        let bound = prove_tables(
+            vec![
+                Table::keccak(tables.keccak),
+                Table::consumer(tables.consumer),
+            ],
+            settings,
+        );
+        assert!(
+            verify_tables(&bound).is_err(),
+            "an external input cannot be claimed as produced"
+        );
+    }
+
+    /// A full signature's DAG: how much of it the preimage binding reaches.
+    #[test]
+    fn preimage_binding_coverage_on_a_real_signature() {
+        use crate::tables::build_preimage_tables;
+
+        let settings = FriSettings::fast();
+        let msg = b"quantum shield prover attestation";
+        let mut rng = ShakeRng::new(5);
+        let sk = SigningKey::<Shake128s>::new(&mut rng);
+        let vk: VerifyingKey<Shake128s> = sk.as_ref().clone();
+        let sig = signature::Signer::sign(&sk, msg.as_slice());
+
+        let out = slh_verify(msg, &sig.to_bytes(), b"", &vk.to_bytes());
+        assert!(out.valid);
+        let dag = build_dag(&out.trace);
+
+        let tables = build_preimage_tables(&out.trace, &dag, settings.log_blowup, &[]);
+        let total = tables.preimage_edges + tables.spilled_edges;
+        assert_eq!(total, dag.edges.len());
+
+        // Only `T_l`'s third value onward can spill: one FORS `T_k` (14
+        // values) and seven WOTS+ `T_len` (35 values each). Fewer spill in
+        // practice — a WOTS+ chain of length zero passes the signature
+        // element through untouched, so that `T_len` input is external and
+        // never was an edge.
+        let max_spill = (14 - 2) + 7 * (35 - 2);
+        assert!(
+            (1..=max_spill).contains(&tables.spilled_edges),
+            "spilled {} outside 1..={max_spill}",
+            tables.spilled_edges
+        );
+
+        // Which leaves the overwhelming majority bound to a real hash input.
+        assert!(
+            tables.preimage_edges * 100 / total >= 88,
+            "preimage binding should reach most of the DAG, got {}/{}",
+            tables.preimage_edges,
+            total
+        );
+    }
 }

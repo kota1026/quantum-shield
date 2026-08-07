@@ -6,7 +6,7 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 
 use sphincs_m2::dag::{digest_limbs, Dag};
-use sphincs_m2::hash::PermTrace;
+use sphincs_m2::hash::{HashKind, PermTrace};
 
 use crate::keccak_link::widen_keccak_trace;
 use crate::link::{DIGEST_LIMBS, F, NODE_LIMBS, NODE_WIDTH, WIDTH};
@@ -122,7 +122,7 @@ pub fn build_bound_tables_with_extra_usage(
         digest_of[last] = Some(usage[i]);
     }
 
-    let widened = widen_keccak_trace(&keccak, &digest_of, &[], &[]);
+    let widened = widen_keccak_trace(&keccak, &digest_of, &[], &[], &[]);
 
     let consumer_rows = dag.edges.len().next_power_of_two().max(2);
     let mut consumer = empty_trace(consumer_rows);
@@ -185,7 +185,7 @@ pub fn build_registry_tables(
         node_of[last] = Some(usage[i]);
     }
 
-    let widened = widen_keccak_trace(&keccak, &[], &node_of, &[]);
+    let widened = widen_keccak_trace(&keccak, &[], &node_of, &[], &[]);
 
     let rows = node_dag.edges.len().next_power_of_two().max(2);
     let mut node_consumer = RowMajorMatrix::new(F::zero_vec(rows * NODE_WIDTH), NODE_WIDTH);
@@ -261,7 +261,7 @@ pub fn build_full_tables(
         pubkey_of[c.perm_start + c.perm_count - 1] = Some(mult);
     }
 
-    let widened = widen_keccak_trace(&keccak, &digest_of, &node_of, &pubkey_of);
+    let widened = widen_keccak_trace(&keccak, &digest_of, &node_of, &pubkey_of, &[]);
 
     let consumer_rows = dag.edges.len().next_power_of_two().max(2);
     let mut consumer = empty_trace(consumer_rows);
@@ -281,4 +281,89 @@ pub fn build_full_tables(
     }
 
     FullTables { keccak: widened, consumer, node_consumer }
+}
+
+// =============================================================================
+// Preimage-bound tables: the Keccak table receives its own hash inputs
+// =============================================================================
+
+/// Tables for the preimage-bound configuration.
+pub struct PreimageTables {
+    pub keccak: RowMajorMatrix<F>,
+    /// Edges that do not fit a preimage value slot (the tail of a multi-block
+    /// `T_l`). Empty for witnesses made only of `F` and `H`.
+    pub consumer: RowMajorMatrix<F>,
+    /// Edges bound directly to a hash's preimage.
+    pub preimage_edges: usize,
+    /// Edges left to the separate consumer table.
+    pub spilled_edges: usize,
+}
+
+/// Route each DAG edge to the consuming hash's own preimage where the value
+/// argument lands inside the first rate block, and to the separate consumer
+/// table otherwise.
+///
+/// Only the first two value arguments (message bytes 48..64 and 64..80) are
+/// reachable this way, which covers every `F` (one value) and `H` (two) —
+/// 2,136 of the ~2,144 calls in a full verification. `T_l`'s later values
+/// spill past the first block, where the preimage is no longer the raw
+/// message, and keep using the consumer table.
+pub fn build_preimage_tables(
+    trace: &PermTrace,
+    dag: &Dag,
+    log_blowup: usize,
+    extra_digest_usage: &[u32],
+) -> PreimageTables {
+    let keccak = generate_trace_rows::<F>(trace.states.clone(), log_blowup);
+    let permutations = keccak.height().div_ceil(NUM_ROUNDS);
+
+    let mut digest_usage = dag.usage_counts();
+    for (i, add) in extra_digest_usage.iter().enumerate() {
+        digest_usage[i] += add;
+    }
+    let mut digest_of = vec![None; permutations];
+    for (i, call) in trace.calls.iter().enumerate() {
+        digest_of[call.perm_start + call.perm_count - 1] = Some(digest_usage[i]);
+    }
+
+    let mut recv_of = vec![[false; 2]; permutations];
+    let mut spilled = Vec::new();
+    for edge in &dag.edges {
+        let call = &trace.calls[edge.consumer];
+        let reachable = matches!(call.kind, HashKind::F | HashKind::H | HashKind::T)
+            && edge.slot < 2;
+        if reachable {
+            // The raw message is only visible on the call's first permutation.
+            recv_of[call.perm_start][edge.slot] = true;
+        } else {
+            spilled.push(*edge);
+        }
+    }
+
+    let widened = widen_keccak_trace(&keccak, &digest_of, &[], &[], &recv_of);
+
+    let consumer_rows = spilled.len().next_power_of_two().max(2);
+    let mut consumer = empty_trace(consumer_rows);
+    for (i, edge) in spilled.iter().enumerate() {
+        write_row(&mut consumer, i, &trace.calls[edge.producer].output, 1);
+    }
+
+    PreimageTables {
+        keccak: widened,
+        consumer,
+        preimage_edges: dag.edges.len() - spilled.len(),
+        spilled_edges: spilled.len(),
+    }
+}
+
+/// Claim that an external value argument came from another hash, without a
+/// producer for it — the forgery the preimage binding must catch.
+pub fn forge_preimage_receive(tables: &mut PreimageTables, permutation: usize, slot: usize) {
+    let col = if slot == 0 {
+        crate::keccak_link::COL_RECV0
+    } else {
+        crate::keccak_link::COL_RECV1
+    };
+    let row = permutation * NUM_ROUNDS;
+    tables.keccak.values[row * crate::keccak_link::WIDTH + col] = F::ONE;
 }

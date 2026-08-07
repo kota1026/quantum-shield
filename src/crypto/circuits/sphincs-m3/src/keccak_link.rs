@@ -55,8 +55,26 @@ pub const COL_IS_PUBKEY: usize = NUM_KECCAK_COLS + 4;
 /// Column holding how many times the published `(hash, PK.root)` pair is used.
 pub const COL_PUBKEY_MULT: usize = NUM_KECCAK_COLS + 5;
 
+/// Column flagging "the value at message bytes 48..64 came from another hash".
+pub const COL_RECV0: usize = NUM_KECCAK_COLS + 6;
+
+/// Column flagging "the value at message bytes 64..80 came from another hash".
+pub const COL_RECV1: usize = NUM_KECCAK_COLS + 7;
+
 /// Total width of the bound producer table.
-pub const WIDTH: usize = NUM_KECCAK_COLS + 6;
+pub const WIDTH: usize = NUM_KECCAK_COLS + 8;
+
+/// 16-bit preimage limb where the first value argument starts.
+///
+/// Every SPHINCS+ tweakable hash is `SHAKE256(PK.seed ‖ ADRS ‖ values…)`, so
+/// the first value begins at message byte 48 — limb 24 — and the second at
+/// byte 64 — limb 32. `F` uses one value, `H` two, `T_l` the first two of
+/// `l`; the rest of `T_l` spills past the first rate block and is handled by
+/// the separate consumer table.
+pub const VALUE0_LIMB: usize = 24;
+
+/// 16-bit preimage limb where the second value argument starts.
+pub const VALUE1_LIMB: usize = 32;
 
 /// The Keccak table, extended to publish hash-call digests into `HASH_DAG`.
 #[derive(Clone, Debug, Default)]
@@ -97,12 +115,24 @@ where
         let node_mult: AB::Expr = (*local)[COL_NODE_MULT].clone().into();
         let is_pubkey: AB::Expr = (*local)[COL_IS_PUBKEY].clone().into();
         let pubkey_mult: AB::Expr = (*local)[COL_PUBKEY_MULT].clone().into();
+        let recv0: AB::Expr = (*local)[COL_RECV0].clone().into();
+        let recv1: AB::Expr = (*local)[COL_RECV1].clone().into();
+        let step_first: AB::Expr = kc.step_flags[0].clone().into();
         let step_final: AB::Expr = kc.step_flags[NUM_ROUNDS - 1].clone().into();
 
         // The flags are flags.
         builder.assert_bool(is_digest.clone());
         builder.assert_bool(is_node.clone());
         builder.assert_bool(is_pubkey.clone());
+        builder.assert_bool(recv0.clone());
+        builder.assert_bool(recv1.clone());
+
+        // A value argument may only be claimed on a permutation's first round
+        // row. That is the only row whose preimage is the raw message: from
+        // the second block onwards the preimage is the previous output XOR the
+        // next message block, not the message itself.
+        builder.assert_zero(recv0 * (AB::Expr::ONE - step_first.clone()));
+        builder.assert_zero(recv1 * (AB::Expr::ONE - step_first));
 
         // A digest may only be published on a permutation's final round row —
         // that is where the output state (and hence the squeezed bytes) is
@@ -187,7 +217,44 @@ where
             &[(pubkey_elements, local[COL_PUBKEY_MULT].into(), Direction::Send)],
         );
 
-        vec![digest_lookup, node_lookup, pubkey_lookup]
+        // The value arguments this hash consumes, read from its own preimage.
+        //
+        // This is what makes the DAG argument bite. A separate consumer table
+        // only proves "these values were produced somewhere" — its rows are
+        // free witness, so a prover can write whatever balances. Receiving
+        // from the preimage instead ties the claim to an actual hash *input*
+        // that the Keccak AIR constrains.
+        let preimage_element = |limb: usize| -> SymbolicExpression<AB::F> {
+            let lo: SymbolicExpression<AB::F> = local[input_limb(limb)].into();
+            let hi: SymbolicExpression<AB::F> = local[input_limb(limb + 1)].into();
+            lo + shift.clone() * hi
+        };
+
+        let value0: Vec<SymbolicExpression<AB::F>> = (0..DIGEST_LIMBS)
+            .map(|j| preimage_element(VALUE0_LIMB + 2 * j))
+            .collect();
+        let value0_lookup = AirLookupHandler::<AB>::register_lookup(
+            self,
+            Kind::Global(INTERACTION.to_string()),
+            &[(value0, local[COL_RECV0].into(), Direction::Receive)],
+        );
+
+        let value1: Vec<SymbolicExpression<AB::F>> = (0..DIGEST_LIMBS)
+            .map(|j| preimage_element(VALUE1_LIMB + 2 * j))
+            .collect();
+        let value1_lookup = AirLookupHandler::<AB>::register_lookup(
+            self,
+            Kind::Global(INTERACTION.to_string()),
+            &[(value1, local[COL_RECV1].into(), Direction::Receive)],
+        );
+
+        vec![
+            digest_lookup,
+            node_lookup,
+            pubkey_lookup,
+            value0_lookup,
+            value1_lookup,
+        ]
     }
 }
 
@@ -202,6 +269,7 @@ pub fn widen_keccak_trace(
     digest_of: &[Option<u32>],
     node_of: &[Option<u32>],
     pubkey_of: &[Option<u32>],
+    recv_of: &[[bool; 2]],
 ) -> RowMajorMatrix<F> {
     // `generate_trace_rows` pads to a power-of-two row count, which is not a
     // multiple of NUM_ROUNDS in general — the trailing chunk is a partial
@@ -213,6 +281,19 @@ pub fn widen_keccak_trace(
     for r in 0..height {
         values[r * WIDTH..r * WIDTH + NUM_KECCAK_COLS]
             .copy_from_slice(&keccak.values[r * NUM_KECCAK_COLS..(r + 1) * NUM_KECCAK_COLS]);
+
+        // Consumed value arguments are read on the first round row, where the
+        // preimage still holds the raw message.
+        if r % NUM_ROUNDS == 0 {
+            if let Some(flags) = recv_of.get(r / NUM_ROUNDS) {
+                if flags[0] {
+                    values[r * WIDTH + COL_RECV0] = F::ONE;
+                }
+                if flags[1] {
+                    values[r * WIDTH + COL_RECV1] = F::ONE;
+                }
+            }
+        }
 
         // Digests live on each permutation's final round row.
         if r % NUM_ROUNDS == NUM_ROUNDS - 1 {

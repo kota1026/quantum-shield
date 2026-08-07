@@ -183,6 +183,32 @@ Tests cover 2-of-64, the empty and full rosters, and reject an inflated count,
 a deflated count, a broken count chain, a non-boolean `valid`, and permuted
 slots.
 
+## The Keccak table receives its own inputs
+
+A separate consumer table only proves "these values were produced somewhere":
+its rows are free witness, so a prover can write whatever balances the
+multiset. Nothing tied those digests to actual hash **inputs**.
+
+`keccak_link.rs` closes that by having the Keccak table receive its own value
+arguments, read from its preimage columns. Every SPHINCS+ tweakable hash is
+`SHAKE256(PK.seed ‖ ADRS ‖ values…)`, so the first value argument starts at
+message byte 48 (16-bit limb 24) and the second at byte 64 (limb 32).
+
+Two flags, `recv0` and `recv1`, mark a value argument as coming from another
+hash. They may only be set on a permutation's **first round row** — that is
+the only row whose preimage is the raw message, since from the second block
+onwards the preimage is the previous output XOR the next message block.
+
+Measured coverage on a real signature: **1,915 of 2,135 edges (89.7 %)**.
+`F` (one value) and `H` (two) are covered entirely — 2,136 of the ~2,144
+calls. The remaining 220 are `T_l`'s third value onward, which spill past the
+first rate block.
+
+The test that matters is `rejects_an_external_input_claimed_as_internal`: the
+FORS leaf's `sk` and every authentication-path sibling come from the
+signature, and claiming one as internally produced now leaves the interaction
+unbalanced. The separate consumer table could not catch that.
+
 ## Three interactions
 
 | interaction | tuple | carries |
