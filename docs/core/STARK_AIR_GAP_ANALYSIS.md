@@ -1019,3 +1019,56 @@ witness 生成器（独立実装クロス検証済み）は zkVM ゲストにそ
 - Groth16 wrap は検証層に楕円曲線（古典）仮定を持ち込む。これは §8.3 で
   「FR-THRESH-4 のフル SPHINCS+ 直接検証経路が常時担保するため受容」と
   整理済みで、方式 A / B' のどちらでも同じ
+
+---
+
+## 20. zkVM ゲスト化の前提を満たした (2026-08-07)
+
+§19.4 で推奨方式となった「zkVM で SPHINCS+ 検証を直接実行」に向け、
+**検証コアが zkVM ゲストとしてビルドできる**ことを実証した。
+
+### 20.1 実施内容
+
+`sphincs-m2` の検証コア（`params` / `adrs` / `keccak` / `hash` / `verify`）を
+`no_std` + `alloc` にし、witness DAG 抽出（`dag`、`HashMap` 依存）を
+デフォルト有効の `std` feature の裏に隔離した。ゲストに必要なのは判定であって
+witness ではないため、この分割は自然。
+
+### 20.2 判明したブロッカーと対処
+
+`riscv32im-unknown-none-elf`（zkVM が実際に使うターゲット。`im` = 整数 + 乗算で
+**原子命令なし**）でのビルドを試みて、2 つのブロッカーが順に出た:
+
+| ブロッカー | 原因 | 対処 |
+|---|---|---|
+| `crossbeam-utils` が `std` を要求 | `p3-maybe-rayon` の `parallel` feature 経由で rayon が入る | ライブラリが実際に使う依存を調査したところ `p3-keccak` と `p3-symmetric` のみと判明。他は examples 専用なので dev-dependencies へ移した |
+| `tracing-core` が原子 CAS を要求 | **`p3-field` が `tracing` を無条件に依存**しており、Plonky3 の全クレートが `p3-field` を引く | Keccak-f[1600] を自前実装し（`src/keccak.rs`）、Plonky3 依存を検証コアから完全に除去 |
+
+2 つ目は Plonky3 側の構造的な制約であり、**Plonky3 のクレートは原子命令なしの
+RISC-V ターゲットではビルドできない**。これは方式 A'（zkVM 内で Plonky3 verifier を
+実行）を採る場合の実務的な障害でもあり、§19.4 の判断を補強する。
+
+### 20.3 結果: 検証コアは依存ゼロ
+
+```toml
+[dependencies]
+# None. The verification core is alloc-only on purpose.
+```
+
+`cargo build --lib --no-default-features --target riscv32im-unknown-none-elf` が
+**成功**。SLH-DSA-SHAKE-128s のフル検証がベアメタル RISC-V で動く形になった。
+
+自前 Keccak-f が AIR の証明する置換と**ビット単位で一致する**ことは
+テストで固定している（`matches_plonky3_keccak` / `..._on_zero_state`）。
+これがないとゲストと回路が静かに乖離しうる。
+既存の FIPS 202 KAT（空文字列 / "abc" / 複数ブロック）もそのまま通っている。
+
+テスト: `sphincs-m2` 22 件（+2）、`sphincs-m3` 32 件、いずれも全パス。
+
+### 20.4 残り
+
+- **SP1 / RISC Zero でのサイクル実測**（§19.5 の次アクション）。ゲスト側の
+  前提は本節で満たしたので、あとは zkVM SDK を入れてゲストを走らせるだけ。
+  ただし各 SDK はツールチェーン込みで数 GB を要し、本作業環境は空き容量が
+  逼迫している（Docker.raw が 41GB を占有）ため、実行前に容量確保が必要
+- proof 生成時間と wrap 後の EVM 検証ガス（後者は §13 で ~254K gas と実測済み）

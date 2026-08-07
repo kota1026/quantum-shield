@@ -7,10 +7,11 @@
 //! before each permutation gives exactly the witness `p3-keccak-air`
 //! consumes, so the circuit and the reference implementation cannot drift.
 
-use p3_keccak::KeccakF;
-use p3_symmetric::Permutation;
+use alloc::vec;
+use alloc::vec::Vec;
 
 use crate::adrs::Adrs;
+use crate::keccak::keccak_f;
 use crate::params::N;
 
 /// SHAKE256 rate in bytes.
@@ -159,7 +160,7 @@ pub fn sponge_parts(
         if let Some(rec) = recorder.as_deref_mut() {
             rec.states.push(state);
         }
-        KeccakF.permute_mut(&mut state);
+        keccak_f(&mut state);
     }
 
     let mut out = Vec::with_capacity(out_len);
