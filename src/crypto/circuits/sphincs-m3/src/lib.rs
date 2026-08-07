@@ -236,4 +236,83 @@ mod tests {
 
         prove_bound(tables.keccak, tables.consumer, settings);
     }
+
+    // ---------------------------------------------------------------------
+    // Three-table batch: the aggregation verdict is tied to the Keccak table
+    // ---------------------------------------------------------------------
+
+    /// A slot may claim `valid` only for a root the Keccak table produced.
+    /// Here the FORS tree's own root is that value, so the batch verifies.
+    #[test]
+    fn aggregation_verdict_binds_to_a_produced_root() {
+        use crate::agg::{build_trace, Slot};
+        use crate::bound::{prove_bound_with_agg, verify_bound_with_agg};
+        use crate::tables::build_bound_tables_with_extra_usage;
+        use crate::witness::fors_tree_witness;
+
+        let settings = FriSettings::fast();
+        let trace = fors_tree_witness(0x42, 1234);
+        let dag = build_dag(&trace);
+
+        // The last call's output is the tree root; the aggregation table
+        // consumes it once more than the DAG alone accounts for.
+        let root_call = trace.calls.len() - 1;
+        let root = trace.calls[root_call].output;
+        let mut extra = vec![0u32; trace.calls.len()];
+        extra[root_call] = 1;
+
+        let tables = build_bound_tables_with_extra_usage(&trace, &dag, settings.log_blowup, &extra);
+
+        let mut slots = vec![Slot::absent(); 64];
+        slots[5] = Slot::verified(root);
+        let (agg_trace, agg_pvs) = build_trace::<crate::link::F>(&slots);
+
+        let linked = prove_bound_with_agg(
+            tables.keccak,
+            tables.consumer,
+            agg_trace,
+            agg_pvs,
+            settings,
+        );
+        verify_bound_with_agg(&linked).expect("a produced root must link");
+    }
+
+    /// The point of the wiring: a slot cannot claim a verdict over a root no
+    /// permutation produced. Without this, `valid` was a free witness.
+    #[test]
+    fn rejects_a_verdict_over_an_unproduced_root() {
+        use crate::agg::{build_trace, Slot};
+        use crate::bound::{prove_bound_with_agg, verify_bound_with_agg};
+        use crate::tables::build_bound_tables_with_extra_usage;
+        use crate::witness::fors_tree_witness;
+
+        let settings = FriSettings::fast();
+        let trace = fors_tree_witness(0x42, 1234);
+        let dag = build_dag(&trace);
+
+        let root_call = trace.calls.len() - 1;
+        let mut root = trace.calls[root_call].output;
+        let mut extra = vec![0u32; trace.calls.len()];
+        extra[root_call] = 1;
+
+        let tables = build_bound_tables_with_extra_usage(&trace, &dag, settings.log_blowup, &extra);
+
+        // Claim a verdict over a root the circuit never computed.
+        root[0] ^= 1;
+        let mut slots = vec![Slot::absent(); 64];
+        slots[5] = Slot::verified(root);
+        let (agg_trace, agg_pvs) = build_trace::<crate::link::F>(&slots);
+
+        let linked = prove_bound_with_agg(
+            tables.keccak,
+            tables.consumer,
+            agg_trace,
+            agg_pvs,
+            settings,
+        );
+        assert!(
+            verify_bound_with_agg(&linked).is_err(),
+            "a verdict over an unproduced root must be rejected"
+        );
+    }
 }

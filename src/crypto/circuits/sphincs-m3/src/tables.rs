@@ -96,10 +96,25 @@ pub struct BoundTables {
 /// multi-block absorb the earlier blocks hold no digest — so `digest_of` is
 /// indexed by `perm_start + perm_count - 1`.
 pub fn build_bound_tables(trace: &PermTrace, dag: &Dag, log_blowup: usize) -> BoundTables {
+    build_bound_tables_with_extra_usage(trace, dag, log_blowup, &[])
+}
+
+/// As [`build_bound_tables`], but with additional consumers of some outputs —
+/// e.g. the aggregation table receiving a slot's hypertree root. `extra[i]` is
+/// added to call `i`'s published multiplicity.
+pub fn build_bound_tables_with_extra_usage(
+    trace: &PermTrace,
+    dag: &Dag,
+    log_blowup: usize,
+    extra: &[u32],
+) -> BoundTables {
     let keccak = generate_trace_rows::<F>(trace.states.clone(), log_blowup);
     let permutations = keccak.height().div_ceil(NUM_ROUNDS);
 
-    let usage = dag.usage_counts();
+    let mut usage = dag.usage_counts();
+    for (i, add) in extra.iter().enumerate() {
+        usage[i] += add;
+    }
     let mut digest_of = vec![None; permutations];
     for (i, call) in trace.calls.iter().enumerate() {
         let last = call.perm_start + call.perm_count - 1;

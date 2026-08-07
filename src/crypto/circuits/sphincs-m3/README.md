@@ -156,7 +156,7 @@ one recording path.
 prover slot** rather than per submitted signature:
 
 ```text
-row i:  [ slot | valid | count ]
+row i:  [ slot | valid | count | computed_root[4] | pk_root[4] ]
 ```
 
 Indexing by slot is what makes **deduplication structural** — a prover has
@@ -164,6 +164,16 @@ exactly one row, so it cannot be counted twice, and no sorting argument or
 range check is needed. `slot` is constrained to the row index, `valid` to be
 boolean, `count` to be the running prefix sum, and the final `count` is bound
 to the public input `valid_count`.
+
+**`valid` is not a free witness.** A slot may claim `valid = 1` only if
+
+- `computed_root == pk_root` — a SPHINCS+ verification succeeds exactly when
+  the recomputed hypertree root equals `PK.root`, so this *is* the verdict; and
+- `computed_root` is received from the `HASH_DAG` interaction with
+  multiplicity `valid`, so it must be a digest the Keccak table produced.
+
+Together these stop a prover from asserting a verdict over a root the circuit
+never computed (`rejects_a_verdict_over_an_unproduced_root`).
 
 `valid_count >= threshold` is deliberately left to L1: the count is a public
 input, so `L1Vault` checks it with one comparison — cheaper than an in-circuit
@@ -187,12 +197,11 @@ Deliberately, so the numbers above are not read as more than they are:
    argument proves a value *was produced*, not *where it belongs*; the
    surrounding AIR's address (`ADRS`) columns are what pin position in the
    real circuit.
-3. **The aggregation table's `valid` column is still a witness.** Threshold
-   counting and dedup are enforced, but nothing yet forces `valid = 1` to mean
-   "*this slot's* SPHINCS+ signature verified against a Merkle-proven registry
-   member". That linkage — comparing each signature's computed hypertree root
-   to `PK.root`, and tying the slot to the registry leaf — is the next wiring
-   step.
+3. **`pk_root` is not yet tied to the registry leaf.** `valid` now requires a
+   Keccak-produced root matching the slot's declared `pk_root`, but binding
+   that `pk_root` to the registered public key needs linking hash *inputs*
+   (the leaf absorbs `sha3(PK.seed ‖ PK.root)`), whereas `HASH_DAG` matches on
+   produced digests. An input-side interaction closes this.
 4. **The registry Merkle chain is recorded but not yet DAG-linked.** Its
    permutations land in the witness, but the `HASH_DAG` tuple is four 32-bit
    limbs (a 16-byte SPHINCS+ digest) while Merkle nodes are 32 bytes. Linking

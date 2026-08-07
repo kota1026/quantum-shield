@@ -166,7 +166,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 | ID | 要件 | 目標値 |
 |----|------|--------|
 | NFR-1 | **量子耐性 (CP-1)**: proof システムを含む全ハッシュは SHA3-256/SHAKE256 (FIPS 202)。keccak256・ECDSA・SHA-256 の新規導入禁止（EVM ネイティブ制約による既存例外を除く） | 128-bit PQ セキュリティ |
-| NFR-2 | **ガス上限**: proof-based Unlock の L1 検証ガスは、現行 Unlock 総ガス目標（~490K gas, SEQUENCES §2）の 2 倍以内 | ≤ 1M gas / unlock |
+| NFR-2 | **ガス上限**: proof-based Unlock の L1 検証ガスは、現行 Unlock 総ガス目標（~490K gas, SEQUENCES §2）の 2 倍以内（🟢 2026-08-07 実測: Groth16 wrap 検証は public input 8 個で **~254K gas** = 予算の ~25%。`STARK_AIR_GAP_ANALYSIS.md` §13） | ≤ 1M gas / unlock |
 | NFR-3 | **Proof 生成時間**: Normal Unlock の 24h タイムロック内に十分収まること（🟢 2026-08-06 実測: 1 署名 ~5 分 / 2-of-N ~10 分オーダー。`STARK_AIR_GAP_ANALYSIS.md` §9.3。ただし proving ホストに RAM 要件あり — §9.4） | ≤ 1h (p99) |
 | NFR-4 | **フォールバック可用性**: proof 生成系が全停止しても FR-THRESH-4 経路で資産回収可能 | RTO = 0（常時有効） |
 | NFR-5 | **監査**: 簡易経路削除・verifier 統合の diff は外部監査（または Slither + 手動レビューの二重チェック）を経ること。`slither-reports/` に結果を残す | Critical/High 0 件 |

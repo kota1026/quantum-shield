@@ -72,7 +72,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §7** |
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10 (LogUp PoC) / §11 (Keccak 束縛) / §12 (Registry membership + 閾値・重複排除)**。残: `valid` 列と署名検証結果の配線、Merkle の DAG 連結 (§12.3) |
-| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟡 **方式選定完了 → §8**（FRI スキャン実測で wrapping 必須を定量確定、方式 A 推奨。wrap 実装 + EVM ガス実測は残作業） |
+| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟡 **方式選定 → §8 / EVM ガス実測 → §13**（NFR-2 予算の ~25% で収まると確定）。残るは wrap 回路（証明側）の実装のみ |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -88,7 +88,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 > 更新 2026-08-06。M0/M1/M2 完了、M0.5 方式選定済みを反映。
 
 1. ~~**M3 の LogUp PoC**~~ ✅ (§10) / ~~**producer↔Keccak 束縛**~~ ✅ (§11) / ~~**Registry membership + 閾値・重複排除**~~ ✅ (§12)。次は §12.3-1（`valid` 列と署名検証結果の配線）と §12.3-2（Merkle 連鎖の DAG 連結）
-2. **M0.5 の残作業**: wrap 回路実装 + Groth16/PLONK verifier の EVM ガス実測（§8.5）
+2. **M0.5 の残作業**: wrap 回路（証明側）の実装。~~EVM ガス実測~~ ✅ (§13: 8 public input で ~254K gas、NFR-2 の ~25%)
 3. G6 / CP-1 整合の決定者承認: 「proof システム内部ハッシュ (Poseidon2) は CP-1 適用外」の明文化（§8.5-4）。なお SPHINCS+ 回路 (M1/M2) は SHAKE256 のみで CP-1 適合済み
 4. R-3 の proving service 要件に §9.4-2 の RAM 制約を反映
 5. ~~M0 の実施~~ ✅ (§5) / ~~FR-THRESH-5 オンチェーン実装~~ ✅ (§6)
@@ -585,3 +585,57 @@ public input なので `L1Vault` が 1 回の比較で検査でき、回路内�
 3. **複数署名が 1 つの Keccak テーブルを共有している**。署名ごとにテーブルを
    分ける（`p3-batch-stark` が直接サポート）ことが、N 本時に §9.4-2 の
    メモリ上限を扱いやすく保つ鍵。
+
+---
+
+## 13. M0.5 残作業: Groth16 verifier の EVM ガス実測 (2026-08-07)
+
+§8.5-2 として残していた **NFR-2 (proof-based Unlock ≤ 1M gas) の判定材料**を実測で確定した。
+`src/l1/contracts/src/wrap/Groth16Verifier.sol` と `test/Groth16VerifierGas.t.sol`。
+
+### 13.1 何を測ったか
+
+方式 A（STARK を SNARK に wrap）のオンチェーン側、すなわち BN254 Groth16 検証器。
+検証式は標準形 `e(-A,B)·e(α,β)·e(L,γ)·e(C,δ) == 1`、`L = IC[0] + Σ IC[i+1]·input[i]`。
+
+**検証が実際に成功する構成で測定した**（早期 return を測ってしまわないため）:
+`L = C = O`（無限遠点）とすると式は `e(-G1,G2)·e(G1,G2) = 1` に潰れて成立する。
+public input ごとの `ecMul` + `ecAdd` は `IC[i] = O` でも完全な precompile 呼出になるので、
+コストは実運用と同じ。
+
+### 13.2 実測値
+
+| public inputs | gas |
+|--------------:|----:|
+| 0 | 193,078 |
+| 1 | 198,504 |
+| 2 | 206,433 |
+| 4 | 222,287 |
+| 8 | **253,998** |
+| 16 | 317,470 |
+
+- **public input あたりの限界コスト: 7,338 gas**（`ecMul` 6,000 + `ecAdd` 150 + calldata・ループ分）
+- 固定コスト ~193K の大半は `ecPairing` 4 ペア（45,000 + 4×34,000 = 181,000）
+
+### 13.3 NFR-2 判定
+
+FR-THRESH-1 の public input は「active 集合コミットメント・メッセージハッシュ・
+valid 署名数・lock/state root」程度、すなわち数個〜十数個の field element。
+**8 個で ~254K gas = NFR-2 予算 1M の約 25%**。残り ~746K が Unlock の他処理に使える
+（現行 Unlock 総ガス目標は ~490K, SEQUENCES §2）。
+
+wrap 後の proof は 8 field element = 256 bytes で、calldata コストは ~4K gas と無視できる。
+なお本測定は verifying key も calldata で渡しているため、本番のように VK を定数化すれば
+input あたり ~1K gas ほど下がる（下振れ方向の保守的な測定）。
+
+**結論: NFR-2 は方式 A で大きな余裕をもって満たせる。**
+オンチェーン検証コストはもはや制約ではなく、**M0.5 の残リスクは wrap 回路（証明側）の
+実装工数のみ**に絞られた。
+
+### 13.4 スコープ外（明示）
+
+- 本コントラクトはどの Unlock 経路にも接続していない。`L1Vault` 統合は M4 であり、
+  実際の wrap 回路とその verifying key が存在してからになる
+- 測定に使った点は「検証が成立する参照構成」であって実 proof ではない。
+  precompile のコストは入力の妥当性のみに依存し proof の中身には依らないため、
+  ガス値としては代表性がある
