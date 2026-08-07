@@ -71,7 +71,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M0 | 技術選定: 自前スタック vs Plonky3 (keccak-air 再利用) の PoC 比較 | SHAKE256 1 置換の proof 生成/検証時間・proof サイズの実測比較レポート | ✅ **完了 → §5** |
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §7** |
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
-| M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **DAG 連結 → §10 (PoC) / §11 (Keccak 束縛 = 健全性確立)**。集約/閾値/Registry 束縛は残作業 |
+| M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10 (LogUp PoC) / §11 (Keccak 束縛) / §12 (Registry membership + 閾値・重複排除)**。残: `valid` 列と署名検証結果の配線、Merkle の DAG 連結 (§12.3) |
 | **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟡 **方式選定完了 → §8**（FRI スキャン実測で wrapping 必須を定量確定、方式 A 推奨。wrap 実装 + EVM ガス実測は残作業） |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
@@ -87,7 +87,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 
 > 更新 2026-08-06。M0/M1/M2 完了、M0.5 方式選定済みを反映。
 
-1. ~~**M3 の LogUp PoC**~~ ✅ (§10) / ~~**producer↔Keccak 束縛**~~ ✅ (§11)。次は §11.4-1（マルチブロックの最終ブロック性）と §10.4-3（N 本集約・閾値・Registry 束縛）
+1. ~~**M3 の LogUp PoC**~~ ✅ (§10) / ~~**producer↔Keccak 束縛**~~ ✅ (§11) / ~~**Registry membership + 閾値・重複排除**~~ ✅ (§12)。次は §12.3-1（`valid` 列と署名検証結果の配線）と §12.3-2（Merkle 連鎖の DAG 連結）
 2. **M0.5 の残作業**: wrap 回路実装 + Groth16/PLONK verifier の EVM ガス実測（§8.5）
 3. G6 / CP-1 整合の決定者承認: 「proof システム内部ハッシュ (Poseidon2) は CP-1 適用外」の明文化（§8.5-4）。なお SPHINCS+ 回路 (M1/M2) は SHAKE256 のみで CP-1 適合済み
 4. R-3 の proving service 要件に §9.4-2 の RAM 制約を反映
@@ -519,3 +519,69 @@ DAG 連結の健全性確立は性能上の障害にならない。なお §9.4-
    `H_msg` のみ。閉じるにはスポンジ吸収構造の回路内表現が必要。
 2. **producer↔consumer の対応付け**は多重集合論法の対象外（周囲の AIR のアドレス列が担う）。§10.4-2 のまま。
 3. **N 本集約・閾値・Registry 束縛**は未実装。§10.4-3 のまま。
+
+---
+
+## 12. M3 残作業 (2): Registry membership と閾値・重複排除 (2026-08-07)
+
+§10.4-3 として残していた要件のうち、**FR-THRESH-1(b) の回路側基盤**と
+**FR-THRESH-1(c) の閾値カウント・重複排除**を実装。`sphincs-m3` の
+`registry.rs` / `agg.rs`。
+
+### 12.1 FR-THRESH-1(b): Registry membership の回路側実装
+
+FR-THRESH-5 のコミットメント (§6) を回路側で再計算し、Merkle inclusion を
+**置換記録つき**で検証する。これにより membership 検証が署名検証と同じ
+Keccak witness に載る。
+
+**正当性はコントラクト側に固定**した（自前実装同士の照合では意味がないため）:
+`src/l1/contracts/test/ProverSetCommitmentVectors.t.sol` を新規追加し、
+Solidity の `computeActiveSetCommitment()` が出力する参照ベクタを Rust 側の
+テストで突き合わせている。カバー範囲はドメインセパレータ 3 種、リーフ符号化、
+および 0〜5 メンバーの root / commitment（空集合・ノードハッシュ無しの単一
+リーフ・2 冪ちょうど・ゼロパディング 2 種）。
+membership の否定系として、非メンバー・位置詐称・古い member count を拒否
+することも固定した。
+
+**ハッシュの取り扱い**: `sphincsPubKeyHash` は SHA3-256 (CP-1) のまま、木は
+keccak256（§6.2 の EVM ネイティブ例外）。両者は同一置換なので 1 つの Keccak
+テーブルで証明できる。これに合わせて `sphincs-m2` のスポンジをドメイン
+パラメータ化した（`shake256_parts` / `sha3_256_parts` / `keccak256_parts` が
+同一の記録経路を共有）。
+
+### 12.2 FR-THRESH-1(c): 閾値カウントと署名者重複排除
+
+**署名ごとではなく active prover スロットごとに 1 行**という構成にした:
+
+```
+row i:  [ slot | valid | count ]
+```
+
+これにより**重複排除が構造的に成立する** — 各 Prover は 1 行しか持たないので
+二重カウントが表現できず、ソート論法もレンジチェックも不要。
+`slot` は行インデックスに固定、`valid` は bool、`count` は接頭辞和、
+最終 `count` は public input `valid_count` に束縛。
+
+**`valid_count >= threshold` の比較は意図的に L1 側に残した**: count は
+public input なので `L1Vault` が 1 回の比較で検査でき、回路内レンジチェック
+より安価かつ拘束力は同等。
+
+テスト 8 件: 2-of-64 / 空・満杯ロスター / 過大申告・過小申告・count 連鎖破壊・
+非 bool の `valid`・slot 並べ替えの拒否。
+
+`sphincs-m3` テスト計 22 件全パス（警告 0）。
+
+### 12.3 残作業（正直な記載）
+
+1. **集約テーブルの `valid` 列はまだ witness**。閾値と重複排除は強制されるが、
+   `valid = 1` が「**そのスロットの** SPHINCS+ 署名が、Merkle 証明済みの
+   Registry メンバーに対して検証された」ことを意味するようには**まだ拘束していない**。
+   各署名の計算 hypertree root と `PK.root` の一致、およびスロットと Registry
+   リーフの結び付けが次の配線。
+2. **Registry Merkle 連鎖は記録済みだが DAG 連結は未接続**。置換は witness に
+   載っているが、`HASH_DAG` のタプルは 32bit×4（16B の SPHINCS+ ダイジェスト）
+   である一方 Merkle ノードは 32B。8 リムのタプル + kind タグにするか、
+   第 2 の相互作用を足すかの小規模な変更で接続できる。
+3. **複数署名が 1 つの Keccak テーブルを共有している**。署名ごとにテーブルを
+   分ける（`p3-batch-stark` が直接サポート）ことが、N 本時に §9.4-2 の
+   メモリ上限を扱いやすく保つ鍵。

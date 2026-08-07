@@ -122,6 +122,57 @@ above puts LogUp itself at ~70 ms. Soundness for the DAG therefore costs about
 a fifth of the Keccak cost, and the complete linked proof still lands at
 ~6 min per signature, an order of magnitude inside NFR-3.
 
+## Registry membership — FR-THRESH-1(b)
+
+`registry.rs` recomputes the FR-THRESH-5 active-set commitment
+(`ProverRegistry.sol`, gap analysis §6) on the circuit side and verifies
+Merkle inclusion **with permutation recording**, so a membership check lands
+in the same Keccak witness as the signature verification:
+
+```text
+leaf = keccak256(LEAF_DOMAIN ‖ proverAddress(20B) ‖ sphincsPubKeyHash(32B))
+node = keccak256(NODE_DOMAIN ‖ left ‖ right)
+root = dense tree, zero-padded to a power of two (bytes32(0) when empty)
+commitment = keccak256(SET_DOMAIN ‖ root ‖ uint256(count))
+```
+
+Correctness is pinned against **the contract, not against this code**: the
+test vectors come from `src/l1/contracts/test/ProverSetCommitmentVectors.t.sol`
+(`forge test --match-contract ProverSetCommitmentVectors -vv`), covering the
+three domain separators, the leaf encoding, and root/commitment for sets of
+0–5 members — the empty set, the single-leaf case with no node hashing, an
+exact power of two, and two zero-padded sizes. Membership tests also reject
+an outsider, a member claiming the wrong position, and a stale member count.
+
+`sphincsPubKeyHash` stays SHA3-256 (CP-1) while the tree is keccak256, the
+documented EVM-native exception; both are the same permutation, so both prove
+in one Keccak table. `sphincs-m2`'s sponge is now domain-parameterised
+(`shake256_parts` / `sha3_256_parts` / `keccak256_parts`) so all three share
+one recording path.
+
+## Threshold and deduplication — FR-THRESH-1(c)
+
+`agg.rs` counts valid signatures over a fixed roster, one row per **active
+prover slot** rather than per submitted signature:
+
+```text
+row i:  [ slot | valid | count ]
+```
+
+Indexing by slot is what makes **deduplication structural** — a prover has
+exactly one row, so it cannot be counted twice, and no sorting argument or
+range check is needed. `slot` is constrained to the row index, `valid` to be
+boolean, `count` to be the running prefix sum, and the final `count` is bound
+to the public input `valid_count`.
+
+`valid_count >= threshold` is deliberately left to L1: the count is a public
+input, so `L1Vault` checks it with one comparison — cheaper than an in-circuit
+range check and equally binding.
+
+Tests cover 2-of-64, the empty and full rosters, and reject an inflated count,
+a deflated count, a broken count chain, a non-boolean `valid`, and permuted
+slots.
+
 ## Scope — what this does *not* yet do
 
 Deliberately, so the numbers above are not read as more than they are:
@@ -136,10 +187,20 @@ Deliberately, so the numbers above are not read as more than they are:
    argument proves a value *was produced*, not *where it belongs*; the
    surrounding AIR's address (`ADRS`) columns are what pin position in the
    real circuit.
-3. **Single signature.** N-of-M aggregation, threshold counting, signer
-   deduplication, and binding the `ProverRegistry` active-set commitment
-   (FR-THRESH-5, gap analysis §6) all fit this same framework — each signature
-   as its own table — but are not implemented yet.
+3. **The aggregation table's `valid` column is still a witness.** Threshold
+   counting and dedup are enforced, but nothing yet forces `valid = 1` to mean
+   "*this slot's* SPHINCS+ signature verified against a Merkle-proven registry
+   member". That linkage — comparing each signature's computed hypertree root
+   to `PK.root`, and tying the slot to the registry leaf — is the next wiring
+   step.
+4. **The registry Merkle chain is recorded but not yet DAG-linked.** Its
+   permutations land in the witness, but the `HASH_DAG` tuple is four 32-bit
+   limbs (a 16-byte SPHINCS+ digest) while Merkle nodes are 32 bytes. Linking
+   them needs either an eight-limb tuple with a kind tag or a second
+   interaction — a small, well-understood change.
+5. **Multiple signatures share one Keccak table today.** Giving each signature
+   its own table (which `p3-batch-stark` supports directly) is what keeps the
+   §9.4-2 memory ceiling manageable at N signatures.
 
 ```bash
 cargo run --release --example bound_full   # full-scale bound measurement

@@ -7,9 +7,11 @@
 //! hash input was produced by some hash** — and measures what it costs, using
 //! the real DAG of a real signature verification.
 
+pub mod agg;
 pub mod bound;
 pub mod keccak_link;
 pub mod link;
+pub mod registry;
 pub mod stark;
 pub mod tables;
 pub mod witness;
