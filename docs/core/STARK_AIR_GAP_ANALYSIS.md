@@ -71,7 +71,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M0 | 技術選定: 自前スタック vs Plonky3 (keccak-air 再利用) の PoC 比較 | SHAKE256 1 置換の proof 生成/検証時間・proof サイズの実測比較レポート | ✅ **完了 → §5** |
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §7** |
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
-| M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10 (LogUp PoC) / §11 (Keccak 束縛) / §12 (Registry membership + 閾値・重複排除)**。残: `valid` 列と署名検証結果の配線、Merkle の DAG 連結 (§12.3) |
+| M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10〜§18**: DAG 連結・Keccak 束縛・membership・閾値/重複排除・判定配線・preimage 束縛・コミットメント public input 化・テーブル分割まで完了。残: 集約スロットと個別署名 witness の対応付け、`T_l` 尾部 (10.3%)、マルチブロック最終ブロック性 |
 | **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟡 **方式選定 → §8 / EVM ガス実測 → §13**（NFR-2 予算の ~25% で収まると確定）。残るは wrap 回路（証明側）の実装のみ |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
@@ -800,7 +800,7 @@ NFR-2 予算の ~25%）。残るのは「内側 STARK の検証器を SNARK 回�
 
 | 項目 | 状態 |
 |------|------|
-| Merkle root → 公開コミットメントの public input 化 | 未実装（小） |
+| ~~Merkle root → 公開コミットメントの public input 化~~ | ✅ §18 |
 | 集約スロットと個別署名 witness の対応付け | 未実装（中） |
 | §11.5-1 マルチブロック最終ブロック性 | 未実装（中〜大、§16.1 の設計が有力） |
 | wrap 回路（証明側） | **未着手（数週間規模、§16.2）** |
@@ -875,3 +875,68 @@ WOTS+ `T_len`（35 値 × 7 層）が第 1 レートブロックを超える分�
 - `T_l` の第 3 値以降（10.3%）は consumer テーブルのまま。第 2 ブロック以降の
   preimage を扱うにはスポンジ吸収の回路内表現が必要で、これは §16.1 と同じ壁
 - §11.5-1（マルチブロック最終ブロック性）は**依然として未解決**。§16.1 の訂正参照
+
+---
+
+## 18. FR-THRESH-1(b) の連鎖が公開入力まで閉じた (2026-08-07)
+
+§14.3 で「回路外の等式」として残していた最後の一手を実装した。
+
+### 18.1 コミットメントの public input 化
+
+`compute_commitment_traced` を追加し、`keccak256(SET_DOMAIN ‖ root ‖ count)` を
+witness に記録する（root を消費するので Merkle 連鎖の内部エッジになる）。
+集約テーブルに `commitment` 列（8 リム）と `is_commit` 列を足し:
+
+| 制約 | 意味 |
+|------|------|
+| `is_commit` が bool、先頭行で 1、遷移で次行 0 | 束縛はちょうど 1 行 |
+| 先頭行で `commitment[j] == public_values[PV_COMMITMENT + j]` | 公開入力との一致 |
+| `MERKLE_DAG` から multiplicity `is_commit` で Receive | その値を Registry 連鎖が実際に生成したこと |
+
+これで **FR-THRESH-1(b) の連鎖が公開境界まで閉じた**:
+
+```
+公開鍵 (PK.seed ‖ PK.root)
+   │ sha3 ── PUBKEY_BIND ──→ 集約テーブルの pk_root を束縛 ✅
+   ↓
+pubkey_hash ── MERKLE_DAG ──→ リーフが消費 ✅
+   ↓
+leaf ── MERKLE_DAG ──→ ノード連鎖 ✅
+   ↓
+root ── MERKLE_DAG ──→ commitment が消費 ✅
+   ↓
+commitment ── MERKLE_DAG + public input ──→ L1 が渡す値と一致 ✅
+```
+
+### 18.2 テーブルをまたぐ消費
+
+`build_full_tables` に `external_node_receives` を追加し、
+**別テーブルで生成された 32B 値を消費できる**ようにした。相互作用はグローバル
+なので、Registry テーブルのリーフが署名テーブルで計算された公開鍵ハッシュを
+消費する構成が成立する。
+
+これにより §15 の「署名ごとのテーブル分割」が実運用の形になった:
+
+```
+[署名 A の Keccak テーブル]  pubkey_hash_A を生成 ─┐
+[署名 B の Keccak テーブル]  pubkey_hash_B を生成 ─┤
+                                                    ↓
+[Registry テーブル]  leaf_A, leaf_B, node, commitment
+                                                    ↓
+[集約テーブル]  2 スロットの判定 + commitment を公開入力に束縛
+```
+
+テスト `two_signatures_share_a_registry_across_tables`（10 テーブルのバッチ）で
+実証。**共有 Registry を持つ 2 署名が、それぞれ独立した Keccak テーブルで
+証明できる**ことが確認できた。
+
+### 18.3 テスト
+
+`sphincs-m3` 計 32 件全パス（警告 0）。新規・改訂:
+
+- `aggregation_verdict_binds_the_whole_chain`: 署名 root・登録公開鍵・
+  active 集合コミットメントを 1 バッチで束縛
+- `rejects_a_commitment_the_chain_did_not_produce`: 回路が構築したのと違う
+  active 集合を公開入力として主張すると拒否される
+- `two_signatures_share_a_registry_across_tables`: 上記のテーブルをまたぐ構成

@@ -129,9 +129,31 @@ pub fn compute_root(leaves: &[Digest]) -> Digest {
 
 /// `keccak256(SET_DOMAIN ‖ root ‖ uint256(count))`
 pub fn compute_commitment(root: &Digest, count: usize) -> Digest {
+    compute_commitment_traced(root, count, None)
+}
+
+/// As [`compute_commitment`], recording the permutation and the node call.
+///
+/// The commitment consumes the tree root, so recording it turns the last link
+/// of the membership chain into an internal edge — and lets the resulting
+/// digest be bound to a public input.
+pub fn compute_commitment_traced(
+    root: &Digest,
+    count: usize,
+    trace: Option<&mut PermTrace>,
+) -> Digest {
     let mut count_be = [0u8; 32];
     count_be[24..].copy_from_slice(&(count as u64).to_be_bytes());
-    keccak256_parts(&[&set_domain(), root, &count_be], None)
+    let parts: [&[u8]; 3] = [&set_domain(), root, &count_be];
+    match trace {
+        None => keccak256_parts(&parts, None),
+        Some(t) => {
+            let start = t.states.len();
+            let out = keccak256_parts(&parts, Some(&mut *t));
+            t.record_node_call(vec![*root], out, start);
+            out
+        }
+    }
 }
 
 /// Root and commitment for a member list, as the contract would report them.
@@ -194,8 +216,8 @@ pub fn verify_membership(
     mut trace: Option<&mut PermTrace>,
 ) -> bool {
     let leaf = compute_leaf(member, trace.as_deref_mut());
-    let root = root_from_path(&leaf, index, path, trace);
-    compute_commitment(&root, count) == *commitment
+    let root = root_from_path(&leaf, index, path, trace.as_deref_mut());
+    compute_commitment_traced(&root, count, trace) == *commitment
 }
 
 /// Internal edges of the registry Merkle chain: a 32-byte input that an
@@ -424,9 +446,10 @@ mod tests {
             Some(&mut trace)
         ));
 
-        // 1 leaf hash + one node hash per tree level (width 8 -> 3 levels);
-        // each input is a single rate block, so one permutation apiece.
+        // 1 leaf hash + one node hash per tree level (width 8 -> 3 levels)
+        // + the commitment; each input is a single rate block, so one
+        // permutation apiece.
         assert_eq!(path.len(), 3);
-        assert_eq!(trace.len(), 1 + 3);
+        assert_eq!(trace.len(), 1 + 3 + 1);
     }
 }

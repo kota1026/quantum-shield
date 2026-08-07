@@ -229,13 +229,16 @@ pub struct FullTables {
 /// (the aggregation table consuming a hypertree root, say), and
 /// `pubkey_calls` names the 32-byte calls that hash a registered public key,
 /// with how many slots bind to each.
+#[allow(clippy::too_many_arguments)]
 pub fn build_full_tables(
     trace: &PermTrace,
     dag: &Dag,
     node_dag: &NodeDag,
     log_blowup: usize,
     extra_digest_usage: &[u32],
+    extra_node_usage: &[u32],
     pubkey_calls: &[(usize, u32)],
+    external_node_receives: &[[u8; 32]],
 ) -> FullTables {
     let keccak = generate_trace_rows::<F>(trace.states.clone(), log_blowup);
     let permutations = keccak.height().div_ceil(NUM_ROUNDS);
@@ -249,7 +252,10 @@ pub fn build_full_tables(
         digest_of[call.perm_start + call.perm_count - 1] = Some(digest_usage[i]);
     }
 
-    let node_usage = node_dag.usage_counts();
+    let mut node_usage = node_dag.usage_counts();
+    for (i, add) in extra_node_usage.iter().enumerate() {
+        node_usage[i] += add;
+    }
     let mut node_of = vec![None; permutations];
     for (i, call) in trace.node_calls.iter().enumerate() {
         node_of[call.perm_start + call.perm_count - 1] = Some(node_usage[i]);
@@ -269,12 +275,21 @@ pub fn build_full_tables(
         write_row(&mut consumer, i, &trace.calls[edge.producer].output, 1);
     }
 
-    let node_rows = node_dag.edges.len().next_power_of_two().max(2);
+    // 32-byte values this table consumes: its own internal edges, plus any
+    // produced in a *sibling* table (a registry leaf consuming a public-key
+    // hash that another signature's table computed).
+    let consumed: Vec<[u8; 32]> = node_dag
+        .edges
+        .iter()
+        .map(|e| trace.node_calls[e.producer].output)
+        .chain(external_node_receives.iter().copied())
+        .collect();
+
+    let node_rows = consumed.len().next_power_of_two().max(2);
     let mut node_consumer = RowMajorMatrix::new(F::zero_vec(node_rows * NODE_WIDTH), NODE_WIDTH);
-    for (i, edge) in node_dag.edges.iter().enumerate() {
-        let digest = trace.node_calls[edge.producer].output;
+    for (i, digest) in consumed.iter().enumerate() {
         let base = i * NODE_WIDTH;
-        for (j, limb) in node_limbs(&digest).iter().enumerate() {
+        for (j, limb) in node_limbs(digest).iter().enumerate() {
             node_consumer.values[base + j] = F::from_u32(*limb);
         }
         node_consumer.values[base + NODE_LIMBS] = F::ONE;

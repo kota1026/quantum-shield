@@ -38,7 +38,9 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use p3_uni_stark::{SymbolicAirBuilder, SymbolicExpression};
 
-use crate::link::{DIGEST_LIMBS, INTERACTION, NODE_LIMBS, PUBKEY_INTERACTION};
+use crate::link::{
+    DIGEST_LIMBS, INTERACTION, MERKLE_INTERACTION, NODE_LIMBS, PUBKEY_INTERACTION,
+};
 use crate::registry::node_limbs;
 use sphincs_m2::dag::digest_limbs;
 
@@ -54,14 +56,20 @@ pub const COL_ROOT: usize = 3;
 pub const COL_PK_ROOT: usize = COL_ROOT + DIGEST_LIMBS;
 /// First column of the registered public key's hash for this slot.
 pub const COL_PUBKEY_HASH: usize = COL_PK_ROOT + DIGEST_LIMBS;
+/// First column of the active-set commitment (table-level, not per slot).
+pub const COL_COMMITMENT: usize = COL_PUBKEY_HASH + NODE_LIMBS;
+/// Column flagging the single row that binds the commitment.
+pub const COL_IS_COMMIT: usize = COL_COMMITMENT + NODE_LIMBS;
 
 /// Trace width.
-pub const WIDTH: usize = COL_PUBKEY_HASH + NODE_LIMBS;
+pub const WIDTH: usize = COL_IS_COMMIT + 1;
 
 /// Public value: the number of valid signatures the proof attests.
 pub const PV_VALID_COUNT: usize = 0;
+/// First public value of the `ProverRegistry` active-set commitment.
+pub const PV_COMMITMENT: usize = 1;
 /// Number of public values.
-pub const NUM_PUBLIC_VALUES: usize = 1;
+pub const NUM_PUBLIC_VALUES: usize = PV_COMMITMENT + NODE_LIMBS;
 
 /// Threshold-counting AIR over a fixed roster of prover slots.
 #[derive(Clone, Copy, Debug, Default)]
@@ -120,6 +128,21 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for AggregationAir {
             .when_last_row()
             .assert_eq(count, pvs[PV_VALID_COUNT].clone());
 
+        // The active-set commitment is bound on exactly one row, and that row
+        // consumes the commitment digest from the registry chain — closing
+        // FR-THRESH-1(b) at the public boundary rather than off-circuit.
+        let is_commit: AB::Expr = local[COL_IS_COMMIT].clone().into();
+        let next_is_commit: AB::Expr = next[COL_IS_COMMIT].clone().into();
+        builder.assert_bool(is_commit);
+        builder.when_first_row().assert_one(local[COL_IS_COMMIT].clone());
+        builder.when_transition().assert_zero(next_is_commit);
+        for j in 0..NODE_LIMBS {
+            builder.when_first_row().assert_eq(
+                local[COL_COMMITMENT + j].clone(),
+                pvs[PV_COMMITMENT + j].clone(),
+            );
+        }
+
         // A slot may only claim `valid` if the hypertree root it recomputed
         // equals the `PK.root` it declares — which is exactly the SPHINCS+
         // verification verdict. Paired with the HASH_DAG receive below (which
@@ -173,7 +196,16 @@ where
             &[(pair, valid, Direction::Receive)],
         );
 
-        vec![root_lookup, pubkey_lookup]
+        // The commitment digest must be one the registry chain produced.
+        let commitment: Vec<SymbolicExpression<AB::F>> =
+            (0..NODE_LIMBS).map(|j| local[COL_COMMITMENT + j].into()).collect();
+        let commitment_lookup = AirLookupHandler::<AB>::register_lookup(
+            self,
+            Kind::Global(MERKLE_INTERACTION.to_string()),
+            &[(commitment, local[COL_IS_COMMIT].into(), Direction::Receive)],
+        );
+
+        vec![root_lookup, pubkey_lookup, commitment_lookup]
     }
 }
 
@@ -209,7 +241,10 @@ impl Slot {
 
 /// Build the trace for a roster of prover slots. Returns the trace and the
 /// public values.
-pub fn build_trace<F: PrimeField64>(slots: &[Slot]) -> (RowMajorMatrix<F>, Vec<F>) {
+pub fn build_trace<F: PrimeField64>(
+    slots: &[Slot],
+    commitment: &[u8; 32],
+) -> (RowMajorMatrix<F>, Vec<F>) {
     let rows = slots.len();
     assert!(rows.is_power_of_two(), "roster size must be a power of two");
     assert!(rows >= 2, "the AIR needs at least one transition");
@@ -233,9 +268,16 @@ pub fn build_trace<F: PrimeField64>(slots: &[Slot]) -> (RowMajorMatrix<F>, Vec<F
         for (j, limb) in node_limbs(&slot.pubkey_hash).iter().enumerate() {
             values[i * WIDTH + COL_PUBKEY_HASH + j] = F::from_u32(*limb);
         }
+        for (j, limb) in node_limbs(commitment).iter().enumerate() {
+            values[i * WIDTH + COL_COMMITMENT + j] = F::from_u32(*limb);
+        }
     }
+    values[COL_IS_COMMIT] = F::ONE;
 
-    (RowMajorMatrix::new(values, WIDTH), vec![F::from_u64(count)])
+    let mut public_values = vec![F::from_u64(count)];
+    public_values.extend(node_limbs(commitment).iter().map(|l| F::from_u32(*l)));
+
+    (RowMajorMatrix::new(values, WIDTH), public_values)
 }
 
 /// The number of valid signatures a roster attests, for callers that want to
@@ -273,7 +315,7 @@ mod tests {
     fn prove_verify(slots: &[Slot], claimed: Option<u64>) -> Result<(), String> {
         let settings = FriSettings::fast();
         let config = make_config(settings);
-        let (trace, mut pvs) = build_trace::<F>(slots);
+        let (trace, mut pvs) = build_trace::<F>(slots, &[0u8; 32]);
         if let Some(c) = claimed {
             pvs[PV_VALID_COUNT] = F::from_u64(c);
         }
@@ -354,7 +396,7 @@ mod tests {
     fn rejects_a_broken_count_chain() {
         let settings = FriSettings::fast();
         let config = make_config(settings);
-        let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64));
+        let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64), &[0u8; 32]);
         trace.values[10 * WIDTH + COL_COUNT] += F::ONE;
         prove(&config, &AggregationAir::new(), trace, &pvs);
     }
@@ -366,7 +408,7 @@ mod tests {
     fn rejects_a_non_boolean_valid() {
         let settings = FriSettings::fast();
         let config = make_config(settings);
-        let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64));
+        let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64), &[0u8; 32]);
         trace.values[5 * WIDTH + COL_VALID] = F::from_u64(2);
         prove(&config, &AggregationAir::new(), trace, &pvs);
     }
@@ -379,7 +421,7 @@ mod tests {
     fn rejects_permuted_slots() {
         let settings = FriSettings::fast();
         let config = make_config(settings);
-        let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64));
+        let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64), &[0u8; 32]);
         trace.values[9 * WIDTH + COL_SLOT] = F::from_u64(42);
         prove(&config, &AggregationAir::new(), trace, &pvs);
     }
