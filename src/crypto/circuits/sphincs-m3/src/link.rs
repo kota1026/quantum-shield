@@ -122,3 +122,102 @@ where
         )]
     }
 }
+
+// =============================================================================
+// 32-byte registry Merkle chain
+// =============================================================================
+
+/// Digest limbs for a 32-byte value (registry leaves and Merkle nodes).
+pub const NODE_LIMBS: usize = 8;
+
+/// Trace width of the 32-byte consumer table.
+pub const NODE_WIDTH: usize = NODE_LIMBS + 1;
+
+/// Interaction carrying 32-byte registry digests.
+///
+/// Kept separate from [`INTERACTION`] rather than widening it: SPHINCS+
+/// digests are 16 bytes and registry nodes are 32, so one interaction would
+/// need either zero-padding plus a kind tag (and a degree-2 masking
+/// expression on the producer side) or a lossy encoding. Two narrow
+/// interactions are cheaper and cannot confuse the two value spaces.
+pub const MERKLE_INTERACTION: &str = "MERKLE_DAG";
+
+/// Consumer side of the registry Merkle chain: every 32-byte value fed into
+/// a node hash must be one the Keccak table produced.
+#[derive(Clone, Debug, Default)]
+pub struct NodeLinkAir {
+    num_lookups: usize,
+}
+
+impl NodeLinkAir {
+    pub const fn new() -> Self {
+        Self { num_lookups: 0 }
+    }
+}
+
+impl<T: Field> BaseAir<T> for NodeLinkAir {
+    fn width(&self) -> usize {
+        NODE_WIDTH
+    }
+}
+
+impl<AB> Air<AB> for NodeLinkAir
+where
+    AB: PermutationAirBuilder + PairBuilder + AirBuilderWithPublicValues,
+{
+    fn eval(&self, builder: &mut AB) {
+        // The selector is a flag, so padding rows cannot smuggle a fractional
+        // multiplicity into the argument.
+        let main = builder.main();
+        let local = main.row_slice(0).expect("empty trace");
+        let sel = local[NODE_LIMBS].clone();
+        builder.assert_bool(sel);
+    }
+}
+
+impl<AB> AirLookupHandler<AB> for NodeLinkAir
+where
+    AB: PermutationAirBuilder + PairBuilder + AirBuilderWithPublicValues,
+{
+    fn add_lookup_columns(&mut self) -> Vec<usize> {
+        let idx = self.num_lookups;
+        self.num_lookups += 1;
+        vec![idx]
+    }
+
+    fn get_lookups(&mut self) -> Vec<Lookup<AB::F>> {
+        self.num_lookups = 0;
+
+        let symbolic = SymbolicAirBuilder::<AB::F>::new(0, NODE_WIDTH, 0, 0, 0);
+        let main = symbolic.main();
+        let local = main.row_slice(0).unwrap();
+
+        let elements: Vec<SymbolicExpression<AB::F>> =
+            (0..NODE_LIMBS).map(|i| local[i].into()).collect();
+        let multiplicity: SymbolicExpression<AB::F> = local[NODE_LIMBS].into();
+
+        let inputs = vec![(elements, multiplicity, Direction::Receive)];
+        vec![AirLookupHandler::<AB>::register_lookup(
+            self,
+            Kind::Global(MERKLE_INTERACTION.to_string()),
+            &inputs,
+        )]
+    }
+}
+
+
+// =============================================================================
+// Public-key binding (FR-THRESH-1(b), input side)
+// =============================================================================
+
+/// Interaction tying a registered public key's hash to the `PK.root` inside it.
+///
+/// Every other interaction matches on hash *outputs*. This one also exposes an
+/// *input* field: the tuple is `(sha3(PK.seed ‖ PK.root), PK.root)`, read from
+/// the Keccak table's output and preimage columns respectively. Without it a
+/// slot could pair a legitimately-registered public-key hash with a `PK.root`
+/// of its choosing.
+pub const PUBKEY_INTERACTION: &str = "PUBKEY_BIND";
+
+/// Tuple width: the 32-byte public-key hash plus the 16-byte `PK.root`.
+pub const PUBKEY_TUPLE_LIMBS: usize = NODE_LIMBS + DIGEST_LIMBS;

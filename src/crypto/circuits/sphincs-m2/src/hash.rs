@@ -58,12 +58,25 @@ pub struct HashCall {
     pub perm_count: usize,
 }
 
+/// One 32-byte hash call — the registry commitment's leaves and Merkle nodes
+/// (FR-THRESH-5), which the same proof must verify. Kept separate from
+/// [`HashCall`] because SPHINCS+ works in 16-byte digests and the registry
+/// tree in 32-byte ones, and the two must not be confused.
+#[derive(Clone, Debug)]
+pub struct NodeCall {
+    pub inputs: Vec<[u8; 32]>,
+    pub output: [u8; 32],
+    pub perm_start: usize,
+    pub perm_count: usize,
+}
+
 /// Records the pre-permutation sponge state of every Keccak-f invocation and
 /// the hash-call DAG, both in evaluation order.
 #[derive(Clone, Debug, Default)]
 pub struct PermTrace {
     pub states: Vec<[u64; 25]>,
     pub calls: Vec<HashCall>,
+    pub node_calls: Vec<NodeCall>,
 }
 
 impl PermTrace {
@@ -79,6 +92,14 @@ impl PermTrace {
     fn record_call(&mut self, kind: HashKind, inputs: Vec<[u8; N]>, output: [u8; N], start: usize) {
         let perm_count = self.states.len() - start;
         self.calls.push(HashCall { kind, inputs, output, perm_start: start, perm_count });
+    }
+
+    /// Record a 32-byte hash call. Public so the registry commitment
+    /// ([`crate`]'s sibling crate `sphincs-m3`) can contribute to the same
+    /// witness without duplicating the sponge.
+    pub fn record_node_call(&mut self, inputs: Vec<[u8; 32]>, output: [u8; 32], start: usize) {
+        let perm_count = self.states.len() - start;
+        self.node_calls.push(NodeCall { inputs, output, perm_start: start, perm_count });
     }
 }
 

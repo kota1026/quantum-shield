@@ -639,3 +639,77 @@ input あたり ~1K gas ほど下がる（下振れ方向の保守的な測定�
 - 測定に使った点は「検証が成立する参照構成」であって実 proof ではない。
   precompile のコストは入力の妥当性のみに依存し proof の中身には依らないため、
   ガス値としては代表性がある
+
+---
+
+## 14. M3 残作業 (3): Merkle 連鎖の DAG 連結と pk_root の入力側束縛 (2026-08-07)
+
+§12.3-1 / §12.3-2 を実装。`sphincs-m3` の `link.rs` / `keccak_link.rs` /
+`registry.rs` / `tables.rs` / `agg.rs`。
+
+### 14.1 §12.3-2: Registry Merkle 連鎖の DAG 連結
+
+SPHINCS+ ダイジェストは 16B、Registry のノードは 32B でタプル幅が違う問題は、
+**相互作用を 2 本に分ける**ことで解決した:
+
+| 相互作用 | タプル | 対象 |
+|---------|-------|------|
+| `HASH_DAG` | 32bit × 4 | 16B の SPHINCS+ ダイジェスト |
+| `MERKLE_DAG` | 32bit × 8 | 32B の Registry リーフ・ノード |
+
+1 本に統合してゼロパディング + kind タグにする案は、producer 側に degree-2 の
+マスク式が必要になり高くつくうえ、2 つの値空間を混同する余地が残る。
+細いタプル 2 本のほうが安く、混同も起きない。
+
+Keccak テーブルに `is_node` / `node_mult` 列を追加し、`output_limb(0..16)` から
+32B ダイジェストを Send。`NodeLinkAir`（32B consumer）が Receive する。
+`registry.rs` は公開鍵ハッシュ・リーフ・各ノードを node call として記録し、
+`build_node_dag` が「pubkey hash → leaf → node → … → root」の内部エッジを抽出する。
+
+テスト: 一貫した membership 連鎖が検証を通ること、および
+**どの置換も生成していない 32B 値（偽造ノード）が拒否される**ことを固定。
+
+### 14.2 §12.3-1: pk_root の入力側束縛
+
+これまでの相互作用はすべてハッシュの**出力**で照合していた。
+そのため「正規に登録された公開鍵のハッシュ」と「任意の `PK.root`」を
+組み合わせて主張することを防げなかった。
+
+**`PUBKEY_BIND` 相互作用**を追加し、ハッシュの**入力**フィールドを公開する:
+
+```
+タプル = ( sha3(PK.seed ‖ PK.root) の出力 32B , 入力中の PK.root 16B )
+         └ output_limb(0..16)                  └ input_limb(8..16)
+```
+
+登録公開鍵は `PK.seed ‖ PK.root` の 32B なので、`PK.root` は preimage の
+バイト 16..32 = 16bit リム 8..16 として keccak-air の列から直接読める。
+集約テーブルは multiplicity `valid` でこのペアを Receive する。
+
+結果、**`valid` なスロットは「Keccak テーブルが実際にハッシュした公開鍵の中身
+そのものである `PK.root`」しか主張できない**。
+
+テスト: 正規の公開鍵ハッシュと別の `PK.root` を組み合わせた主張が
+拒否されることを固定（`rejects_a_pk_root_that_is_not_in_the_hashed_key`）。
+
+### 14.3 FR-THRESH-1(b) の連鎖の現状
+
+```
+公開鍵 (PK.seed ‖ PK.root)
+   │ sha3 ── PUBKEY_BIND ──→ 集約テーブルの pk_root を束縛 ✅
+   ↓
+pubkey_hash ── MERKLE_DAG ──→ リーフが消費 ✅
+   ↓
+leaf ── MERKLE_DAG ──→ ノード連鎖 ✅
+   ↓
+root ── compute_commitment ──→ 公開 commitment との一致（回路外の等式、要 public input 化）
+```
+
+`sphincs-m3` テスト計 29 件全パス。バッチは最大 4 テーブル
+（Keccak / 16B consumer / 32B consumer / 集約）を `prove_tables` で組める形に一般化した。
+
+### 14.4 残り
+
+- Merkle root → `compute_commitment` → 公開コミットメントの等式を public input として束縛する
+- 署名検証そのもの（M2 の witness）と集約テーブルのスロットの対応付け
+- §11.5-1（マルチブロックの最終ブロック性）、署名ごとのテーブル分割

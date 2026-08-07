@@ -38,7 +38,8 @@ use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use p3_uni_stark::{SymbolicAirBuilder, SymbolicExpression};
 
-use crate::link::{DIGEST_LIMBS, INTERACTION};
+use crate::link::{DIGEST_LIMBS, INTERACTION, NODE_LIMBS, PUBKEY_INTERACTION};
+use crate::registry::node_limbs;
 use sphincs_m2::dag::digest_limbs;
 
 /// Column: the prover slot this row stands for.
@@ -51,9 +52,11 @@ pub const COL_COUNT: usize = 2;
 pub const COL_ROOT: usize = 3;
 /// First column of the `PK.root` this slot declares.
 pub const COL_PK_ROOT: usize = COL_ROOT + DIGEST_LIMBS;
+/// First column of the registered public key's hash for this slot.
+pub const COL_PUBKEY_HASH: usize = COL_PK_ROOT + DIGEST_LIMBS;
 
 /// Trace width.
-pub const WIDTH: usize = COL_PK_ROOT + DIGEST_LIMBS;
+pub const WIDTH: usize = COL_PUBKEY_HASH + NODE_LIMBS;
 
 /// Public value: the number of valid signatures the proof attests.
 pub const PV_VALID_COUNT: usize = 0;
@@ -61,8 +64,16 @@ pub const PV_VALID_COUNT: usize = 0;
 pub const NUM_PUBLIC_VALUES: usize = 1;
 
 /// Threshold-counting AIR over a fixed roster of prover slots.
-#[derive(Clone, Copy, Debug)]
-pub struct AggregationAir;
+#[derive(Clone, Copy, Debug, Default)]
+pub struct AggregationAir {
+    num_lookups: usize,
+}
+
+impl AggregationAir {
+    pub const fn new() -> Self {
+        Self { num_lookups: 0 }
+    }
+}
 
 impl<F> BaseAir<F> for AggregationAir {
     fn width(&self) -> usize {
@@ -127,26 +138,42 @@ where
     AB: PermutationAirBuilder + PairBuilder + AirBuilderWithPublicValues,
 {
     fn add_lookup_columns(&mut self) -> Vec<usize> {
-        vec![0]
+        let idx = self.num_lookups;
+        self.num_lookups += 1;
+        vec![idx]
     }
 
     fn get_lookups(&mut self) -> Vec<Lookup<AB::F>> {
+        self.num_lookups = 0;
+
         let symbolic = SymbolicAirBuilder::<AB::F>::new(0, WIDTH, 0, 0, 0);
         let main = symbolic.main();
         let local = main.row_slice(0).unwrap();
+        let valid: SymbolicExpression<AB::F> = local[COL_VALID].into();
 
         // Consume this slot's hypertree root from the hash DAG, but only on
         // rows that claim to be valid.
-        let elements: Vec<SymbolicExpression<AB::F>> =
+        let root: Vec<SymbolicExpression<AB::F>> =
             (0..DIGEST_LIMBS).map(|j| local[COL_ROOT + j].into()).collect();
-        let multiplicity: SymbolicExpression<AB::F> = local[COL_VALID].into();
-
-        let inputs = vec![(elements, multiplicity, Direction::Receive)];
-        vec![AirLookupHandler::<AB>::register_lookup(
+        let root_lookup = AirLookupHandler::<AB>::register_lookup(
             self,
             Kind::Global(INTERACTION.to_string()),
-            &inputs,
-        )]
+            &[(root, valid.clone(), Direction::Receive)],
+        );
+
+        // Tie the declared `PK.root` to the registered public key: the pair
+        // must be one the Keccak table hashed, so a slot cannot pair a
+        // legitimate public-key hash with a `PK.root` of its choosing.
+        let mut pair: Vec<SymbolicExpression<AB::F>> =
+            (0..NODE_LIMBS).map(|j| local[COL_PUBKEY_HASH + j].into()).collect();
+        pair.extend((0..DIGEST_LIMBS).map(|j| local[COL_PK_ROOT + j].into()));
+        let pubkey_lookup = AirLookupHandler::<AB>::register_lookup(
+            self,
+            Kind::Global(PUBKEY_INTERACTION.to_string()),
+            &[(pair, valid, Direction::Receive)],
+        );
+
+        vec![root_lookup, pubkey_lookup]
     }
 }
 
@@ -159,12 +186,19 @@ pub struct Slot {
     pub computed_root: [u8; 16],
     /// `PK.root` from the registered public key.
     pub pk_root: [u8; 16],
+    /// SHA3-256 of the registered public key (`PK.seed ‖ PK.root`).
+    pub pubkey_hash: [u8; 32],
 }
 
 impl Slot {
     /// A slot whose signature verified: both roots are the same value.
     pub fn verified(root: [u8; 16]) -> Self {
-        Self { valid: true, computed_root: root, pk_root: root }
+        Self { valid: true, computed_root: root, pk_root: root, pubkey_hash: [0u8; 32] }
+    }
+
+    /// A verified slot with the registered public key's hash attached.
+    pub fn verified_with_key(root: [u8; 16], pubkey_hash: [u8; 32]) -> Self {
+        Self { valid: true, computed_root: root, pk_root: root, pubkey_hash }
     }
 
     /// A slot that did not contribute.
@@ -195,6 +229,9 @@ pub fn build_trace<F: PrimeField64>(slots: &[Slot]) -> (RowMajorMatrix<F>, Vec<F
         }
         for (j, limb) in digest_limbs(&slot.pk_root).iter().enumerate() {
             values[i * WIDTH + COL_PK_ROOT + j] = F::from_u32(*limb);
+        }
+        for (j, limb) in node_limbs(&slot.pubkey_hash).iter().enumerate() {
+            values[i * WIDTH + COL_PUBKEY_HASH + j] = F::from_u32(*limb);
         }
     }
 
@@ -240,8 +277,8 @@ mod tests {
         if let Some(c) = claimed {
             pvs[PV_VALID_COUNT] = F::from_u64(c);
         }
-        let proof = prove(&config, &AggregationAir, trace, &pvs);
-        verify(&config, &AggregationAir, &proof, &pvs).map_err(|e| format!("{e:?}"))
+        let proof = prove(&config, &AggregationAir::new(), trace, &pvs);
+        verify(&config, &AggregationAir::new(), &proof, &pvs).map_err(|e| format!("{e:?}"))
     }
 
     /// A 2-of-64 roster proves a count of 2.
@@ -319,7 +356,7 @@ mod tests {
         let config = make_config(settings);
         let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64));
         trace.values[10 * WIDTH + COL_COUNT] += F::ONE;
-        prove(&config, &AggregationAir, trace, &pvs);
+        prove(&config, &AggregationAir::new(), trace, &pvs);
     }
 
     /// A non-boolean `valid` (the other way to fake a count) must be caught.
@@ -331,7 +368,7 @@ mod tests {
         let config = make_config(settings);
         let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64));
         trace.values[5 * WIDTH + COL_VALID] = F::from_u64(2);
-        prove(&config, &AggregationAir, trace, &pvs);
+        prove(&config, &AggregationAir::new(), trace, &pvs);
     }
 
     /// Slots must be the row index; permuting them would let a row point at a
@@ -344,6 +381,6 @@ mod tests {
         let config = make_config(settings);
         let (mut trace, pvs) = build_trace::<F>(&roster(&[3, 40], 64));
         trace.values[9 * WIDTH + COL_SLOT] = F::from_u64(42);
-        prove(&config, &AggregationAir, trace, &pvs);
+        prove(&config, &AggregationAir::new(), trace, &pvs);
     }
 }

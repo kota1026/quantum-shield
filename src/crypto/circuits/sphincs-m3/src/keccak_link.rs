@@ -25,22 +25,38 @@ use p3_air::{
     Air, AirBuilder, AirBuilderWithPublicValues, BaseAir, PairBuilder, PermutationAirBuilder,
 };
 use p3_field::{Field, PrimeCharacteristicRing};
-use p3_keccak_air::{output_limb, KeccakAir, KeccakCols, NUM_KECCAK_COLS, NUM_ROUNDS};
+use p3_keccak_air::{
+    input_limb, output_limb, KeccakAir, KeccakCols, NUM_KECCAK_COLS, NUM_ROUNDS,
+};
 use p3_lookup::lookup_traits::{AirLookupHandler, Direction, Kind, Lookup};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use p3_uni_stark::{SubAirBuilder, SymbolicAirBuilder, SymbolicExpression};
 
-use crate::link::{DIGEST_LIMBS, F, INTERACTION};
+use crate::link::{
+    DIGEST_LIMBS, F, INTERACTION, MERKLE_INTERACTION, NODE_LIMBS, PUBKEY_INTERACTION,
+};
 
-/// Column holding the "this row publishes a digest" flag.
+/// Column holding the "this row publishes a 16-byte SPHINCS+ digest" flag.
 pub const COL_IS_DIGEST: usize = NUM_KECCAK_COLS;
 
 /// Column holding how many times the published digest is consumed.
 pub const COL_MULT: usize = NUM_KECCAK_COLS + 1;
 
+/// Column holding the "this row publishes a 32-byte registry digest" flag.
+pub const COL_IS_NODE: usize = NUM_KECCAK_COLS + 2;
+
+/// Column holding how many times the published registry digest is consumed.
+pub const COL_NODE_MULT: usize = NUM_KECCAK_COLS + 3;
+
+/// Column flagging "this row hashes a registered public key".
+pub const COL_IS_PUBKEY: usize = NUM_KECCAK_COLS + 4;
+
+/// Column holding how many times the published `(hash, PK.root)` pair is used.
+pub const COL_PUBKEY_MULT: usize = NUM_KECCAK_COLS + 5;
+
 /// Total width of the bound producer table.
-pub const WIDTH: usize = NUM_KECCAK_COLS + 2;
+pub const WIDTH: usize = NUM_KECCAK_COLS + 6;
 
 /// The Keccak table, extended to publish hash-call digests into `HASH_DAG`.
 #[derive(Clone, Debug, Default)]
@@ -77,19 +93,36 @@ where
 
         let is_digest: AB::Expr = (*local)[COL_IS_DIGEST].clone().into();
         let mult: AB::Expr = (*local)[COL_MULT].clone().into();
+        let is_node: AB::Expr = (*local)[COL_IS_NODE].clone().into();
+        let node_mult: AB::Expr = (*local)[COL_NODE_MULT].clone().into();
+        let is_pubkey: AB::Expr = (*local)[COL_IS_PUBKEY].clone().into();
+        let pubkey_mult: AB::Expr = (*local)[COL_PUBKEY_MULT].clone().into();
         let step_final: AB::Expr = kc.step_flags[NUM_ROUNDS - 1].clone().into();
 
-        // The flag is a flag.
+        // The flags are flags.
         builder.assert_bool(is_digest.clone());
+        builder.assert_bool(is_node.clone());
+        builder.assert_bool(is_pubkey.clone());
 
         // A digest may only be published on a permutation's final round row —
         // that is where the output state (and hence the squeezed bytes) is
         // valid. Mid-permutation rows hold no digest.
-        builder.assert_zero(is_digest.clone() * (AB::Expr::ONE - step_final));
+        builder.assert_zero(is_digest.clone() * (AB::Expr::ONE - step_final.clone()));
+        builder.assert_zero(is_node.clone() * (AB::Expr::ONE - step_final.clone()));
+        builder.assert_zero(is_pubkey.clone() * (AB::Expr::ONE - step_final));
 
         // A multiplicity may only be declared where a digest is published, so
         // padding and mid-permutation rows cannot contribute to the argument.
-        builder.assert_zero(mult * (AB::Expr::ONE - is_digest));
+        builder.assert_zero(mult * (AB::Expr::ONE - is_digest.clone()));
+        builder.assert_zero(node_mult * (AB::Expr::ONE - is_node.clone()));
+        builder.assert_zero(pubkey_mult * (AB::Expr::ONE - is_pubkey.clone()));
+
+        // One permutation belongs to one hash call, so its output is either a
+        // 16-byte SPHINCS+ digest or a 32-byte registry digest, never both.
+        // (A public-key hash is a 32-byte digest, so `is_pubkey` may accompany
+        // `is_node` — the leaf consumes it and the aggregation table binds it.)
+        builder.assert_zero(is_digest.clone() * is_node);
+        builder.assert_zero(is_digest * is_pubkey);
     }
 }
 
@@ -114,33 +147,61 @@ where
 
         // element_j = low_limb + 2^16 * high_limb, i.e. bytes 4j..4j+4 of the
         // squeezed output — the same encoding as `digest_limbs`.
-        let elements: Vec<SymbolicExpression<AB::F>> = (0..DIGEST_LIMBS)
-            .map(|j| {
-                let lo: SymbolicExpression<AB::F> = local[output_limb(2 * j)].into();
-                let hi: SymbolicExpression<AB::F> = local[output_limb(2 * j + 1)].into();
-                lo + shift.clone() * hi
-            })
-            .collect();
+        let element = |j: usize| -> SymbolicExpression<AB::F> {
+            let lo: SymbolicExpression<AB::F> = local[output_limb(2 * j)].into();
+            let hi: SymbolicExpression<AB::F> = local[output_limb(2 * j + 1)].into();
+            lo + shift.clone() * hi
+        };
 
-        let multiplicity: SymbolicExpression<AB::F> = local[COL_MULT].into();
-
-        let inputs = vec![(elements, multiplicity, Direction::Send)];
-        vec![AirLookupHandler::<AB>::register_lookup(
+        // 16-byte SPHINCS+ digests.
+        let digest_elements: Vec<SymbolicExpression<AB::F>> =
+            (0..DIGEST_LIMBS).map(element).collect();
+        let digest_lookup = AirLookupHandler::<AB>::register_lookup(
             self,
             Kind::Global(INTERACTION.to_string()),
-            &inputs,
-        )]
+            &[(digest_elements, local[COL_MULT].into(), Direction::Send)],
+        );
+
+        // 32-byte registry digests (leaves and Merkle nodes).
+        let node_elements: Vec<SymbolicExpression<AB::F>> =
+            (0..NODE_LIMBS).map(element).collect();
+        let node_lookup = AirLookupHandler::<AB>::register_lookup(
+            self,
+            Kind::Global(MERKLE_INTERACTION.to_string()),
+            &[(node_elements, local[COL_NODE_MULT].into(), Direction::Send)],
+        );
+
+        // (public-key hash, PK.root) — the only interaction that exposes a
+        // hash *input*. The registered key is `PK.seed ‖ PK.root`, 32 bytes,
+        // so `PK.root` is preimage bytes 16..32 = 16-bit limbs 8..16.
+        let mut pubkey_elements: Vec<SymbolicExpression<AB::F>> =
+            (0..NODE_LIMBS).map(element).collect();
+        pubkey_elements.extend((0..DIGEST_LIMBS).map(|j| {
+            let lo: SymbolicExpression<AB::F> = local[input_limb(8 + 2 * j)].into();
+            let hi: SymbolicExpression<AB::F> = local[input_limb(8 + 2 * j + 1)].into();
+            lo + shift.clone() * hi
+        }));
+        let pubkey_lookup = AirLookupHandler::<AB>::register_lookup(
+            self,
+            Kind::Global(PUBKEY_INTERACTION.to_string()),
+            &[(pubkey_elements, local[COL_PUBKEY_MULT].into(), Direction::Send)],
+        );
+
+        vec![digest_lookup, node_lookup, pubkey_lookup]
     }
 }
 
 /// Widen a `p3-keccak-air` trace with the two linking columns.
 ///
-/// `digest_of[p]` is `Some(mult)` when permutation `p` completes a hash call
-/// whose digest is consumed `mult` times, and `None` otherwise (a
-/// mid-hash block, or padding).
+/// `digest_of[p]` is `Some(mult)` when permutation `p` completes a 16-byte
+/// SPHINCS+ hash call whose digest is consumed `mult` times; `node_of[p]` is
+/// the same for 32-byte registry digests. Both are `None` for mid-hash blocks
+/// and padding, and a permutation may appear in at most one of them.
 pub fn widen_keccak_trace(
     keccak: &RowMajorMatrix<F>,
     digest_of: &[Option<u32>],
+    node_of: &[Option<u32>],
+    pubkey_of: &[Option<u32>],
 ) -> RowMajorMatrix<F> {
     // `generate_trace_rows` pads to a power-of-two row count, which is not a
     // multiple of NUM_ROUNDS in general — the trailing chunk is a partial
@@ -156,9 +217,23 @@ pub fn widen_keccak_trace(
         // Digests live on each permutation's final round row.
         if r % NUM_ROUNDS == NUM_ROUNDS - 1 {
             let perm = r / NUM_ROUNDS;
-            if let Some(Some(mult)) = digest_of.get(perm) {
+            let short = digest_of.get(perm).copied().flatten();
+            let long = node_of.get(perm).copied().flatten();
+            assert!(
+                short.is_none() || long.is_none(),
+                "permutation {perm} cannot publish both a 16- and a 32-byte digest"
+            );
+            if let Some(mult) = short {
                 values[r * WIDTH + COL_IS_DIGEST] = F::ONE;
-                values[r * WIDTH + COL_MULT] = F::from_u32(*mult);
+                values[r * WIDTH + COL_MULT] = F::from_u32(mult);
+            }
+            if let Some(mult) = long {
+                values[r * WIDTH + COL_IS_NODE] = F::ONE;
+                values[r * WIDTH + COL_NODE_MULT] = F::from_u32(mult);
+            }
+            if let Some(mult) = pubkey_of.get(perm).copied().flatten() {
+                values[r * WIDTH + COL_IS_PUBKEY] = F::ONE;
+                values[r * WIDTH + COL_PUBKEY_MULT] = F::from_u32(mult);
             }
         }
     }

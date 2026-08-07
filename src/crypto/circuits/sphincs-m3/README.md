@@ -183,6 +183,24 @@ Tests cover 2-of-64, the empty and full rosters, and reject an inflated count,
 a deflated count, a broken count chain, a non-boolean `valid`, and permuted
 slots.
 
+## Three interactions
+
+| interaction | tuple | carries |
+|---|---|---|
+| `HASH_DAG` | 4 × 32-bit | 16-byte SPHINCS+ digests |
+| `MERKLE_DAG` | 8 × 32-bit | 32-byte registry leaves and nodes |
+| `PUBKEY_BIND` | 8 + 4 × 32-bit | `(sha3(PK.seed ‖ PK.root), PK.root)` |
+
+The first two match on hash **outputs**. `PUBKEY_BIND` is the odd one out: it
+also exposes a hash **input**, read from keccak-air's preimage columns
+(`input_limb(8..16)` is `PK.root`, bytes 16..32 of the registered key).
+Without it a slot could pair a legitimately-registered public-key hash with a
+`PK.root` of its own choosing — output-only matching cannot see that.
+
+Keeping 16- and 32-byte values in separate interactions, rather than padding
+them into one tuple with a kind tag, avoids a degree-2 masking expression on
+the producer side and makes confusing the two value spaces impossible.
+
 ## Scope — what this does *not* yet do
 
 Deliberately, so the numbers above are not read as more than they are:
@@ -197,16 +215,13 @@ Deliberately, so the numbers above are not read as more than they are:
    argument proves a value *was produced*, not *where it belongs*; the
    surrounding AIR's address (`ADRS`) columns are what pin position in the
    real circuit.
-3. **`pk_root` is not yet tied to the registry leaf.** `valid` now requires a
-   Keccak-produced root matching the slot's declared `pk_root`, but binding
-   that `pk_root` to the registered public key needs linking hash *inputs*
-   (the leaf absorbs `sha3(PK.seed ‖ PK.root)`), whereas `HASH_DAG` matches on
-   produced digests. An input-side interaction closes this.
-4. **The registry Merkle chain is recorded but not yet DAG-linked.** Its
-   permutations land in the witness, but the `HASH_DAG` tuple is four 32-bit
-   limbs (a 16-byte SPHINCS+ digest) while Merkle nodes are 32 bytes. Linking
-   them needs either an eight-limb tuple with a kind tag or a second
-   interaction — a small, well-understood change.
+3. **The Merkle root is not yet bound to a public commitment.** The chain
+   `pubkey_hash -> leaf -> nodes -> root` is linked, but the final equality
+   `keccak(SET_DOMAIN ‖ root ‖ count) == commitment` is still checked outside
+   the circuit; it needs to become a public input.
+4. **The aggregation slot is not yet tied to a specific signature's witness.**
+   The verdict chain proves *a* root and *a* registered key; associating slot
+   `i` with signature `i`'s own trace is the next step.
 5. **Multiple signatures share one Keccak table today.** Giving each signature
    its own table (which `p3-batch-stark` supports directly) is what keeps the
    §9.4-2 memory ceiling manageable at N signatures.

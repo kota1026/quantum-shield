@@ -23,6 +23,8 @@
 //! Correctness is pinned against the **contract**: the vectors in the tests
 //! come from `ProverSetCommitmentVectors.t.sol`, not from this code.
 
+use std::collections::HashMap;
+
 use sphincs_m2::hash::{keccak256_parts, sha3_256_parts, PermTrace};
 
 /// A 32-byte tree digest.
@@ -44,8 +46,20 @@ pub fn set_domain() -> Digest {
 }
 
 /// `sphincsPubKeyHash` — SHA3-256 of the SPHINCS+ public key (CP-1).
+///
+/// Recorded as a node call so that the leaf's consumption of this digest is
+/// an *internal* edge: the leaf cannot name a public-key hash the witness
+/// never computed.
 pub fn pubkey_hash(public_key: &[u8], trace: Option<&mut PermTrace>) -> Digest {
-    sha3_256_parts(&[public_key], trace)
+    match trace {
+        None => sha3_256_parts(&[public_key], None),
+        Some(t) => {
+            let start = t.states.len();
+            let out = sha3_256_parts(&[public_key], Some(&mut *t));
+            t.record_node_call(Vec::new(), out, start);
+            out
+        }
+    }
 }
 
 /// One active prover as the commitment sees it.
@@ -56,16 +70,34 @@ pub struct Member {
 }
 
 /// `computeSetLeaf(proverAddress, sphincsPubKeyHash)`
+///
+/// The leaf consumes `pubkey_hash`, which the same witness produced (it is
+/// SHA3-256 of the registered public key), so the call is recorded as a node
+/// call and takes part in the `MERKLE_DAG` interaction.
 pub fn compute_leaf(member: &Member, trace: Option<&mut PermTrace>) -> Digest {
-    keccak256_parts(
-        &[&leaf_domain(), &member.address, &member.pubkey_hash],
-        trace,
-    )
+    let parts: [&[u8]; 3] = [&leaf_domain(), &member.address, &member.pubkey_hash];
+    match trace {
+        None => keccak256_parts(&parts, None),
+        Some(t) => {
+            let start = t.states.len();
+            let out = keccak256_parts(&parts, Some(&mut *t));
+            t.record_node_call(vec![member.pubkey_hash], out, start);
+            out
+        }
+    }
 }
 
 /// `keccak256(NODE_DOMAIN ‖ left ‖ right)`
 pub fn hash_node(left: &Digest, right: &Digest, trace: Option<&mut PermTrace>) -> Digest {
-    keccak256_parts(&[&node_domain(), left, right], trace)
+    match trace {
+        None => keccak256_parts(&[&node_domain(), left, right], None),
+        Some(t) => {
+            let start = t.states.len();
+            let out = keccak256_parts(&[&node_domain(), left, right], Some(&mut *t));
+            t.record_node_call(vec![*left, *right], out, start);
+            out
+        }
+    }
 }
 
 /// Width the dense tree is padded to (1 for the empty set).
@@ -164,6 +196,66 @@ pub fn verify_membership(
     let leaf = compute_leaf(member, trace.as_deref_mut());
     let root = root_from_path(&leaf, index, path, trace);
     compute_commitment(&root, count) == *commitment
+}
+
+/// Internal edges of the registry Merkle chain: a 32-byte input that an
+/// earlier node call produced must be proven, not taken on trust. Siblings
+/// from the authentication path are external, as is the leaf's `pubkey_hash`
+/// when the SHA3 call that produced it is not part of the same witness.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct NodeEdge {
+    pub producer: usize,
+    pub consumer: usize,
+}
+
+/// The registry Merkle DAG extracted from a recorded verification.
+#[derive(Clone, Debug)]
+pub struct NodeDag {
+    pub edges: Vec<NodeEdge>,
+    pub external_inputs: usize,
+    pub calls: usize,
+}
+
+impl NodeDag {
+    /// How many times each node call's output is consumed.
+    pub fn usage_counts(&self) -> Vec<u32> {
+        let mut counts = vec![0u32; self.calls];
+        for e in &self.edges {
+            counts[e.producer] += 1;
+        }
+        counts
+    }
+}
+
+/// Extract the 32-byte hash DAG, in evaluation order — so it is acyclic by
+/// construction, exactly as [`sphincs_m2::dag::build_dag`] is for the 16-byte
+/// SPHINCS+ side.
+pub fn build_node_dag(trace: &PermTrace) -> NodeDag {
+    let mut produced: HashMap<Digest, usize> = HashMap::with_capacity(trace.node_calls.len());
+    let mut edges = Vec::new();
+    let mut external_inputs = 0usize;
+
+    for (consumer, call) in trace.node_calls.iter().enumerate() {
+        for input in &call.inputs {
+            match produced.get(input) {
+                Some(&producer) => edges.push(NodeEdge { producer, consumer }),
+                None => external_inputs += 1,
+            }
+        }
+        produced.entry(call.output).or_insert(consumer);
+    }
+
+    NodeDag { edges, external_inputs, calls: trace.node_calls.len() }
+}
+
+/// Split a 32-byte digest into eight 32-bit limbs (little-endian), the form
+/// the `MERKLE_DAG` tuples use.
+pub fn node_limbs(digest: &Digest) -> [u32; 8] {
+    let mut limbs = [0u32; 8];
+    for (i, limb) in limbs.iter_mut().enumerate() {
+        *limb = u32::from_le_bytes(digest[i * 4..(i + 1) * 4].try_into().unwrap());
+    }
+    limbs
 }
 
 #[cfg(test)]
