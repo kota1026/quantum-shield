@@ -503,4 +503,128 @@ mod tests {
             "a forged registry node must be rejected"
         );
     }
+
+    // ---------------------------------------------------------------------
+    // Per-signature tables (§12.3-3): N signatures, N Keccak tables
+    // ---------------------------------------------------------------------
+
+    /// Two signatures, each with its own Keccak and consumer tables, feeding
+    /// one aggregation table. The interactions are global, so they balance
+    /// across tables — which is what lets N signatures avoid one monolithic
+    /// 65K-row trace (gap analysis §9.4-2).
+    #[test]
+    fn two_signatures_use_separate_keccak_tables() {
+        use crate::agg::{build_trace, Slot};
+        use crate::bound::{prove_tables, verify_tables, Table};
+        use crate::registry::{build_node_dag, pubkey_hash};
+        use crate::tables::build_full_tables;
+        use crate::witness::fors_tree_witness;
+
+        let settings = FriSettings::fast();
+        let mut tables = Vec::new();
+        let mut slots = vec![Slot::absent(); 64];
+
+        for (n, (seed, leaf_index, slot)) in [(0x11u8, 7u32, 2usize), (0x22, 91, 40)]
+            .into_iter()
+            .enumerate()
+        {
+            let mut trace = fors_tree_witness(seed, leaf_index);
+            let root_call = trace.calls.len() - 1;
+            let root = trace.calls[root_call].output;
+
+            let mut key = [0u8; 32];
+            key[..16].copy_from_slice(&[seed; 16]);
+            key[16..].copy_from_slice(&root);
+            let pk_hash = pubkey_hash(&key, Some(&mut trace));
+
+            let dag = build_dag(&trace);
+            let node_dag = build_node_dag(&trace);
+            let mut extra = vec![0u32; trace.calls.len()];
+            extra[root_call] = 1;
+            let pubkey_call = trace.node_calls.len() - 1;
+
+            let built = build_full_tables(
+                &trace,
+                &dag,
+                &node_dag,
+                settings.log_blowup,
+                &extra,
+                &[(pubkey_call, 1)],
+            );
+
+            tables.push(Table::keccak(built.keccak));
+            tables.push(Table::consumer(built.consumer));
+            tables.push(Table::node_consumer(built.node_consumer));
+
+            slots[slot] = Slot::verified_with_key(root, pk_hash);
+            assert_eq!(n + 1, tables.len() / 3);
+        }
+
+        let (agg_trace, agg_pvs) = build_trace::<crate::link::F>(&slots);
+        {
+            use p3_field::PrimeCharacteristicRing;
+            assert_eq!(agg_pvs[crate::agg::PV_VALID_COUNT], crate::link::F::from_u64(2));
+        }
+        tables.push(Table::aggregation(agg_trace, agg_pvs));
+
+        let bound = prove_tables(tables, settings);
+        verify_tables(&bound).expect("two independent signatures must link");
+    }
+
+    /// A slot claiming a verdict for a signature that is not in the batch must
+    /// fail: its root has no producer among the per-signature Keccak tables.
+    #[test]
+    fn rejects_a_slot_without_a_matching_signature_table() {
+        use crate::agg::{build_trace, Slot};
+        use crate::bound::{prove_tables, verify_tables, Table};
+        use crate::registry::{build_node_dag, pubkey_hash};
+        use crate::tables::build_full_tables;
+        use crate::witness::fors_tree_witness;
+
+        let settings = FriSettings::fast();
+
+        // Only one signature is proven...
+        let mut trace = fors_tree_witness(0x11, 7);
+        let root_call = trace.calls.len() - 1;
+        let root = trace.calls[root_call].output;
+        let mut key = [0u8; 32];
+        key[..16].copy_from_slice(&[0x11; 16]);
+        key[16..].copy_from_slice(&root);
+        let pk_hash = pubkey_hash(&key, Some(&mut trace));
+
+        let dag = build_dag(&trace);
+        let node_dag = build_node_dag(&trace);
+        let mut extra = vec![0u32; trace.calls.len()];
+        extra[root_call] = 1;
+        let pubkey_call = trace.node_calls.len() - 1;
+        let built = build_full_tables(
+            &trace,
+            &dag,
+            &node_dag,
+            settings.log_blowup,
+            &extra,
+            &[(pubkey_call, 1)],
+        );
+
+        // ...but two slots claim a verdict, the second reusing the first's
+        // root as if a second signature had been verified.
+        let mut slots = vec![Slot::absent(); 64];
+        slots[2] = Slot::verified_with_key(root, pk_hash);
+        slots[40] = Slot::verified_with_key(root, pk_hash);
+        let (agg_trace, agg_pvs) = build_trace::<crate::link::F>(&slots);
+
+        let bound = prove_tables(
+            vec![
+                Table::keccak(built.keccak),
+                Table::consumer(built.consumer),
+                Table::node_consumer(built.node_consumer),
+                Table::aggregation(agg_trace, agg_pvs),
+            ],
+            settings,
+        );
+        assert!(
+            verify_tables(&bound).is_err(),
+            "a second verdict needs a second signature's producer"
+        );
+    }
 }
