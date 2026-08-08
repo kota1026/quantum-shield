@@ -9,13 +9,19 @@ description = "M2: SLH-DSA-SHAKE-128s full signature verification with Keccak pe
 # in dev-dependencies — that is what keeps the crate buildable for
 # riscv32im-unknown-none-elf, where rayon's crossbeam does not compile.
 [dependencies]
-# None. The verification core is alloc-only on purpose — see src/keccak.rs.
+# The verification core is alloc-only on purpose — see src/keccak.rs. The one
+# optional dependency swaps the software permutation for SP1's Keccak
+# precompile, and is only ever enabled for a zkVM guest build.
+sp1-lib = { version = "6.3.1", optional = true }
 
 [features]
 default = ["std"]
 # `std` pulls in the witness-DAG extraction; a zkVM guest needs only the
 # verification core, which is no_std + alloc.
 std = []
+# Dispatch Keccak-f to SP1's `syscall_keccak_permute` instead of the software
+# implementation. zkVM guests only.
+sp1-precompile = ["dep:sp1-lib"]
 
 [dev-dependencies]
 # Independent FIPS 205 implementation (RustCrypto), used only to cross-validate

@@ -72,7 +72,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §7** |
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10〜§18**: DAG 連結・Keccak 束縛・membership・閾値/重複排除・判定配線・preimage 束縛・コミットメント public input 化・テーブル分割まで完了。残: 集約スロットと個別署名 witness の対応付け、`T_l` 尾部 (10.3%)、マルチブロック最終ブロック性 |
-| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟢 **完了**: §8 方式選定 / §13 EVM ガス実測 (~254K gas) / §19 方式修正 (zkVM 直接検証が 228 倍安い) / §20 ゲスト前提達成 / §21 SP1 サイクル実測 (42.7M、precompile 未使用の上限値) |
+| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟢 **完了**: §8 方式選定 / §13 EVM ガス実測 (~254K gas) / §19 方式修正 (zkVM 直接検証が 228 倍安い) / §20 ゲスト前提達成 / §21 SP1 サイクル実測 / §22 precompile 化 (**1 署名 8.9M サイクル**、2-of-N で ~18M) |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -1130,3 +1130,56 @@ precompile へのディスパッチを入れていない。
 cd src/crypto/zkvm/guest && cargo prove build
 cd ../cycles && cargo run --release
 ```
+
+---
+
+## 22. Keccak precompile 化 (2026-08-08)
+
+§21.2 で「次の最適化」としていた precompile 化を実施した。
+
+### 22.1 実装
+
+`sphincs-m2` に `sp1-precompile` feature を追加し、`keccak_f` を
+SP1 の `syscall_keccak_permute` にディスパッチする。デフォルトは
+§20 の依存ゼロ実装のままで、ゲストビルド時のみ切り替わる。
+
+```toml
+sp1-lib = { version = "6.3.1", optional = true }
+sp1-precompile = ["dep:sp1-lib"]
+```
+
+§20 で Plonky3 依存を外すために自前 Keccak を書いたことが、結果として
+この差し替え点を 1 箇所に集約していた。
+
+### 22.2 実測
+
+| | precompile なし (§21) | **precompile あり** | 比 |
+|---|---:|---:|---:|
+| サイクル数 | 42,735,096 | **8,888,390** | **4.8x 削減** |
+| syscall 数 | 0 | **2,174** | — |
+| 置換あたりサイクル | 19,657 | **4,088** | 4.8x |
+
+**syscall 数が Keccak-f 置換数 2,174 と完全に一致**しており、全置換が
+precompile に乗っていることが確認できる。
+
+### 22.3 正当性の担保
+
+ゲストは `assert!(outcome.valid)` で終わる。precompile の意味論が我々の
+software Keccak-f と少しでも違えば署名検証が失敗し、ゲストは panic して
+executor がエラーを返す。**実行が完走した事実そのものが、precompile 経路の
+end-to-end 検証**になっている。
+
+加えてホスト側では precompile 無効時の実装が `p3_keccak::KeccakF`
+（AIR が証明する置換）とビット一致することをテストで固定済み（§20.3）。
+
+### 22.4 現時点の proof 生成サイジング
+
+| 構成 | サイクル数 |
+|---|---:|
+| 1 署名 | 8.9M |
+| **2-of-N 閾値（2 署名 + Registry membership）** | **~18M** |
+
+残るサイクルの内訳は、スポンジのグルー処理（パディング、メッセージブロックの
+XOR、バイト ↔ u64 変換）と SPHINCS+ のロジック。さらに削るなら
+スポンジ層を u64 のまま扱うなどの余地があるが、NFR-3 に対しては既に
+十分な余裕がある。

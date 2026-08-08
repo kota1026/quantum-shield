@@ -6,7 +6,7 @@ description = "SP1 zkVM guest: verifies one SLH-DSA-SHAKE-128s signature. Exists
 
 [dependencies]
 sp1-zkvm = "6.3.1"
-sphincs-m2 = { path = "../../circuits/sphincs-m2", default-features = false }
+sphincs-m2 = { path = "../../circuits/sphincs-m2", default-features = false, features = ["sp1-precompile"] }
 
 [profile.release]
 opt-level = 3

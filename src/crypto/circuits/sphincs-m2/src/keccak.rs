@@ -8,6 +8,11 @@
 //!
 //! Equivalence with `p3_keccak::KeccakF` — the permutation the AIR proves —
 //! is pinned by a test, so the guest and the circuit cannot drift.
+//!
+//! Under the `sp1-precompile` feature the software permutation is replaced by
+//! SP1's `syscall_keccak_permute`. Keeping the dependency-free version as the
+//! default is what makes that swap a one-line change; §21 measured the cost of
+//! *not* doing it at 19,657 cycles per permutation.
 
 /// Round constants (FIPS 202 Table 1).
 const RC: [u64; 24] = [
@@ -48,6 +53,18 @@ const PI: [usize; 24] = [
 ];
 
 /// Apply Keccak-f[1600] in place. The state is 25 lanes in `x + 5y` order.
+///
+/// In a zkVM guest built with `sp1-precompile`, this is a single syscall the
+/// prover handles natively rather than ~19.7K RISC-V instructions.
+#[cfg(feature = "sp1-precompile")]
+pub fn keccak_f(state: &mut [u64; 25]) {
+    unsafe {
+        sp1_lib::syscall_keccak_permute(state as *mut [u64; 25]);
+    }
+}
+
+/// Apply Keccak-f[1600] in place. The state is 25 lanes in `x + 5y` order.
+#[cfg(not(feature = "sp1-precompile"))]
 pub fn keccak_f(state: &mut [u64; 25]) {
     for round in 0..24 {
         // theta
@@ -91,7 +108,7 @@ pub fn keccak_f(state: &mut [u64; 25]) {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "sp1-precompile")))]
 mod tests {
     use super::*;
     use p3_symmetric::Permutation;
