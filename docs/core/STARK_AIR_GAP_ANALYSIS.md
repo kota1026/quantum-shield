@@ -72,7 +72,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M1 | SHAKE256 置換 AIR + 単一 WOTS+ チェーン検証回路 | FIPS 202/205 テストベクタで proof 生成→Rust 検証パス | ✅ **完了 → §7** |
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10〜§18**: DAG 連結・Keccak 束縛・membership・閾値/重複排除・判定配線・preimage 束縛・コミットメント public input 化・テーブル分割まで完了。残: 集約スロットと個別署名 witness の対応付け、`T_l` 尾部 (10.3%)、マルチブロック最終ブロック性 |
-| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟡 **§8 方式選定 / §13 EVM ガス実測 / §19 実測による方式修正**（自前 STARK を挟むより zkVM で SPHINCS+ を直接検証するほうが 228 倍安いと判明）。次は SP1/RISC Zero でのサイクル実測 |
+| **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟢 **完了**: §8 方式選定 / §13 EVM ガス実測 (~254K gas) / §19 方式修正 (zkVM 直接検証が 228 倍安い) / §20 ゲスト前提達成 / §21 SP1 サイクル実測 (42.7M、precompile 未使用の上限値) |
 | M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
@@ -803,7 +803,7 @@ NFR-2 予算の ~25%）。残るのは「内側 STARK の検証器を SNARK 回�
 | ~~Merkle root → 公開コミットメントの public input 化~~ | ✅ §18 |
 | 集約スロットと個別署名 witness の対応付け | 未実装（中） |
 | §11.5-1 マルチブロック最終ブロック性 | 未実装（中〜大、§16.1 の設計が有力） |
-| wrap 回路（証明側） | 方式を §19 で修正（zkVM 直接検証を推奨）。次は SP1/RISC Zero のサイクル実測 |
+| wrap 回路（証明側） | ✅ 方式確定・ゲスト実装・サイクル実測まで完了 (§19〜§21)。残る最適化は Keccak precompile 化 |
 | M4 オンチェーン統合 / M5 E2E | wrap 回路待ち |
 
 
@@ -1072,3 +1072,61 @@ RISC-V ターゲットではビルドできない**。これは方式 A'（zkVM 
   ただし各 SDK はツールチェーン込みで数 GB を要し、本作業環境は空き容量が
   逼迫している（Docker.raw が 41GB を占有）ため、実行前に容量確保が必要
 - proof 生成時間と wrap 後の EVM 検証ガス（後者は §13 で ~254K gas と実測済み）
+
+---
+
+## 21. SP1 サイクル実測 (2026-08-08)
+
+§19.5 の次アクションとしていた zkVM サイクル実測を完了した。
+`src/crypto/zkvm/` の guest + cycles。
+
+### 21.1 実測値
+
+SP1 v6.3.1、`riscv64im-succinct-zkvm-elf`、ゲストは埋め込みベクタ 1 本を
+`slh_verify` で検証（判定を commit）。executor による実行のみ（証明は不要）。
+
+| | 値 |
+|---|---:|
+| **サイクル数** | **42,735,096** |
+| syscall 数 | **0** |
+| Keccak-f 置換数 | 2,174 |
+| 置換あたりサイクル | 19,657 |
+
+上位オペコード: `ADDI` 7.6M / `LD` 5.7M / `XOR` 5.4M / `SD` 5.2M / `SLL` 3.4M /
+`ADD` 2.1M / `OR` 2.0M / `SRL` 2.0M。
+
+### 21.2 所見: precompile を使っていない
+
+**syscall 数 0** が示す通り、この 42.7M サイクルは **Keccak-f を純粋な RISC-V
+命令で回した数字**である。オペコード内訳もそれを裏づけている:
+`XOR`/`SLL`/`SRL`/`OR` が上位を占めるのは Keccak の theta/rho/chi そのもので、
+`LD`/`SD` の多さは 64bit レーン 25 本を 32bit 幅で出し入れしているコスト。
+
+置換あたり 19,657 サイクルは、Keccak-f[1600] の演算量（24 ラウンド × 約 200 の
+64bit 演算）に対して素直な値であり、**SP1 の Keccak precompile を使えば
+1〜2 桁下がる余地がある**。今回の実装は `sphincs-m2` の自前 `keccak_f`
+（§20 で Plonky3 依存を外すために書いたもの）をそのまま使っており、
+precompile へのディスパッチを入れていない。
+
+したがって **42.7M は上限値**として扱うべきである。
+
+### 21.3 意味づけ
+
+- **2-of-N 閾値**なら 2 署名 + Registry membership で ~90M サイクル（precompile 無し）。
+  SP1 の実測スループットは環境依存だが 10^6〜10^7 サイクル/秒 のオーダーであり、
+  proof 生成は**分オーダー**に収まる見込み。NFR-3（≤1h p99）に対しては
+  依然として大きな余裕がある
+- §19 の結論は補強される。仮に自前 STARK を zkVM 内で検証していたら、
+  §19.2 の 228 倍という比がそのままサイクルに効く
+- **次の最適化は precompile 化**。`sphincs-m2` の `keccak_f` を、zkVM ゲスト
+  ビルド時には SP1 の Keccak precompile に差し替える feature を足すのが素直。
+  §20 で導入した「依存ゼロの自前 Keccak」が、逆にこの差し替え点を明確にしている
+
+### 21.4 再現手順
+
+```bash
+# ツールチェーン (操作者が導入): curl -L https://sp1up.succinct.xyz | bash && sp1up
+# protoc も必要: brew install protobuf
+cd src/crypto/zkvm/guest && cargo prove build
+cd ../cycles && cargo run --release
+```
