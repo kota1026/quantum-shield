@@ -6,6 +6,7 @@ description = "Executes the SP1 guest and reports its cycle count — the proof-
 
 [dependencies]
 sp1-sdk = "6.3.1"
+sphincs-m2 = { path = "../../circuits/sphincs-m2" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 [profile.release]

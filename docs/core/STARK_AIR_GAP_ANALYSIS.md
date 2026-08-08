@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10〜§18**: DAG 連結・Keccak 束縛・membership・閾値/重複排除・判定配線・preimage 束縛・コミットメント public input 化・テーブル分割まで完了。残: 集約スロットと個別署名 witness の対応付け、`T_l` 尾部 (10.3%)、マルチブロック最終ブロック性 |
 | **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟢 **完了**: §8 方式選定 / §13 EVM ガス実測 (~254K gas) / §19 方式修正 (zkVM 直接検証が 228 倍安い) / §20 ゲスト前提達成 / §21 SP1 サイクル実測 / §22 precompile 化 (**1 署名 8.9M サイクル**、2-of-N で ~18M) |
-| M4 | オンチェーン統合: 検証器 + public values 橋渡し + L1Vault 接続 | 🟡 **オンチェーン側完了 → §23**（`ThresholdProofVerifier` + `requestUnlockWithProof`、束縛ごとの否定系 11 件、golden vector で Rust↔Solidity 固定、proof 検証部 ~275K gas = NFR-2 の 27%）。残: ゲスト側の拡張 |
+| M4 | オンチェーン統合: 検証器 + public values 橋渡し + L1Vault 接続 | 🟡 **オンチェーン側完了 → §23**（`ThresholdProofVerifier` + `requestUnlockWithProof`、束縛ごとの否定系 11 件、golden vector で Rust↔Solidity 固定、proof 検証部 ~275K gas = NFR-2 の 27%）。ゲスト側も §24 で完了（2-of-4 で 18.2M サイクル、100B commit） |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
 **逐次依存**: M0 ✅ → M1 → M2 → M3 → (M0.5 と並行) → M4 → M5。
@@ -804,8 +804,8 @@ NFR-2 予算の ~25%）。残るのは「内側 STARK の検証器を SNARK 回�
 | 集約スロットと個別署名 witness の対応付け | 未実装（中） |
 | §11.5-1 マルチブロック最終ブロック性 | 未実装（中〜大、§16.1 の設計が有力） |
 | wrap 回路（証明側） | ✅ 方式確定・ゲスト実装・サイクル実測まで完了 (§19〜§21)。残る最適化は Keccak precompile 化 |
-| M4 オンチェーン統合 | 🟡 オンチェーン側 ✅ (§23)、ゲスト側の拡張が残 |
-| M5 E2E | ゲスト拡張 + 実 proof 待ち |
+| M4 オンチェーン統合 | 🟢 オンチェーン側 (§23) + ゲスト側 (§24) 完了。残は実 proof での E2E (M5) |
+| M5 E2E | 実 proof 生成・verifying key 確定・テストネット tx が残 |
 
 
 ---
@@ -1269,3 +1269,83 @@ NFR-2 の 1M 予算に対し **~27%**。残りは SMT 検証と unlock request �
   テストネットで記録する（受け入れ基準 3）
 - 新 Vault のデプロイ: `requestUnlockWithProof` は immutable な現行 Vault には
   含まれないため、R-1 と同じ移行手順が要る
+
+---
+
+## 24. ゲスト側の拡張: FR-THRESH-1 の完全なステートメント (2026-08-08)
+
+§23.6 の残作業だったゲスト拡張を実施し、**proof が attest する内容が
+FR-THRESH-1 の (a)(b)(c) を満たす形になった**。
+
+### 24.1 ステートメント
+
+`(lockId, stateRoot, setCommitment)` に対し、提出された各署名について:
+
+| 手順 | 対応する要件 |
+|------|-------------|
+| 署名者が `setCommitment` の覆う Registry 集合のメンバーである（Merkle inclusion） | FR-THRESH-1(b) |
+| SPHINCS+ 署名が `SHA3-256(lockId ‖ stateRoot)` に対して検証される | FR-THRESH-1(a) |
+| 通った数を集計し `validCount` として commit | FR-THRESH-1(c) |
+
+**重複排除**は「署名者アドレスが厳密増加であること」で行う。同一署名者は
+厳密増加列に 2 回現れられないので、ソートネットワークも集合論法も要らない。
+順序が崩れた入力は 0 件として数えるのではなく**入力ごと拒否**する。
+
+閾値は意図的に含めない。`L1Vault` が commit された `validCount` に適用するため、
+**閾値の変更に回路の作り直しは不要**（§23.1）。
+
+### 24.2 実装場所
+
+ロジックは `sphincs_m2::threshold` に置いた（`no_std`）。ゲストクレートに
+書かないのは、**ホストでテストできるようにする**ため — 失敗が executor の
+トレースに埋もれた panic ではなくテスト結果として出る。
+
+Registry コミットメントの計算も `sphincs_m2::registry` へ移した（旧 `sphincs-m3`）。
+これは回路のロジックではなくプロトコルのロジックであり、依存ゼロの `no_std`
+でなければゲストに入らない。
+
+### 24.3 判明した整合性要件
+
+ホストテストで**署名バリアントの不一致**が出た。オラクル（RustCrypto）の
+`Signer::sign` は FIPS 205 の pure variant（`0x00 ‖ ctx_len ‖ ctx` を前置）で
+署名するが、当初 `slh_verify_internal`（前置なし）で検証していたため 0 件になった。
+
+`slh_verify(msg, sig, b"", pk)` に修正した。これは
+**オンチェーンの `SPHINCSVerifier` も同じバリアントでなければならない**ことを意味する。
+異なると、proof 経路を通る署名がフォールバック経路（FR-THRESH-4）で落ちる、
+あるいはその逆が起きる。M5 で実機確認すべき項目。
+
+### 24.4 テスト（ホスト側 10 件）
+
+`sphincs-m2/tests/threshold.rs`。署名は独立実装が生成したもの、Registry
+コミットメントは `ProverRegistry.sol` と同じ構成:
+
+| テスト | 何を守るか |
+|--------|-----------|
+| 2 名の登録済み署名者が count 2 | 正常系 |
+| 別 unlock への署名は数えない | proof の lock 間再利用 |
+| 未登録者の有効な署名は数えない | FR-THRESH-1(b) |
+| 誤った Merkle 位置は数えない | 位置詐称 |
+| 改竄署名は数えない | — |
+| 同一署名者の重複は入力ごと拒否 | 二重カウント |
+| 順序違反は入力ごと拒否 | 同上 |
+| 未公表の集合コミットメントは 0 件 | 自作集合でのメンバーシップ |
+| wire format の往復 | ゲスト入力の欠損 |
+| 切り詰め入力は decode 失敗 | 小さい主張の黙認 |
+
+### 24.5 実測（2-of-4、SP1 executor）
+
+| | 値 |
+|---|---:|
+| **サイクル数** | **18,229,825** |
+| Keccak-f syscall 数 | 4,457 |
+| 署名あたりサイクル | 9,114,912 |
+| commit された public values | **100 バイト** |
+
+commit されたバイト列をホスト側で decode し、`ThresholdProofVerifier` が読む
+レイアウトと一致すること・`validCount = 2` を運んでいることを実行時に検証している。
+**ゲスト → public values → コントラクトのレイアウトが実測で繋がった**。
+
+§22 の 1 署名 8.9M からの増分は、2 署名ぶんの検証（17.8M）に Registry
+メンバーシップの Merkle 検証（syscall 4,457 − 2×2,174 = 109 置換）が乗ったもの。
+NFR-3（≤1h p99）に対しては依然として大きな余裕がある。

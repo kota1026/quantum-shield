@@ -4318,8 +4318,13 @@ name = "sphincs-cycles"
 version = "0.1.0"
 dependencies = [
  "sp1-sdk",
+ "sphincs-m2",
  "tokio",
 ]
+
+[[package]]
+name = "sphincs-m2"
+version = "0.1.0"
 
 [[package]]
 name = "spin"
