@@ -214,7 +214,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 
 | 要件 | 対応コード/ドキュメント | 検証手段 | 状況 (2026-07-24) |
 |------|------------------------|----------|-------------------|
-| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🟡 進行中 → `STARK_AIR_GAP_ANALYSIS.md`: M0 ✅ / M1 ✅ (`sphincs-m1`) / **M2 ✅ (2026-08-06, `sphincs-m2` — SPHINCS+ フル検証を独立実装でクロス検証、NFR-3 大幅クリア)** / **M3 の DAG 連結 ✅ (`sphincs-m3`: LogUp PoC §10 + Keccak 束縛による健全性確立 §11。フル構成 1 署名 ~6 分)** / **M3 の Registry membership + 閾値・重複排除 ✅ (§12。コミットメントは Solidity 参照ベクタでクロス検証)** / M0.5 方式選定済 (§8) / M3 残（`valid` 列の配線・Merkle の DAG 連結）+ M4/M5 |
+| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🟡 進行中 → `STARK_AIR_GAP_ANALYSIS.md`: M0 ✅ / M1 ✅ (`sphincs-m1`) / **M2 ✅ (2026-08-06, `sphincs-m2` — SPHINCS+ フル検証を独立実装でクロス検証、NFR-3 大幅クリア)** / **M3 の DAG 連結 ✅ (`sphincs-m3`: LogUp PoC §10 + Keccak 束縛による健全性確立 §11。フル構成 1 署名 ~6 分)** / **M3 の Registry membership + 閾値・重複排除 ✅ (§12。コミットメントは Solidity 参照ベクタでクロス検証)** / **M0.5 ✅（zkVM 経路に方式修正、1 署名 8.9M サイクル §19〜§22）** / **M4 オンチェーン側 ✅（§23: `requestUnlockWithProof` + `ThresholdProofVerifier`、~275K gas）** / 残: ゲスト側の拡張と M5 |
 | FR-THRESH-2,6 | `L1Vault.sol`: `_verifySimplified` 削除、verifier 必須化 | 受け入れ基準 1 | 🟢 実装済み + **Sepolia デプロイ済み (2026-08-06, R-1)**。不正署名 revert 実 tx `0x2ce65793…c9031d` 取得（ACTUAL_STATE.md） |
 | FR-THRESH-4 | `L1Vault.sol` `_verifyWithSPHINCSVerifier` + `SPHINCSVerifier.sol` | forge test（フル検証経路） | 🟢 実装済み（唯一の経路に） |
 | FR-THRESH-5 | `ProverRegistry.sol`: epoch 付き active 集合 Merkle コミットメント + checkpoint 履歴 | forge test (`ProverRegistryCommitment.t.sol` 15 件) | 🟢 実装済み（2026-08-05。ツリー構造ハッシュは EVM ネイティブ例外により keccak256、リーフの pubKeyHash は SHA3-256 維持 — 詳細はコントラクト内コメント） |

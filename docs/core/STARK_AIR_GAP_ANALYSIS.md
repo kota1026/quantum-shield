@@ -73,7 +73,7 @@ FR-THRESH-1 = SPHINCS+ 2/N 集約 proof
 | M2 | SPHINCS+ 1 署名フル検証回路 (FORS + hypertree) | FIPS 205 KAT 全パス、proof 生成時間 p99 計測 (NFR-3: ≤1h 判定) | ✅ **完了 → §9**（独立実装クロス検証、avg 2,144 置換、NFR-3 大幅クリア） |
 | M3 | N 本集約 + 閾値 + Registry コミットメント | 「2/5 有効・重複なし・全署名者が集合内」を public input として証明/改竄検知 | 🟡 **§10〜§18**: DAG 連結・Keccak 束縛・membership・閾値/重複排除・判定配線・preimage 束縛・コミットメント public input 化・テーブル分割まで完了。残: 集約スロットと個別署名 witness の対応付け、`T_l` 尾部 (10.3%)、マルチブロック最終ブロック性 |
 | **M0.5** | **proof wrapping/recursion 戦略の PoC** | 🟢 **完了**: §8 方式選定 / §13 EVM ガス実測 (~254K gas) / §19 方式修正 (zkVM 直接検証が 228 倍安い) / §20 ゲスト前提達成 / §21 SP1 サイクル実測 / §22 precompile 化 (**1 署名 8.9M サイクル**、2-of-N で ~18M) |
-| M4 | オンチェーン統合: 検証器 + ProofCodec 橋渡し + L1Vault 接続 | Solidity 側で不正 proof (制約違反/偽 public input) が revert する forge テスト + golden テスト。実測ガス ≤ 1M (NFR-2) | G4, G5, M0.5 |
+| M4 | オンチェーン統合: 検証器 + public values 橋渡し + L1Vault 接続 | 🟡 **オンチェーン側完了 → §23**（`ThresholdProofVerifier` + `requestUnlockWithProof`、束縛ごとの否定系 11 件、golden vector で Rust↔Solidity 固定、proof 検証部 ~275K gas = NFR-2 の 27%）。残: ゲスト側の拡張 |
 | M5 | E2E + 監査準備 | テストネットで proof-based Unlock 成功 tx + 不正 proof revert tx を記録 (受け入れ基準 3)。Slither + 回路仕様書公開 | 全部 |
 
 **逐次依存**: M0 ✅ → M1 → M2 → M3 → (M0.5 と並行) → M4 → M5。
@@ -804,7 +804,8 @@ NFR-2 予算の ~25%）。残るのは「内側 STARK の検証器を SNARK 回�
 | 集約スロットと個別署名 witness の対応付け | 未実装（中） |
 | §11.5-1 マルチブロック最終ブロック性 | 未実装（中〜大、§16.1 の設計が有力） |
 | wrap 回路（証明側） | ✅ 方式確定・ゲスト実装・サイクル実測まで完了 (§19〜§21)。残る最適化は Keccak precompile 化 |
-| M4 オンチェーン統合 / M5 E2E | wrap 回路待ち |
+| M4 オンチェーン統合 | 🟡 オンチェーン側 ✅ (§23)、ゲスト側の拡張が残 |
+| M5 E2E | ゲスト拡張 + 実 proof 待ち |
 
 
 ---
@@ -1183,3 +1184,88 @@ end-to-end 検証**になっている。
 XOR、バイト ↔ u64 変換）と SPHINCS+ のロジック。さらに削るなら
 スポンジ層を u64 のまま扱うなどの余地があるが、NFR-3 に対しては既に
 十分な余裕がある。
+
+---
+
+## 23. M4: L1Vault の proof-based 検証経路 (2026-08-08)
+
+zkVM 経路（§19）に合わせてオンチェーン統合を設計・実装した。
+
+### 23.1 責務の分割
+
+| どこで | 何を |
+|--------|------|
+| zkVM ゲスト | 各署名の FIPS 205 検証、署名者の Registry active 集合メンバーシップ、有効数の集計 |
+| SP1 の Groth16 wrapper | 上記の proof を EVM 検証可能な形に畳む |
+| `ThresholdProofVerifier`（新規） | ゲストが commit した値を**この unlock に束縛**し、proof を検証して `validCount` を返す |
+| `L1Vault` | 閾値の適用（`REQUIRED_SIGNATURES`） |
+
+閾値を Vault 側に残したのは、**proof システムが閾値を知らなくて済む**ようにするため。
+回路や verifying key を変えずに閾値を変更できる。
+
+### 23.2 public values のレイアウト
+
+ゲストとコントラクトの契約。パック済み固定長 100 バイト:
+
+```
+[ 0..32)  lockId          この unlock 対象
+[32..64)  stateRoot       署名が覆う state root
+[64..96)  setCommitment   ProverRegistry の active 集合コミットメント (FR-THRESH-5)
+[96..100) validCount      有効だった相異なる active prover 数
+```
+
+可変長にしないのは、証明者が末尾にパディングを足せる余地を残さないため。
+
+Rust 側（`sphincs-m2::public_values`）と Solidity 側は**同一の golden vector**で
+固定してあり（`golden_vector_hex` ↔ `testDecodesTheGoldenVector`）、
+片側だけ変えると必ずどちらかのテストが落ちる。
+
+あわせて `unlock_message()`（`SHA3-256(lockId ‖ stateRoot)`）を Rust 側に用意した。
+`L1Vault._verifyThresholdSignatures` と同じ導出でなければ、ゲストは Vault が
+求めていないメッセージに対する署名を検証してしまう。
+
+### 23.3 オンチェーンの束縛
+
+`verifyThreshold` は proof 検証の**前に**次を確認する（安い順に落とす）:
+
+| 束縛 | 防ぐもの |
+|------|---------|
+| `lockId` 一致 | 同じ state root を共有する別 lock への proof 再利用 |
+| `stateRoot` 一致 | 別の状態に対する proof の流用 |
+| `isKnownActiveSetCommitment(setCommitment)` | **証明者が自分で作った署名者集合**でのメンバーシップ証明。FR-THRESH-5 の履歴があるので、過去エポックの集合も受理される（署名収集後に prover が増減しても資産が取り出せなくなることはない） |
+
+3 番目が FR-THRESH-1(b) のオンチェーン側の要である。これが無いと閾値は意味を持たない。
+
+### 23.4 `L1Vault` 側
+
+`requestUnlockWithProof` を追加した。`requestUnlockLegacy` と対になる経路で、
+**FR-THRESH-6 の「提出者が方式を選べる。無検証経路は存在しない」**を満たす。
+
+`thresholdProofVerifier` が未設定なら proof 経路は使えないだけで、
+フル直接検証経路（FR-THRESH-4）は影響を受けない。**proof 生成系が全停止しても
+資産は取り出せる**という保証は維持される。
+
+### 23.5 テストとガス
+
+`ThresholdProofVerifier.t.sol` 11 件全パス。内訳は encoding（golden vector 含む）、
+正常系、および**束縛ごとの否定系**（別 lock / 別 state root / 未公表の集合
+コミットメント / 不正 proof / 長さ不正）。
+
+| | gas |
+|---|---:|
+| 束縛レイヤ単体 | **20,966** |
+| Groth16 検証（§13、public input 8 個） | ~254,000 |
+| **合計（proof 検証部）** | **~275,000** |
+
+NFR-2 の 1M 予算に対し **~27%**。残りは SMT 検証と unlock request 作成に使える。
+
+### 23.6 残り
+
+- **ゲスト側の拡張**: 現在のゲストは 1 署名を検証するだけで、複数署名・Registry
+  メンバーシップ・public values の commit をまだ行っていない。§23.2 の
+  エンコーダは用意済みなので、残るのはゲスト内のロジック
+- **実 proof での E2E**（M5）: SP1 の verifying key を確定し、実 proof で
+  `requestUnlockWithProof` が成功する tx と、不正 proof が revert する tx を
+  テストネットで記録する（受け入れ基準 3）
+- 新 Vault のデプロイ: `requestUnlockWithProof` は immutable な現行 Vault には
+  含まれないため、R-1 と同じ移行手順が要る

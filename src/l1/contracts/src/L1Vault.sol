@@ -5,6 +5,7 @@ import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/Reentr
 import {Pausable} from "lib/openzeppelin-contracts/contracts/utils/Pausable.sol";
 import {ISPHINCSVerifier} from "./interfaces/ISPHINCSVerifier.sol";
 import {IProverRegistry} from "./interfaces/IProverRegistry.sol";
+import {ThresholdProofVerifier} from "./wrap/ThresholdProofVerifier.sol";
 import {StateRootCalculator} from "./libraries/StateRootCalculator.sol";
 import {SHA3_256} from "./libraries/SHA3_256.sol";
 
@@ -176,6 +177,7 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice Emitted when prover registry is updated
     /// @dev v3.0: Prover management is now handled by separate registry
     event ProverRegistryUpdated(address indexed oldRegistry, address indexed newRegistry);
+    event ThresholdProofVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
     
     /// @notice Emitted when ownership is transferred
     /// @dev SEC-002 FIX-005: Added for auditability
@@ -282,6 +284,12 @@ contract L1Vault is ReentrancyGuard, Pausable {
     /// @notice External Prover Registry contract (v3.0 architecture)
     /// @dev When set, prover lookups use registry instead of local mapping
     IProverRegistry public proverRegistry;
+
+    /// @notice Proof-based threshold verifier (FR-THRESH-1). Optional: when
+    ///         unset only the full-direct path is available, which is exactly
+    ///         FR-THRESH-4's guarantee that assets stay recoverable if the
+    ///         proving system is down.
+    ThresholdProofVerifier public thresholdProofVerifier;
     uint256 public totalLocked;
     uint256 public nonceCounter;
     uint256 public unlockNonceCounter;
@@ -470,6 +478,50 @@ contract L1Vault is ReentrancyGuard, Pausable {
         if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
 
         _createUnlockRequest(lockId, recipient, lockData.amount, lockData.stateRoot, computedSR1, false, 0, validSignatures, unlockNonce);
+        lockData.status = LockStatus.PENDING_UNLOCK;
+    }
+
+    /// @notice Request unlock with a proof-based threshold check (FR-THRESH-1)
+    /// @dev The proof-based sibling of `requestUnlockLegacy`. FR-THRESH-6: the
+    ///      submitter picks the route, and neither route skips verification —
+    ///      this one moves the SPHINCS+ work into a zkVM proof instead of
+    ///      running `SPHINCSVerifier` for every signature on-chain, which
+    ///      `docs/core/ACTUAL_STATE.md` records as exceeding the block gas
+    ///      limit for full-length signatures.
+    /// @param lockId The lock to unlock
+    /// @param recipient Where the funds go
+    /// @param smtProof Inclusion proof for the lock in `stateRoot`
+    /// @param stateRoot The state root the signatures cover
+    /// @param publicValues Values the guest committed
+    /// @param proofBytes The wrapped proof
+    function requestUnlockWithProof(
+        bytes32 lockId,
+        address recipient,
+        bytes32[] calldata smtProof,
+        bytes32 stateRoot,
+        bytes calldata publicValues,
+        bytes calldata proofBytes
+    ) external whenNotPaused nonReentrant {
+        Lock storage lockData = locks[lockId];
+        if (lockData.sender == address(0)) revert LockNotFound();
+        if (lockData.status != LockStatus.ACTIVE) revert LockAlreadyReleased();
+        if (recipient == address(0)) revert ZeroAddress();
+        if (address(thresholdProofVerifier) == address(0)) revert VerifierNotSet();
+
+        if (!_verifySMTProof(lockId, smtProof, stateRoot)) revert InvalidProof();
+
+        // Reverts unless the proof is valid *and* was produced for this lock,
+        // this state root, and a signer set the registry published.
+        uint256 validSignatures = thresholdProofVerifier.verifyThreshold(
+            lockId,
+            stateRoot,
+            publicValues,
+            proofBytes
+        );
+        if (validSignatures < REQUIRED_SIGNATURES) revert InsufficientSignatures();
+
+        uint256 unlockNonce = unlockNonceCounter++;
+        _createUnlockRequest(lockId, recipient, lockData.amount, stateRoot, bytes32(0), false, 0, validSignatures, unlockNonce);
         lockData.status = LockStatus.PENDING_UNLOCK;
     }
 
@@ -1086,6 +1138,17 @@ contract L1Vault is ReentrancyGuard, Pausable {
         verifierProposedAt = 0;
         verifierUpdateApproved = false;
         emit SPHINCSVerifierProposalCancelled(cancelled);
+    }
+
+    /// @notice Set the proof-based threshold verifier (FR-THRESH-1)
+    /// @dev Governance-gated like every other verifier reference (FR-GOV-2).
+    ///      Setting it to zero only removes the proof path; the full-direct
+    ///      path (FR-THRESH-4) is unaffected, so this can never strand assets.
+    /// @param _verifier Address of the ThresholdProofVerifier contract
+    function setThresholdProofVerifier(address _verifier) external onlyOwner {
+        address oldVerifier = address(thresholdProofVerifier);
+        thresholdProofVerifier = ThresholdProofVerifier(_verifier);
+        emit ThresholdProofVerifierUpdated(oldVerifier, _verifier);
     }
 
     /// @notice Set the external Prover Registry contract

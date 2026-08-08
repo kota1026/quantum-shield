@@ -24,6 +24,7 @@ pub mod dag;
 pub mod hash;
 pub mod keccak;
 pub mod params;
+pub mod public_values;
 pub mod verify;
 
 #[cfg(test)]
