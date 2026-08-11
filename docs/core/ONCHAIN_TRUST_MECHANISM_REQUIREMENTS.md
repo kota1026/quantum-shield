@@ -128,7 +128,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 | FR-THRESH-1 | Unlock (Normal/Emergency) の SPHINCS+ 2/N 検証は、**STARK proof 検証を経由した強制**とする。proof は「(a) 各署名が FIPS 205 に従い検証済み (b) 署名者公開鍵が指定ブロック時点の ProverRegistry active 集合コミットメントに含まれる (c) valid 数 ≥ 閾値」を attest する | MUST |
 | FR-THRESH-2 | `_verifySimplified`（恒真チェック）は本番経路から**削除**する。テスト用に残す場合は別コントラクト（`*Testnet.sol`）に隔離し、mainnet ビルドに含めない | MUST |
 | FR-THRESH-3 | proof 検証失敗時は revert し、理由コード付きイベントを emit する（BE-003 ログ要件と対応） | MUST |
-| FR-THRESH-4 | フォールバック経路として、フル SPHINCS+ 直接オンチェーン検証（`_verifyWithSPHINCSVerifier`）を**常時利用可能**に維持する（proof 生成系の障害時に資産が取り出せなくなることを防ぐ。ガス高コストは許容） | MUST |
+| FR-THRESH-4 | フォールバック経路として、フル SPHINCS+ 直接オンチェーン検証（`_verifyWithSPHINCSVerifier`）を**常時利用可能**に維持する（proof 生成系の障害時に資産が取り出せなくなることを防ぐ。ガス高コストは許容） | MUST ⚠️ **保証が成立していない — STARK_AIR_GAP_ANALYSIS.md §25**（フル直接検証は実署名で 673.8M ガス消費・revert、ブロック上限の 22 倍。要件レベルの再設計が必要） |
 | FR-THRESH-5 | ProverRegistry の active 集合は、proof の public input として参照可能なコミットメント（SHA3-256 ベース）をオンチェーンで維持する | MUST |
 | FR-THRESH-6 | 検証方式の選択（proof-based / full-direct）はトランザクション提出者が選べる。**無検証経路は存在しない** | MUST |
 

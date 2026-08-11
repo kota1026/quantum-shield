@@ -1,4 +1,7 @@
 [profile.default]
+# Read-only access to the FIPS 205 conformance vectors emitted by
+# sphincs-m2 (see test/SPHINCSVerifierConformance.t.sol).
+fs_permissions = [{ access = "read", path = "./test/vectors" }]
 src = "src"
 out = "out"
 test = "test"
