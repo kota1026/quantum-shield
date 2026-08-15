@@ -278,3 +278,22 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 3. Prover 登録 + Registry 接続、フル検証経路での lock→unlock 実 tx と**不正署名 revert の実 tx** を記録（受け入れ基準 3）
 4. `blockchain.md`・`config/default.yaml`・フロントエンド env のアドレス更新（旧 Vault は「legacy (unlock-only)」として記載残置）
 5. `docs/ACTUAL_STATE.md` に移行記録を追記
+
+
+---
+
+## ⚠️ 検証層の量子耐性に関する確定事項 (2026-08-14)
+
+`STARK_AIR_GAP_ANALYSIS.md` §27 の結論を要件に反映する。
+
+**Groth16 wrap を経由する proof 経路を、唯一の認可経路として有効化してはならない。**
+BN254 は古典仮定であり、量子攻撃者は SPHINCS+ 署名を 1 つも用意せずに偽の proof で
+`requestUnlockWithProof` を通せる。この構成では PQ 署名層は装飾となり、
+プロトコルの中核主張が成立しない。
+
+§8.3 はこの古典仮定を「FR-THRESH-4 のフル直接検証経路が常時担保する」ことを条件に
+受容していたが、その条件は §25 で偽と実測された（673.8M ガス、実行不能）。
+
+**主経路はオンチェーン直接 PQ 検証とする**（2-of-N で ~284K gas = NFR-2 の 28%）。
+ハッシュベースの STARK 検証は原則を満たすが、実測で予算の約 101% と余裕が無く
+（§27.4）、現時点で主経路の代替にはならない。
