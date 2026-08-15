@@ -23,6 +23,48 @@ contract HashVerifierFloor {
         }
     }
 
+    /// @notice `n` SHA-256 precompile calls on a 64-byte input.
+    /// @dev FIPS 205 defines SHA2 parameter sets alongside the SHAKE ones, and
+    ///      the EVM has a SHA-256 precompile (0x02) but none for SHAKE256.
+    ///      Whether route 1 can stay inside FIPS 205 — rather than substituting
+    ///      KECCAK256 as SPHINCS-minus does — turns on this number.
+    function sha256Calls(bytes32 seed, uint256 n) external pure returns (bytes32 h) {
+        h = seed;
+        for (uint256 i = 0; i < n; i++) {
+            h = sha256(abi.encodePacked(h, h));
+        }
+    }
+
+    /// @notice `n` keccak256 hashes of a 64-byte scratch buffer, no allocation.
+    /// @dev The loop above pays `abi.encodePacked`'s memory allocation every
+    ///      iteration, which a real verifier would not. These two measure the
+    ///      intrinsic cost, which is what an optimized implementation
+    ///      approaches — and what decides whether route 1 can stay on FIPS
+    ///      205's own SHA2 parameter family.
+    function keccakTight(bytes32 seed, uint256 n) external pure returns (bytes32 h) {
+        h = seed;
+        assembly {
+            for { let i := 0 } lt(i, n) { i := add(i, 1) } {
+                mstore(0x00, h)
+                mstore(0x20, h)
+                h := keccak256(0x00, 0x40)
+            }
+        }
+    }
+
+    /// @notice `n` SHA-256 precompile calls on a 64-byte scratch buffer.
+    function sha256Tight(bytes32 seed, uint256 n) external view returns (bytes32 h) {
+        h = seed;
+        assembly {
+            for { let i := 0 } lt(i, n) { i := add(i, 1) } {
+                mstore(0x00, h)
+                mstore(0x20, h)
+                if iszero(staticcall(gas(), 0x02, 0x00, 0x40, 0x00, 0x20)) { revert(0, 0) }
+                h := mload(0x00)
+            }
+        }
+    }
+
     /// @notice Accept a proof-sized blob, so its calldata cost can be measured.
     /// @dev A STARK proof is tens to hundreds of KB (§8). Every byte of it is
     ///      paid for before the verifier executes a single opcode, so calldata
@@ -86,6 +128,88 @@ contract HashVerifierGasProbeTest is Test {
         b = b - gasleft();
 
         perOp = (b - a) / 1000;
+    }
+
+    function _marginalSha256Gas() internal view returns (uint256 perCall) {
+        uint256 a = gasleft();
+        floorProbe.sha256Calls(bytes32(uint256(1)), 100);
+        a = a - gasleft();
+
+        uint256 b = gasleft();
+        floorProbe.sha256Calls(bytes32(uint256(1)), 1100);
+        b = b - gasleft();
+
+        perCall = (b - a) / 1000;
+    }
+
+    function _tightGas(bool useSha) internal view returns (uint256 perCall) {
+        uint256 a = gasleft();
+        if (useSha) floorProbe.sha256Tight(bytes32(uint256(1)), 100);
+        else floorProbe.keccakTight(bytes32(uint256(1)), 100);
+        a = a - gasleft();
+
+        uint256 b = gasleft();
+        if (useSha) floorProbe.sha256Tight(bytes32(uint256(1)), 1100);
+        else floorProbe.keccakTight(bytes32(uint256(1)), 1100);
+        b = b - gasleft();
+
+        perCall = (b - a) / 1000;
+    }
+
+    /// @notice Intrinsic per-hash cost, which is what an optimized verifier
+    ///         approaches. This decides whether route 1 must abandon FIPS 205's
+    ///         hash family or only its signature budget.
+    function testIntrinsicHashCostAndRoute1Fit() public {
+        uint256 keccakTight = _tightGas(false);
+        uint256 shaTight = _tightGas(true);
+
+        emit log_named_uint("intrinsic keccak256 (64B)", keccakTight);
+        emit log_named_uint("intrinsic sha256 precompile (64B)", shaTight);
+
+        uint256 fullHashes = 2174;
+        uint256 reducedHashes = uint256(14 * 13) + uint256(3 * 35 * 15) / 2 + uint256(3 * 8);
+
+        emit log_string("--- 2-of-N (two signatures), intrinsic cost ---");
+        emit log_named_uint("full FIPS 205, keccak", 2 * fullHashes * keccakTight);
+        emit log_named_uint("full FIPS 205, sha256", 2 * fullHashes * shaTight);
+        emit log_named_uint("reduced budget, keccak", 2 * reducedHashes * keccakTight);
+        emit log_named_uint("reduced budget, sha256", 2 * reducedHashes * shaTight);
+        emit log_named_uint("NFR-2 budget", NFR2_BUDGET);
+
+        assertGt(keccakTight, 0);
+        assertGt(shaTight, 0);
+    }
+
+    /// @notice Route 1: direct on-chain SLH-DSA verification, by parameter set.
+    /// @dev Hash-call counts come from the structure `sphincs-m2` measures
+    ///      natively (2,174 for SLH-DSA-128s: FORS k(1+a), d*len WOTS+ chain
+    ///      steps averaged, and d*h' tree hashes). A reduced-height variant —
+    ///      the deviation SPHINCS-minus takes — cuts the d-dependent terms.
+    function testRoute1CostByParameterSet() public {
+        uint256 perKeccak = _marginalMerkleGas();
+        uint256 perSha256 = _marginalSha256Gas();
+
+        emit log_named_uint("gas per keccak256 (64B)", perKeccak);
+        emit log_named_uint("gas per sha256 precompile (64B)", perSha256);
+
+        // Full FIPS 205 SLH-DSA-128s: h=63, d=7, h'=9, k=14, a=12, len=35, w=16
+        uint256 fullHashes = 2174;
+        // Reduced height (h=24, d=3, h'=8): FORS unchanged, d-terms shrink.
+        uint256 reducedHashes = uint256(14 * 13) + uint256(3 * 35 * 15) / 2 + uint256(3 * 8);
+
+        emit log_named_uint("full FIPS 205 (2^64 budget): hash calls", fullHashes);
+        emit log_named_uint("reduced height (2^24 budget): hash calls", reducedHashes);
+
+        emit log_string("--- one signature ---");
+        emit log_named_uint("full, sha256", fullHashes * perSha256);
+        emit log_named_uint("reduced, sha256", reducedHashes * perSha256);
+
+        emit log_string("--- 2-of-N threshold (two signatures) ---");
+        emit log_named_uint("full, sha256", 2 * fullHashes * perSha256);
+        emit log_named_uint("reduced, sha256", 2 * reducedHashes * perSha256);
+        emit log_named_uint("NFR-2 budget", NFR2_BUDGET);
+
+        assertGt(perSha256, 0);
     }
 
     /// @notice Report the two unit costs, then project onto FRI parameters.
