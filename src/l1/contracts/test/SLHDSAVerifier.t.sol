@@ -55,6 +55,50 @@ contract VerifierHarness is SLHDSAVerifier {
         return _xmssPkFromSig(idx, sigXmss, msgDigest, pkSeed, adrs);
     }
 
+    /// @notice Gas of each phase of one verification, measured inside a single
+    ///         call so calldata and dispatch are paid once.
+    /// @dev §30.2 found the cost is dominated by what surrounds the hashing,
+    ///      not the hashing — but "the surroundings" is not an optimization
+    ///      target until it is broken down.
+    function gasBreakdown(bytes calldata sig, bytes calldata pk, bytes calldata message)
+        external
+        view
+        returns (uint256 hMsgGas, uint256 forsGas, uint256 htGas)
+    {
+        bytes memory prepared = abi.encodePacked(bytes1(0x00), bytes1(0x00), message);
+
+        uint256 g = gasleft();
+        bytes memory digest = SLHDSA.hMsg(
+            bytes16(sig[0:16]),
+            bytes16(pk[0:16]),
+            bytes16(pk[16:32]),
+            prepared
+        );
+        hMsgGas = g - gasleft();
+
+        (uint64 idxTree, uint32 idxLeaf) = _splitDigest(digest);
+
+        bytes32 adrs = bytes32(0);
+        adrs = SLHDSA.setTreeAddress(adrs, idxTree);
+        adrs = SLHDSA.setTypeAndClear(adrs, FORS_TREE);
+        adrs = SLHDSA.setKeyPairAddress(adrs, idxLeaf);
+
+        g = gasleft();
+        bytes16 forsPk = _forsPkFromSig(sig[16:16 + 14 * 13 * 16], digest, bytes16(pk[0:16]), adrs);
+        forsGas = g - gasleft();
+
+        g = gasleft();
+        _htVerify(
+            forsPk,
+            sig[16 + 14 * 13 * 16:],
+            bytes16(pk[0:16]),
+            idxTree,
+            idxLeaf,
+            bytes16(pk[16:32])
+        );
+        htGas = g - gasleft();
+    }
+
     function splitDigestPublic(bytes calldata digest)
         external
         pure
@@ -229,6 +273,21 @@ contract SLHDSAVerifierTest is Test {
         assertFalse(v.verifyMessage(message, hex"00", pk));
         assertFalse(v.verifyMessage(message, sig, hex"00"));
         assertEq(v.getSignatureSize(), 7856);
+    }
+
+    /// @notice Where the gas actually goes, so optimization targets the right
+    ///         thing rather than the plausible thing.
+    function testGasBreakdown() public {
+        (uint256 hMsgGas, uint256 forsGas, uint256 htGas) =
+            v.gasBreakdown(sig, pk, message);
+
+        emit log_named_uint("H_msg", hMsgGas);
+        emit log_named_uint("FORS (182 hash calls)", forsGas);
+        emit log_named_uint("hypertree (~1,990 hash calls)", htGas);
+        emit log_named_uint("per hash call, FORS", forsGas / 182);
+        emit log_named_uint("per hash call, hypertree", htGas / 1990);
+
+        assertGt(htGas, forsGas, "the hypertree dominates");
     }
 
     /// @notice The measured cost of one verification, against a block.

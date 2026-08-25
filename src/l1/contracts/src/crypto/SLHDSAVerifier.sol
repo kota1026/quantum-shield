@@ -279,23 +279,39 @@ contract SLHDSAVerifier is ISPHINCSVerifier {
         bytes16 pkSeed,
         bytes32 adrs
     ) internal view returns (bytes16) {
-        uint32[] memory digits = baseB(abi.encodePacked(msgDigest), 0, LG_W, LEN1);
+        // `base_2b` with b = 4 over a 16-byte message is just its nibbles, so
+        // the digits are read with a shift instead of built into an array.
+        // This runs once per hypertree layer, seven times per signature.
+        uint256 packed = uint256(uint128(msgDigest));
 
         uint256 csum = 0;
         for (uint256 i = 0; i < LEN1; i++) {
-            csum += W - 1 - digits[i];
+            csum += W - 1 - uint32((packed >> (4 * (LEN1 - 1 - i))) & 0xF);
         }
-        // len2 * lg_w = 12 bits, so left-align within the byte.
+        // len2 * lg_w = 12 bits, left-aligned in two bytes, then read as three
+        // nibbles from the top — the same values `base_2b` would produce.
         csum <<= (8 - ((LEN2 * LG_W) % 8)) % 8;
-        uint256 csumLen = (LEN2 * LG_W + 7) / 8;
-        bytes memory csumBytes = abi.encodePacked(uint64(csum));
-        uint32[] memory csumDigits = baseB(csumBytes, 8 - csumLen, LG_W, LEN2);
 
         bytes memory chained = new bytes(LEN * N);
+
+        // Same reason as FORS: a `bytes calldata` slice copies each element
+        // into memory before it is used, and this loop runs 35 times per
+        // hypertree layer, seven layers deep.
+        uint256 sigOffset;
+        assembly {
+            sigOffset := sig.offset
+        }
+
         for (uint256 i = 0; i < LEN; i++) {
-            uint32 digit = i < LEN1 ? digits[i] : csumDigits[i - LEN1];
+            uint32 digit = i < LEN1
+                ? uint32((packed >> (4 * (LEN1 - 1 - i))) & 0xF)
+                : uint32((csum >> (12 - 4 * (i - LEN1))) & 0xF);
             bytes32 chainAdrs = adrs.setChainAddress(uint32(i));
-            bytes16 element = bytes16(sig[i * N:(i + 1) * N]);
+            bytes16 element;
+            uint256 elementOffset = sigOffset + i * N;
+            assembly {
+                element := calldataload(elementOffset)
+            }
             bytes16 end = _chain(element, digit, W - 1 - digit, pkSeed, chainAdrs);
             assembly {
                 mstore(add(add(chained, 0x20), mul(i, N)), end)
@@ -326,9 +342,20 @@ contract SLHDSAVerifier is ISPHINCSVerifier {
 
         adrs = adrs.setTypeAndClear(TREE);
         adrs = adrs.setTreeIndex(idx);
+
+        uint256 wotsLen = LEN * N;
+        uint256 authOffset;
+        assembly {
+            authOffset := add(sigXmss.offset, wotsLen)
+        }
+
         for (uint256 k = 0; k < H_PRIME; k++) {
             adrs = adrs.setTreeHeight(uint32(k + 1));
-            bytes16 sibling = bytes16(sigXmss[LEN * N + k * N:LEN * N + (k + 1) * N]);
+            bytes16 sibling;
+            uint256 sibOffset = authOffset + k * N;
+            assembly {
+                sibling := calldataload(sibOffset)
+            }
             if ((idx >> k) & 1 == 0) {
                 adrs = adrs.setTreeIndex(adrs.treeIndex() / 2);
                 node = SLHDSA.h(pkSeed, adrs, node, sibling);
@@ -384,22 +411,45 @@ contract SLHDSAVerifier is ISPHINCSVerifier {
         bytes16 pkSeed,
         bytes32 adrs
     ) internal view returns (bytes16) {
-        uint32[] memory indices = baseB(digest, 0, A, K);
+        // `base_2b` with b = 12 over the digest's first 21 bytes. Those fit in
+        // one word, so the indices are read with a shift rather than built
+        // into an array.
+        uint256 mdWord;
+        assembly {
+            mdWord := mload(add(digest, 0x20))
+        }
         uint256 elementLen = (A + 1) * N;
         bytes memory roots = new bytes(K * N);
 
+        // `.offset` is only reachable from assembly.
+        uint256 sigOffset;
+        assembly {
+            sigOffset := sigFors.offset
+        }
+
         for (uint256 i = 0; i < K; i++) {
-            uint32 idx = indices[i];
+            uint32 idx = uint32((mdWord >> (256 - A * (i + 1))) & ((1 << A) - 1));
             uint256 base = i * elementLen;
 
             adrs = adrs.setTreeHeight(0);
             adrs = adrs.setTreeIndex(uint32(i * (1 << A)) + idx);
-            bytes16 node = SLHDSA.f(pkSeed, adrs, bytes16(sigFors[base:base + N]));
+
+            // Read the signature straight from calldata. A `bytes calldata`
+            // slice would copy each 16-byte element into memory first, and at
+            // 182 elements that dominated the phase: 1,547 gas per hash call
+            // against a 568 floor.
+            bytes16 leaf;
+            assembly {
+                leaf := calldataload(add(sigOffset, base))
+            }
+            bytes16 node = SLHDSA.f(pkSeed, adrs, leaf);
 
             for (uint256 j = 0; j < A; j++) {
-                bytes16 sibling = bytes16(
-                    sigFors[base + N + j * N:base + N + (j + 1) * N]
-                );
+                bytes16 sibling;
+                uint256 sibOffset = sigOffset + base + N + j * N;
+                assembly {
+                    sibling := calldataload(sibOffset)
+                }
                 adrs = adrs.setTreeHeight(uint32(j + 1));
                 if ((idx >> j) & 1 == 0) {
                     adrs = adrs.setTreeIndex(adrs.treeIndex() / 2);
