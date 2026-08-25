@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import {SLHDSAVerifier} from "../src/crypto/SLHDSAVerifier.sol";
 import {SLHDSA} from "../src/crypto/SLHDSA.sol";
+import {ISPHINCSVerifier} from "../src/interfaces/ISPHINCSVerifier.sol";
 
 /// @notice Exposes the verifier's internals so each FIPS 205 algorithm can be
 ///         compared with the reference separately.
@@ -199,41 +200,41 @@ contract SLHDSAVerifierTest is Test {
 
     /// @notice The whole point: a genuine FIPS 205 signature must verify.
     function testAcceptsAGenuineSignature() public view {
-        assertTrue(v.verify(message, sig, pk), "a valid signature must verify");
+        assertTrue(v.verifyMessage(message, sig, pk), "a valid signature must verify");
     }
 
     /// @notice Every tampering class must be rejected.
     function testRejectsTamperedInputs() public view {
-        assertFalse(v.verify(hex"00", sig, pk), "wrong message");
+        assertFalse(v.verifyMessage(hex"00", sig, pk), "wrong message");
 
         bytes memory bad = _copy(sig);
         bad[0] ^= 0x01;
-        assertFalse(v.verify(message, bad, pk), "tampered randomizer R");
+        assertFalse(v.verifyMessage(message, bad, pk), "tampered randomizer R");
 
         bad = _copy(sig);
         bad[16 + 5] ^= 0x01;
-        assertFalse(v.verify(message, bad, pk), "tampered FORS signature");
+        assertFalse(v.verifyMessage(message, bad, pk), "tampered FORS signature");
 
         bad = _copy(sig);
         bad[bad.length - 1] ^= 0x01;
-        assertFalse(v.verify(message, bad, pk), "tampered hypertree auth path");
+        assertFalse(v.verifyMessage(message, bad, pk), "tampered hypertree auth path");
 
         bytes memory badPk = _copy(pk);
         badPk[badPk.length - 1] ^= 0x01;
-        assertFalse(v.verify(message, sig, badPk), "tampered public key root");
+        assertFalse(v.verifyMessage(message, sig, badPk), "tampered public key root");
     }
 
     /// @notice Wrong lengths must be rejected rather than read out of bounds.
     function testRejectsWrongLengths() public view {
-        assertFalse(v.verify(message, hex"00", pk));
-        assertFalse(v.verify(message, sig, hex"00"));
-        assertEq(v.signatureSize(), 7856);
+        assertFalse(v.verifyMessage(message, hex"00", pk));
+        assertFalse(v.verifyMessage(message, sig, hex"00"));
+        assertEq(v.getSignatureSize(), 7856);
     }
 
     /// @notice The measured cost of one verification, against a block.
     function testVerificationGas() public {
         uint256 before = gasleft();
-        v.verify(message, sig, pk);
+        v.verifyMessage(message, sig, pk);
         uint256 used = before - gasleft();
 
         emit log_named_uint("one signature verification gas", used);
@@ -244,6 +245,35 @@ contract SLHDSAVerifierTest is Test {
     }
 
     // =========================================================================
+
+    /// @notice The drop-in check: `L1Vault` calls `ISPHINCSVerifier.verify`
+    ///         with a `bytes32` message, so the new verifier must satisfy that
+    ///         shape without any change to the vault.
+    function testSatisfiesTheVaultsInterface() public view {
+        ISPHINCSVerifier iface = ISPHINCSVerifier(address(v));
+
+        assertEq(iface.getSignatureSize(), 7856);
+        assertTrue(iface.isValidPublicKeyFormat(pk));
+        assertFalse(iface.isValidPublicKeyFormat(hex"00"));
+
+        // The vault signs `SHA3-256(lockId || stateRoot)`; here the fixture's
+        // own message stands in for that 32-byte digest.
+        bytes32 digestMessage = bytes32(_slice(message, 0, message.length < 32 ? message.length : 32));
+        // A signature over a different message must not verify.
+        assertFalse(iface.verify(digestMessage, sig, pk));
+    }
+
+    /// @notice `verifyWithDetails` reports the cost, which is what a caller
+    ///         needs to size a threshold batch against the block limit.
+    function testVerifyWithDetailsReportsGas() public view {
+        ISPHINCSVerifier.VerificationResult memory res =
+            ISPHINCSVerifier(address(v)).verifyWithDetails(bytes32(0), sig, pk);
+        assertFalse(res.valid, "a signature over another message must fail");
+        assertGt(res.gasUsed, 0, "gas must be reported");
+
+        res = ISPHINCSVerifier(address(v)).verifyWithDetails(bytes32(0), hex"00", pk);
+        assertEq(res.errorReason, "invalid signature length");
+    }
 
     function _slice(bytes memory data, uint256 start, uint256 len)
         internal

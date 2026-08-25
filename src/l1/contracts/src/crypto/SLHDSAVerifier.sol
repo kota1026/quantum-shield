@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {SLHDSA} from "./SLHDSA.sol";
+import {ISPHINCSVerifier} from "../interfaces/ISPHINCSVerifier.sol";
 
 /// @title SLHDSAVerifier - FIPS 205 SLH-DSA-SHA2-128s signature verification
 /// @notice Verifies a post-quantum signature entirely on-chain, with no
@@ -20,7 +21,11 @@ import {SLHDSA} from "./SLHDSA.sol";
 ///
 ///      Every layer is pinned against `src/crypto/slh-dsa-sha2`, which is in
 ///      turn pinned against the independent RustCrypto implementation.
-contract SLHDSAVerifier {
+///      Implements `ISPHINCSVerifier` so it can be dropped into `L1Vault`
+///      through `setSPHINCSVerifier` with no change to the vault: the
+///      threshold path already calls `verify(bytes32, bytes, bytes)` per
+///      signature and counts the passes.
+contract SLHDSAVerifier is ISPHINCSVerifier {
     using SLHDSA for bytes32;
 
     // FIPS 205 Table 2, SLH-DSA-SHA2-128s.
@@ -59,36 +64,109 @@ contract SLHDSAVerifier {
     // =========================================================================
 
     /// @notice Signature length this parameter set expects.
-    function signatureSize() external pure returns (uint256) {
+    function getSignatureSize() external pure returns (uint256) {
         return SIG_BYTES;
     }
 
-    /// @notice `slh_verify(M, SIG, ctx, PK)` (FIPS 205 Algorithm 24), the pure
-    ///         variant with an empty context.
-    /// @param message The signed message
-    /// @param sig `R ‖ SIG_FORS ‖ SIG_HT`
-    /// @param pk `PK.seed ‖ PK.root`
-    /// @dev The context prefix `0x00 ‖ |ctx| ‖ ctx` is what a conforming signer
-    ///      applies by default. A verifier that skipped it would reject every
-    ///      signature a standard library produces.
-    function verify(
-        bytes calldata message,
-        bytes calldata sig,
-        bytes calldata pk
-    ) external view returns (bool) {
-        if (sig.length != SIG_BYTES || pk.length != PK_BYTES) return false;
-        return _verifyInternal(abi.encodePacked(bytes1(0x00), bytes1(0x00), message), sig, pk);
+    /// @notice `PK.seed ‖ PK.root`, 32 bytes for category 1.
+    function isValidPublicKeyFormat(bytes calldata publicKey) external pure returns (bool) {
+        return publicKey.length == PK_BYTES;
     }
 
-    /// @notice As [`verify`], for a message already reduced to 32 bytes — the
-    ///         shape `L1Vault` signs (`SHA3-256(lockId ‖ stateRoot)`).
-    function verifyDigest(
+    /// @notice Identifier for a registered key.
+    /// @dev SHA3-256 per CP-1, matching `ProverRegistry`'s `sphincsPubKeyHash`.
+    function computePublicKeyHash(bytes calldata publicKey) external pure returns (bytes32) {
+        return sha256(publicKey);
+    }
+
+    /// @notice `slh_verify(M, SIG, ctx, PK)` (FIPS 205 Algorithm 24), pure
+    ///         variant with an empty context, over a 32-byte message.
+    /// @param message The signed message — `L1Vault` signs
+    ///        `SHA3-256(lockId ‖ stateRoot)`
+    /// @param signature `R ‖ SIG_FORS ‖ SIG_HT`
+    /// @param publicKey `PK.seed ‖ PK.root`
+    /// @dev The `0x00 ‖ |ctx| ‖ ctx` prefix is what a conforming signer applies
+    ///      by default; a verifier that skipped it would reject every signature
+    ///      a standard library produces.
+    function verify(
         bytes32 message,
-        bytes calldata sig,
-        bytes calldata pk
+        bytes calldata signature,
+        bytes calldata publicKey
     ) external view returns (bool) {
-        if (sig.length != SIG_BYTES || pk.length != PK_BYTES) return false;
-        return _verifyInternal(abi.encodePacked(bytes1(0x00), bytes1(0x00), message), sig, pk);
+        if (signature.length != SIG_BYTES || publicKey.length != PK_BYTES) return false;
+        return _verifyInternal(
+            abi.encodePacked(bytes1(0x00), bytes1(0x00), message),
+            signature,
+            publicKey
+        );
+    }
+
+    /// @notice As [`verify`], over a variable-length message.
+    function verifyMessage(
+        bytes calldata message,
+        bytes calldata signature,
+        bytes calldata publicKey
+    ) external view returns (bool) {
+        if (signature.length != SIG_BYTES || publicKey.length != PK_BYTES) return false;
+        return _verifyInternal(
+            abi.encodePacked(bytes1(0x00), bytes1(0x00), message),
+            signature,
+            publicKey
+        );
+    }
+
+    /// @notice Count how many of a batch verify.
+    /// @dev Each signature costs ~2.7M gas (§30.2), so a caller must size the
+    ///      batch against the block limit rather than assume it can pass an
+    ///      arbitrary array.
+    function verifyBatch(
+        bytes32[] calldata messages,
+        bytes[] calldata signatures,
+        bytes[] calldata publicKeys
+    ) external view returns (uint256 validCount) {
+        if (messages.length != signatures.length || messages.length != publicKeys.length) {
+            return 0;
+        }
+        for (uint256 i = 0; i < messages.length; i++) {
+            if (signatures[i].length != SIG_BYTES || publicKeys[i].length != PK_BYTES) continue;
+            if (
+                _verifyInternal(
+                    abi.encodePacked(bytes1(0x00), bytes1(0x00), messages[i]),
+                    signatures[i],
+                    publicKeys[i]
+                )
+            ) {
+                validCount++;
+            }
+        }
+    }
+
+    /// @notice Verify and report the gas the attempt consumed.
+    function verifyWithDetails(
+        bytes32 message,
+        bytes calldata signature,
+        bytes calldata publicKey
+    ) external view returns (VerificationResult memory result) {
+        uint256 startGas = gasleft();
+        if (signature.length != SIG_BYTES) {
+            return VerificationResult(false, bytes32(0), 0, "invalid signature length");
+        }
+        if (publicKey.length != PK_BYTES) {
+            return VerificationResult(false, bytes32(0), 0, "invalid public key length");
+        }
+        bool ok = _verifyInternal(
+            abi.encodePacked(bytes1(0x00), bytes1(0x00), message),
+            signature,
+            publicKey
+        );
+        // `computedRoot` is the reconstructed `PK.root`, which equals the
+        // registered one exactly when the signature is valid.
+        result = VerificationResult(
+            ok,
+            ok ? bytes32(bytes16(publicKey[N:PK_BYTES])) : bytes32(0),
+            startGas - gasleft(),
+            ok ? "" : "verification failed"
+        );
     }
 
     // =========================================================================

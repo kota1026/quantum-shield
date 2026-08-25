@@ -1853,3 +1853,52 @@ NFR-2 の 100 万ガス目標は満たさない（5.4 倍）。ただし §28.4 
 - ガス最適化（周辺コストが支配的と判明したので、そこが対象）
 - `L1Vault` への接続（`ISPHINCSVerifier` 互換の口を用意し、閾値検証から呼ぶ）
 - 監査。**新規に書いた暗号実装であり、参照との一致は必要条件であって十分条件ではない**
+
+---
+
+## 31. `L1Vault` への接続 (2026-08-21)
+
+`SLHDSAVerifier` を既存の `ISPHINCSVerifier` に適合させた。**`L1Vault` の変更は不要**で、
+`setSPHINCSVerifier` で差し替えるだけで proof を介さない量子耐性のある閾値検証に
+切り替わる。
+
+### 31.1 なぜ差し替えで済むか
+
+`L1Vault._verifyWithSPHINCSVerifier` は既に
+
+```solidity
+if (sphincsVerifier.verify(message, signatures[i], pubKey)) validCount++;
+```
+
+という形で 1 署名ずつ呼んで数えている。`message` は
+`SHA3_256.hashPair(lockId, stateRoot)` の `bytes32`、公開鍵は 32 バイト。
+SLH-DSA-SHA2-128s の公開鍵（`PK.seed ‖ PK.root` = 32 バイト）はそのまま収まり、
+署名長 7,856 バイトも `getSignatureSize()` が返す。
+
+つまり**壊れていたのは実装だけで、インターフェースは正しかった**。
+
+### 31.2 実装した口
+
+| `ISPHINCSVerifier` | 備考 |
+|---|---|
+| `verify(bytes32, bytes, bytes)` | 閾値検証が使う本線 |
+| `verifyBatch(...)` | 1 署名 2.7M なので、呼び出し側がブロック上限に対して本数を決める必要がある旨を明記 |
+| `verifyWithDetails(...)` | 消費ガスを返す。上記の本数決定に使える |
+| `computePublicKeyHash`, `isValidPublicKeyFormat`, `getSignatureSize` | — |
+
+`verifyMessage(bytes, bytes, bytes)` を追加で用意した（可変長メッセージ用）。
+
+### 31.3 テスト
+
+`SLHDSAVerifier.t.sol` 12 件全パス。層ごとの一致（§30.1）に加えて、
+`ISPHINCSVerifier` 越しの呼び出し、`verifyWithDetails` のガス報告と
+エラー理由、公開鍵フォーマット判定を固定した。
+
+### 31.4 残り
+
+- **ガス最適化**。§30.2 の通り、支配的なのはハッシュではなく**その周辺**
+  （`base_2b`、ADRS の付け替え、`bytes` のスライスとメモリ確保、ループ制御）。
+  2-of-N で 5.4M = ブロックの 18% は動くが、削る余地は大きい
+- **NFR-2 の再設定**（§28.4）。1M → 6M 程度が実測に即した値
+- **監査**。参照実装との一致は必要条件であって十分条件ではない
+- 旧 `SPHINCSVerifier.sol` の扱い（削除するか、非適合である旨を明記して残すか）
