@@ -30,7 +30,72 @@ library SLHDSA {
     error Sha256Failed();
 
     // =========================================================================
-    // Address
+    // Address fields
+    //
+    // The 32-byte layout: layer(0..4) tree(4..16) type(16..20)
+    // keyPair(20..24) chain-or-height(24..28) hash-or-index(28..32).
+    // Held as a `bytes32` and edited with masks, so no memory is touched.
+    // =========================================================================
+
+    uint256 private constant MASK_LAYER = uint256(0xFFFFFFFF) << 224;
+    uint256 private constant MASK_TREE_HI = uint256(0xFFFFFFFF) << 192;
+    uint256 private constant MASK_TREE = uint256(0xFFFFFFFFFFFFFFFF) << 128;
+    uint256 private constant MASK_TYPE = uint256(0xFFFFFFFF) << 96;
+    uint256 private constant MASK_KEYPAIR = uint256(0xFFFFFFFF) << 64;
+    uint256 private constant MASK_CHAIN = uint256(0xFFFFFFFF) << 32;
+    uint256 private constant MASK_HASH = uint256(0xFFFFFFFF);
+    /// @notice `type` and everything after it — cleared together per FIPS 205.
+    uint256 private constant MASK_TAIL = MASK_KEYPAIR | MASK_CHAIN | MASK_HASH;
+
+    function setLayerAddress(bytes32 adrs, uint32 layer) internal pure returns (bytes32) {
+        return bytes32((uint256(adrs) & ~MASK_LAYER) | (uint256(layer) << 224));
+    }
+
+    /// @dev Writes the low 8 bytes of the 12-byte field and clears the high 4,
+    ///      which is the whole field for every parameter set in FIPS 205.
+    function setTreeAddress(bytes32 adrs, uint64 tree) internal pure returns (bytes32) {
+        uint256 cleared = uint256(adrs) & ~(MASK_TREE | MASK_TREE_HI);
+        return bytes32(cleared | (uint256(tree) << 128));
+    }
+
+    /// @notice Set the type and zero the three words after it (FIPS 205).
+    function setTypeAndClear(bytes32 adrs, uint32 adrsType) internal pure returns (bytes32) {
+        uint256 cleared = uint256(adrs) & ~(MASK_TYPE | MASK_TAIL);
+        return bytes32(cleared | (uint256(adrsType) << 96));
+    }
+
+    function setKeyPairAddress(bytes32 adrs, uint32 keyPair) internal pure returns (bytes32) {
+        return bytes32((uint256(adrs) & ~MASK_KEYPAIR) | (uint256(keyPair) << 64));
+    }
+
+    function keyPairAddress(bytes32 adrs) internal pure returns (uint32) {
+        return uint32((uint256(adrs) & MASK_KEYPAIR) >> 64);
+    }
+
+    /// @notice `setChainAddress` and `setTreeHeight` share a field.
+    function setChainAddress(bytes32 adrs, uint32 chain) internal pure returns (bytes32) {
+        return bytes32((uint256(adrs) & ~MASK_CHAIN) | (uint256(chain) << 32));
+    }
+
+    function setTreeHeight(bytes32 adrs, uint32 height) internal pure returns (bytes32) {
+        return setChainAddress(adrs, height);
+    }
+
+    /// @notice `setHashAddress` and `setTreeIndex` share a field.
+    function setHashAddress(bytes32 adrs, uint32 hash_) internal pure returns (bytes32) {
+        return bytes32((uint256(adrs) & ~MASK_HASH) | uint256(hash_));
+    }
+
+    function setTreeIndex(bytes32 adrs, uint32 index) internal pure returns (bytes32) {
+        return setHashAddress(adrs, index);
+    }
+
+    function treeIndex(bytes32 adrs) internal pure returns (uint32) {
+        return uint32(uint256(adrs) & MASK_HASH);
+    }
+
+    // =========================================================================
+    // Address compression
     // =========================================================================
 
     /// @notice `ADRS^c` — the 22 bytes the SHA2 parameter sets hash.

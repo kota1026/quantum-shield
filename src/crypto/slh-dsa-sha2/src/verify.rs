@@ -29,7 +29,7 @@ pub fn base_2b(x: &[u8], b: usize, out_len: usize) -> Vec<u32> {
 }
 
 /// `chain(X, i, s, PK.seed, ADRS)` (FIPS 205 Algorithm 5).
-fn chain(x: &[u8; N], start: u32, steps: u32, pk_seed: &[u8; N], adrs: &mut Adrs) -> [u8; N] {
+pub fn chain(x: &[u8; N], start: u32, steps: u32, pk_seed: &[u8; N], adrs: &mut Adrs) -> [u8; N] {
     let mut tmp = *x;
     for j in start..start + steps {
         adrs.set_hash_address(j);
@@ -39,7 +39,7 @@ fn chain(x: &[u8; N], start: u32, steps: u32, pk_seed: &[u8; N], adrs: &mut Adrs
 }
 
 /// `wots_pkFromSig(sig, M, PK.seed, ADRS)` (FIPS 205 Algorithm 8).
-fn wots_pk_from_sig(sig: &[u8], msg: &[u8; N], pk_seed: &[u8; N], adrs: &mut Adrs) -> [u8; N] {
+pub fn wots_pk_from_sig(sig: &[u8], msg: &[u8; N], pk_seed: &[u8; N], adrs: &mut Adrs) -> [u8; N] {
     let mut digits = base_2b(msg, LG_W, LEN1);
 
     let csum: u32 = digits.iter().map(|d| W - 1 - d).sum();
@@ -63,7 +63,7 @@ fn wots_pk_from_sig(sig: &[u8], msg: &[u8; N], pk_seed: &[u8; N], adrs: &mut Adr
 }
 
 /// `xmss_pkFromSig(idx, SIG_XMSS, M, PK.seed, ADRS)` (FIPS 205 Algorithm 12).
-fn xmss_pk_from_sig(
+pub fn xmss_pk_from_sig(
     idx: u32,
     sig_xmss: &[u8],
     msg: &[u8; N],
@@ -95,7 +95,7 @@ fn xmss_pk_from_sig(
 }
 
 /// `ht_verify(...)` (FIPS 205 Algorithm 14).
-fn ht_verify(
+pub fn ht_verify(
     msg: &[u8; N],
     sig_ht: &[u8],
     pk_seed: &[u8; N],
@@ -129,7 +129,7 @@ fn ht_verify(
 }
 
 /// `fors_pkFromSig(SIG_FORS, md, PK.seed, ADRS)` (FIPS 205 Algorithm 17).
-fn fors_pk_from_sig(sig_fors: &[u8], md: &[u8], pk_seed: &[u8; N], adrs: &mut Adrs) -> [u8; N] {
+pub fn fors_pk_from_sig(sig_fors: &[u8], md: &[u8], pk_seed: &[u8; N], adrs: &mut Adrs) -> [u8; N] {
     let indices = base_2b(md, A, K);
     let element_len = (A + 1) * N;
     let mut roots = [[0u8; N]; K];
