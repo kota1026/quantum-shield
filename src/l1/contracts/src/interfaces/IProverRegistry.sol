@@ -50,6 +50,20 @@ interface IProverRegistry {
         bytes32 reason
     );
 
+    /// @notice Emitted whenever the active prover set changes (FR-THRESH-5)
+    /// @param epoch Monotonic epoch counter (increments on every set change)
+    /// @param commitment Commitment binding (merkle root, prover count)
+    /// @param root Merkle root over the active prover leaves
+    /// @param proverCount Number of active provers at this epoch
+    /// @param blockNumber Block at which the set changed
+    event ActiveSetCommitmentUpdated(
+        uint64 indexed epoch,
+        bytes32 indexed commitment,
+        bytes32 root,
+        uint256 proverCount,
+        uint256 blockNumber
+    );
+
     // =========================================================================
     // Registration Functions
     // =========================================================================
@@ -137,6 +151,42 @@ interface IProverRegistry {
         external
         view
         returns (uint256 period);
+
+    // =========================================================================
+    // Active Set Commitment (FR-THRESH-5)
+    // =========================================================================
+
+    /// @notice Checkpoint of the active prover set at a given epoch
+    struct SetCheckpoint {
+        bytes32 commitment;
+        bytes32 root;
+        uint64 blockNumber;
+        uint32 proverCount;
+    }
+
+    /// @notice Get the current active set commitment and its epoch
+    /// @return commitment The current set commitment (STARK proof public input)
+    /// @return epoch The current epoch
+    function getActiveSetCommitment()
+        external
+        view
+        returns (bytes32 commitment, uint64 epoch);
+
+    /// @notice Get the checkpoint recorded at a given epoch
+    /// @param epoch The epoch to query
+    /// @return checkpoint The checkpoint (zeroed if the epoch does not exist)
+    function getActiveSetCheckpoint(uint64 epoch)
+        external
+        view
+        returns (SetCheckpoint memory checkpoint);
+
+    /// @notice Check whether a commitment was ever a valid active set commitment
+    /// @param commitment The commitment to check
+    /// @return known True if the commitment matches some historical epoch
+    function isKnownActiveSetCommitment(bytes32 commitment)
+        external
+        view
+        returns (bool known);
 
     // =========================================================================
     // Slashing Functions (called by authorized contracts)

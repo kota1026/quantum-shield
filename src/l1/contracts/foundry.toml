@@ -1,4 +1,7 @@
 [profile.default]
+# Read-only access to the FIPS 205 conformance vectors emitted by
+# src/crypto/slh-dsa-sha2 (see test/SLHDSA*.t.sol).
+fs_permissions = [{ access = "read", path = "./test/vectors" }]
 src = "src"
 out = "out"
 test = "test"
