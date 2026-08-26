@@ -1,6 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+// ⚠️ DEPRECATED — DO NOT DEPLOY. NOT FIPS 205.
+//
+// Measured on a genuine SLH-DSA-SHAKE-128s signature this contract consumes
+// 673,778,501 gas and reverts without completing — twenty-two blocks' worth,
+// so it cannot execute on-chain at all
+// (`docs/core/STARK_AIR_GAP_ANALYSIS.md` §25,
+//  `test/SPHINCSVerifierConformance.t.sol`).
+//
+// It is also not the standard it claims: FIPS 205 hashes `PK.seed ‖ ADRS ‖ M`
+// where ADRS is a 32-byte structure encoding the layer, tree, key pair, chain
+// and hash position. This substitutes a one-byte domain separator (0x01/0x02/
+// 0x04) and returns 32-byte digests where the parameter set specifies 16, so a
+// conforming signature cannot verify here even given unlimited gas.
+//
+// Superseded by `src/crypto/SLHDSAVerifier.sol`, which implements FIPS 205
+// SLH-DSA-SHA2-128s, is pinned layer by layer against a reference
+// cross-validated with RustCrypto, and verifies a real signature for
+// ~2.42M gas.
+//
+// Kept only so the conformance test that pins the above keeps compiling.
+
 import {SHAKE256} from "./libraries/SHAKE256.sol";
 import {SHA3_256} from "./libraries/SHA3_256.sol";
 

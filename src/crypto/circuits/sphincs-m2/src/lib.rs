@@ -1,15 +1,32 @@
 //! M2: SLH-DSA-SHAKE-128s full verification circuit witness.
 //!
+//! The verification core (`params`, `adrs`, `hash`, `verify`) is `no_std` +
+//! `alloc`, so it compiles for a bare-metal RISC-V target and can be dropped
+//! into a zkVM guest unchanged — see `docs/core/STARK_AIR_GAP_ANALYSIS.md`
+//! §19.4, where running this verification directly inside a zkVM came out
+//! 228x cheaper than verifying our own STARK proof of it. `dag` needs a hash
+//! map and is therefore gated behind the default `std` feature; a guest needs
+//! the verdict, not the witness DAG.
+//!
 //! See `docs/core/STARK_AIR_GAP_ANALYSIS.md` (G1/G7, milestone M2). Extends
 //! M1 (`sphincs-m1`, a single WOTS+ chain) to the complete FIPS 205
 //! verification path — FORS, the WOTS+ layer, and the d=7 hypertree —
 //! recording every Keccak-f[1600] permutation so the AIR trace and the
 //! reference implementation are the same code path.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
 pub mod adrs;
+#[cfg(feature = "std")]
 pub mod dag;
 pub mod hash;
+pub mod keccak;
 pub mod params;
+pub mod public_values;
+pub mod registry;
+pub mod threshold;
 pub mod verify;
 
 #[cfg(test)]

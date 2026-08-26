@@ -7,10 +7,11 @@
 //! before each permutation gives exactly the witness `p3-keccak-air`
 //! consumes, so the circuit and the reference implementation cannot drift.
 
-use p3_keccak::KeccakF;
-use p3_symmetric::Permutation;
+use alloc::vec;
+use alloc::vec::Vec;
 
 use crate::adrs::Adrs;
+use crate::keccak::keccak_f;
 use crate::params::N;
 
 /// SHAKE256 rate in bytes.
@@ -18,6 +19,17 @@ pub const RATE: usize = 136;
 
 /// SHAKE domain-separation byte (FIPS 202).
 pub const SHAKE_DOMAIN: u8 = 0x1f;
+
+/// SHA3 domain-separation byte (FIPS 202).
+pub const SHA3_DOMAIN: u8 = 0x06;
+
+/// Keccak (pre-FIPS, Ethereum) domain-separation byte.
+///
+/// Needed because the FR-THRESH-5 active-set commitment the same proof must
+/// verify is built with `keccak256` on-chain — see `ProverRegistry.sol` and
+/// `docs/core/STARK_AIR_GAP_ANALYSIS.md` §6. Only the padding byte differs;
+/// the permutation, and therefore the AIR, is identical.
+pub const KECCAK_DOMAIN: u8 = 0x01;
 
 /// Which tweakable hash produced a call (for readability of the DAG).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -47,12 +59,25 @@ pub struct HashCall {
     pub perm_count: usize,
 }
 
+/// One 32-byte hash call — the registry commitment's leaves and Merkle nodes
+/// (FR-THRESH-5), which the same proof must verify. Kept separate from
+/// [`HashCall`] because SPHINCS+ works in 16-byte digests and the registry
+/// tree in 32-byte ones, and the two must not be confused.
+#[derive(Clone, Debug)]
+pub struct NodeCall {
+    pub inputs: Vec<[u8; 32]>,
+    pub output: [u8; 32],
+    pub perm_start: usize,
+    pub perm_count: usize,
+}
+
 /// Records the pre-permutation sponge state of every Keccak-f invocation and
 /// the hash-call DAG, both in evaluation order.
 #[derive(Clone, Debug, Default)]
 pub struct PermTrace {
     pub states: Vec<[u64; 25]>,
     pub calls: Vec<HashCall>,
+    pub node_calls: Vec<NodeCall>,
 }
 
 impl PermTrace {
@@ -69,6 +94,14 @@ impl PermTrace {
         let perm_count = self.states.len() - start;
         self.calls.push(HashCall { kind, inputs, output, perm_start: start, perm_count });
     }
+
+    /// Record a 32-byte hash call. Public so the registry commitment
+    /// ([`crate`]'s sibling crate `sphincs-m3`) can contribute to the same
+    /// witness without duplicating the sponge.
+    pub fn record_node_call(&mut self, inputs: Vec<[u8; 32]>, output: [u8; 32], start: usize) {
+        let perm_count = self.states.len() - start;
+        self.node_calls.push(NodeCall { inputs, output, perm_start: start, perm_count });
+    }
 }
 
 /// SHAKE256 over `parts` concatenated, squeezing `out_len` bytes.
@@ -76,14 +109,42 @@ impl PermTrace {
 /// Every permutation's input state is appended to `trace` when present.
 /// `out_len <= RATE` for all SLH-DSA uses, so squeezing never permutes.
 pub fn shake256_parts(parts: &[&[u8]], out_len: usize, trace: Option<&mut PermTrace>) -> Vec<u8> {
-    assert!(out_len <= RATE, "squeeze past one rate block is not used by SLH-DSA");
+    sponge_parts(parts, SHAKE_DOMAIN, out_len, trace)
+}
+
+/// SHA3-256 over `parts` concatenated (FIPS 202 padding `0x06`).
+pub fn sha3_256_parts(parts: &[&[u8]], trace: Option<&mut PermTrace>) -> [u8; 32] {
+    sponge_parts(parts, SHA3_DOMAIN, 32, trace)
+        .try_into()
+        .expect("32 bytes")
+}
+
+/// keccak256 over `parts` concatenated (Ethereum padding `0x01`).
+pub fn keccak256_parts(parts: &[&[u8]], trace: Option<&mut PermTrace>) -> [u8; 32] {
+    sponge_parts(parts, KECCAK_DOMAIN, 32, trace)
+        .try_into()
+        .expect("32 bytes")
+}
+
+/// Keccak sponge with a caller-chosen domain byte, rate 136.
+///
+/// One code path for SHAKE256, SHA3-256 and keccak256 keeps the recorded
+/// permutation witness identical in shape across all three, which is what
+/// lets a single Keccak table prove them together.
+pub fn sponge_parts(
+    parts: &[&[u8]],
+    domain: u8,
+    out_len: usize,
+    trace: Option<&mut PermTrace>,
+) -> Vec<u8> {
+    assert!(out_len <= RATE, "squeezing past one rate block is not used here");
 
     let total: usize = parts.iter().map(|p| p.len()).sum();
     let mut padded = Vec::with_capacity(total.div_ceil(RATE).max(1) * RATE);
     for p in parts {
         padded.extend_from_slice(p);
     }
-    padded.push(SHAKE_DOMAIN);
+    padded.push(domain);
     while padded.len() % RATE != 0 {
         padded.push(0);
     }
@@ -99,7 +160,7 @@ pub fn shake256_parts(parts: &[&[u8]], out_len: usize, trace: Option<&mut PermTr
         if let Some(rec) = recorder.as_deref_mut() {
             rec.states.push(state);
         }
-        KeccakF.permute_mut(&mut state);
+        keccak_f(&mut state);
     }
 
     let mut out = Vec::with_capacity(out_len);

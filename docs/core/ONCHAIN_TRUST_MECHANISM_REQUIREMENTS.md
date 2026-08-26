@@ -128,7 +128,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 | FR-THRESH-1 | Unlock (Normal/Emergency) の SPHINCS+ 2/N 検証は、**STARK proof 検証を経由した強制**とする。proof は「(a) 各署名が FIPS 205 に従い検証済み (b) 署名者公開鍵が指定ブロック時点の ProverRegistry active 集合コミットメントに含まれる (c) valid 数 ≥ 閾値」を attest する | MUST |
 | FR-THRESH-2 | `_verifySimplified`（恒真チェック）は本番経路から**削除**する。テスト用に残す場合は別コントラクト（`*Testnet.sol`）に隔離し、mainnet ビルドに含めない | MUST |
 | FR-THRESH-3 | proof 検証失敗時は revert し、理由コード付きイベントを emit する（BE-003 ログ要件と対応） | MUST |
-| FR-THRESH-4 | フォールバック経路として、フル SPHINCS+ 直接オンチェーン検証（`_verifyWithSPHINCSVerifier`）を**常時利用可能**に維持する（proof 生成系の障害時に資産が取り出せなくなることを防ぐ。ガス高コストは許容） | MUST |
+| FR-THRESH-4 | フォールバック経路として、フル SPHINCS+ 直接オンチェーン検証（`_verifyWithSPHINCSVerifier`）を**常時利用可能**に維持する（proof 生成系の障害時に資産が取り出せなくなることを防ぐ。ガス高コストは許容） | MUST ⚠️ **保証が成立していない — STARK_AIR_GAP_ANALYSIS.md §25**（フル直接検証は実署名で 673.8M ガス消費・revert、ブロック上限の 22 倍。要件レベルの再設計が必要） |
 | FR-THRESH-5 | ProverRegistry の active 集合は、proof の public input として参照可能なコミットメント（SHA3-256 ベース）をオンチェーンで維持する | MUST |
 | FR-THRESH-6 | 検証方式の選択（proof-based / full-direct）はトランザクション提出者が選べる。**無検証経路は存在しない** | MUST |
 
@@ -166,7 +166,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 | ID | 要件 | 目標値 |
 |----|------|--------|
 | NFR-1 | **量子耐性 (CP-1)**: proof システムを含む全ハッシュは SHA3-256/SHAKE256 (FIPS 202)。keccak256・ECDSA・SHA-256 の新規導入禁止（EVM ネイティブ制約による既存例外を除く） | 128-bit PQ セキュリティ |
-| NFR-2 | **ガス上限**: proof-based Unlock の L1 検証ガスは、現行 Unlock 総ガス目標（~490K gas, SEQUENCES §2）の 2 倍以内 | ≤ 1M gas / unlock |
+| NFR-2 | **ガス上限**: Unlock の L1 検証ガス（🔴 **2026-08-21 改訂**。旧目標 ≤1M は Groth16 wrap を前提にしていたが、その経路は検証層に古典仮定を持ち込むため中核原則に反すると確定した（`STARK_AIR_GAP_ANALYSIS.md` §27）。量子耐性のある直接検証の実測は 2-of-N で **4,846,882 gas** = ブロックガス上限の 16%（§32）。実行可能性を担保しつつ退行を捕まえる値として **≤6M** に再設定する） | ≤ 6M gas / unlock（2-of-N） |
 | NFR-3 | **Proof 生成時間**: Normal Unlock の 24h タイムロック内に十分収まること（🟢 2026-08-06 実測: 1 署名 ~5 分 / 2-of-N ~10 分オーダー。`STARK_AIR_GAP_ANALYSIS.md` §9.3。ただし proving ホストに RAM 要件あり — §9.4） | ≤ 1h (p99) |
 | NFR-4 | **フォールバック可用性**: proof 生成系が全停止しても FR-THRESH-4 経路で資産回収可能 | RTO = 0（常時有効） |
 | NFR-5 | **監査**: 簡易経路削除・verifier 統合の diff は外部監査（または Slither + 手動レビューの二重チェック）を経ること。`slither-reports/` に結果を残す | Critical/High 0 件 |
@@ -214,7 +214,7 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 
 | 要件 | 対応コード/ドキュメント | 検証手段 | 状況 (2026-07-24) |
 |------|------------------------|----------|-------------------|
-| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🟡 進行中 → `STARK_AIR_GAP_ANALYSIS.md`: M0 ✅ / M1 ✅ (`sphincs-m1`) / **M2 ✅ (2026-08-06, `sphincs-m2` — SPHINCS+ フル検証を独立実装でクロス検証、NFR-3 大幅クリア)** / **M3 の DAG 連結 ✅ (`sphincs-m3`: LogUp PoC §10 + Keccak 束縛による健全性確立 §11。フル構成 1 署名 ~6 分)** / M0.5 方式選定済 (§8) / M3 残（集約・閾値・Registry 束縛）+ M4/M5 |
+| FR-THRESH-1 | STARK 集約 proof（AIR 回路） | 受け入れ基準 3 | 🟡 進行中 → `STARK_AIR_GAP_ANALYSIS.md`: M0 ✅ / M1 ✅ (`sphincs-m1`) / **M2 ✅ (2026-08-06, `sphincs-m2` — SPHINCS+ フル検証を独立実装でクロス検証、NFR-3 大幅クリア)** / **M3 の DAG 連結 ✅ (`sphincs-m3`: LogUp PoC §10 + Keccak 束縛による健全性確立 §11。フル構成 1 署名 ~6 分)** / **M3 の Registry membership + 閾値・重複排除 ✅ (§12。コミットメントは Solidity 参照ベクタでクロス検証)** / **M0.5 ✅（zkVM 経路に方式修正、1 署名 8.9M サイクル §19〜§22）** / **M4 オンチェーン側 ✅（§23: `requestUnlockWithProof` + `ThresholdProofVerifier`、~275K gas）** / 残: ゲスト側の拡張と M5 |
 | FR-THRESH-2,6 | `L1Vault.sol`: `_verifySimplified` 削除、verifier 必須化 | 受け入れ基準 1 | 🟢 実装済み + **Sepolia デプロイ済み (2026-08-06, R-1)**。不正署名 revert 実 tx `0x2ce65793…c9031d` 取得（ACTUAL_STATE.md） |
 | FR-THRESH-4 | `L1Vault.sol` `_verifyWithSPHINCSVerifier` + `SPHINCSVerifier.sol` | forge test（フル検証経路） | 🟢 実装済み（唯一の経路に） |
 | FR-THRESH-5 | `ProverRegistry.sol`: epoch 付き active 集合 Merkle コミットメント + checkpoint 履歴 | forge test (`ProverRegistryCommitment.t.sol` 15 件) | 🟢 実装済み（2026-08-05。ツリー構造ハッシュは EVM ネイティブ例外により keccak256、リーフの pubKeyHash は SHA3-256 維持 — 詳細はコントラクト内コメント） |
@@ -278,3 +278,40 @@ Quantum Shield の設計原則 CP-5「透明性」は従来「全てオンチェ
 3. Prover 登録 + Registry 接続、フル検証経路での lock→unlock 実 tx と**不正署名 revert の実 tx** を記録（受け入れ基準 3）
 4. `blockchain.md`・`config/default.yaml`・フロントエンド env のアドレス更新（旧 Vault は「legacy (unlock-only)」として記載残置）
 5. `docs/ACTUAL_STATE.md` に移行記録を追記
+
+
+---
+
+## ⚠️ 検証層の量子耐性に関する確定事項 (2026-08-14)
+
+`STARK_AIR_GAP_ANALYSIS.md` §27 の結論を要件に反映する。
+
+**Groth16 wrap を経由する proof 経路を、唯一の認可経路として有効化してはならない。**
+BN254 は古典仮定であり、量子攻撃者は SPHINCS+ 署名を 1 つも用意せずに偽の proof で
+`requestUnlockWithProof` を通せる。この構成では PQ 署名層は装飾となり、
+プロトコルの中核主張が成立しない。
+
+§8.3 はこの古典仮定を「FR-THRESH-4 のフル直接検証経路が常時担保する」ことを条件に
+受容していたが、その条件は §25 で偽と実測された（673.8M ガス、実行不能）。
+
+**主経路はオンチェーン直接 PQ 検証とする**（2-of-N の実測は **4,846,882 gas**、
+ブロックガス上限の 16%。§30〜§32。当初 ~284K と見積もっていたが実測で 17 倍だった）。
+ハッシュベースの STARK 検証は原則を満たすが、実測で予算の約 101% と余裕が無く
+（§27.4）、現時点で主経路の代替にはならない。
+
+
+### NFR-2 の見直し (2026-08-14)
+
+`STARK_AIR_GAP_ANALYSIS.md` §28 の実測により、**厳密な FIPS 205 適合のまま
+オンチェーン検証が可能**であることが分かった (2-of-N で約 170 万ガス =
+ブロックガス上限の 5.6%)。
+
+NFR-2 の 100 万ガス目標は自分で設定した値であり物理制約ではない。
+暗号の標準適合性を手放してまで守る性質のものではないため、
+**NFR-2 を実測に合わせて再設定する**。
+
+**2026-08-21 追記**: 実装が完成し実測値が確定したため、**≤6M** に確定した
+（見積り 2M も §30〜§32 で 2.4 倍外れていた）。
+
+これにより §26.1 で未解決だった 2 つの方針決定 (署名予算の縮小の受容、
+独立監査のない非標準暗号の採用) は**どちらも不要**になる。

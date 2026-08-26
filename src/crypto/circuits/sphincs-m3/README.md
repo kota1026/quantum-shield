@@ -122,6 +122,111 @@ above puts LogUp itself at ~70 ms. Soundness for the DAG therefore costs about
 a fifth of the Keccak cost, and the complete linked proof still lands at
 ~6 min per signature, an order of magnitude inside NFR-3.
 
+## Registry membership — FR-THRESH-1(b)
+
+`registry.rs` recomputes the FR-THRESH-5 active-set commitment
+(`ProverRegistry.sol`, gap analysis §6) on the circuit side and verifies
+Merkle inclusion **with permutation recording**, so a membership check lands
+in the same Keccak witness as the signature verification:
+
+```text
+leaf = keccak256(LEAF_DOMAIN ‖ proverAddress(20B) ‖ sphincsPubKeyHash(32B))
+node = keccak256(NODE_DOMAIN ‖ left ‖ right)
+root = dense tree, zero-padded to a power of two (bytes32(0) when empty)
+commitment = keccak256(SET_DOMAIN ‖ root ‖ uint256(count))
+```
+
+Correctness is pinned against **the contract, not against this code**: the
+test vectors come from `src/l1/contracts/test/ProverSetCommitmentVectors.t.sol`
+(`forge test --match-contract ProverSetCommitmentVectors -vv`), covering the
+three domain separators, the leaf encoding, and root/commitment for sets of
+0–5 members — the empty set, the single-leaf case with no node hashing, an
+exact power of two, and two zero-padded sizes. Membership tests also reject
+an outsider, a member claiming the wrong position, and a stale member count.
+
+`sphincsPubKeyHash` stays SHA3-256 (CP-1) while the tree is keccak256, the
+documented EVM-native exception; both are the same permutation, so both prove
+in one Keccak table. `sphincs-m2`'s sponge is now domain-parameterised
+(`shake256_parts` / `sha3_256_parts` / `keccak256_parts`) so all three share
+one recording path.
+
+## Threshold and deduplication — FR-THRESH-1(c)
+
+`agg.rs` counts valid signatures over a fixed roster, one row per **active
+prover slot** rather than per submitted signature:
+
+```text
+row i:  [ slot | valid | count | computed_root[4] | pk_root[4] ]
+```
+
+Indexing by slot is what makes **deduplication structural** — a prover has
+exactly one row, so it cannot be counted twice, and no sorting argument or
+range check is needed. `slot` is constrained to the row index, `valid` to be
+boolean, `count` to be the running prefix sum, and the final `count` is bound
+to the public input `valid_count`.
+
+**`valid` is not a free witness.** A slot may claim `valid = 1` only if
+
+- `computed_root == pk_root` — a SPHINCS+ verification succeeds exactly when
+  the recomputed hypertree root equals `PK.root`, so this *is* the verdict; and
+- `computed_root` is received from the `HASH_DAG` interaction with
+  multiplicity `valid`, so it must be a digest the Keccak table produced.
+
+Together these stop a prover from asserting a verdict over a root the circuit
+never computed (`rejects_a_verdict_over_an_unproduced_root`).
+
+`valid_count >= threshold` is deliberately left to L1: the count is a public
+input, so `L1Vault` checks it with one comparison — cheaper than an in-circuit
+range check and equally binding.
+
+Tests cover 2-of-64, the empty and full rosters, and reject an inflated count,
+a deflated count, a broken count chain, a non-boolean `valid`, and permuted
+slots.
+
+## The Keccak table receives its own inputs
+
+A separate consumer table only proves "these values were produced somewhere":
+its rows are free witness, so a prover can write whatever balances the
+multiset. Nothing tied those digests to actual hash **inputs**.
+
+`keccak_link.rs` closes that by having the Keccak table receive its own value
+arguments, read from its preimage columns. Every SPHINCS+ tweakable hash is
+`SHAKE256(PK.seed ‖ ADRS ‖ values…)`, so the first value argument starts at
+message byte 48 (16-bit limb 24) and the second at byte 64 (limb 32).
+
+Two flags, `recv0` and `recv1`, mark a value argument as coming from another
+hash. They may only be set on a permutation's **first round row** — that is
+the only row whose preimage is the raw message, since from the second block
+onwards the preimage is the previous output XOR the next message block.
+
+Measured coverage on a real signature: **1,915 of 2,135 edges (89.7 %)**.
+`F` (one value) and `H` (two) are covered entirely — 2,136 of the ~2,144
+calls. The remaining 220 are `T_l`'s third value onward, which spill past the
+first rate block.
+
+The test that matters is `rejects_an_external_input_claimed_as_internal`: the
+FORS leaf's `sk` and every authentication-path sibling come from the
+signature, and claiming one as internally produced now leaves the interaction
+unbalanced. The separate consumer table could not catch that.
+
+## Three interactions
+
+| interaction | tuple | carries |
+|---|---|---|
+| `HASH_DAG` | 4 × 32-bit | 16-byte SPHINCS+ digests |
+| `MERKLE_DAG` | 8 × 32-bit | 32-byte registry leaves and nodes |
+| `PUBKEY_BIND` | 8 + 4 × 32-bit | `(sha3(PK.seed ‖ PK.root), PK.root)` |
+
+The first two match on hash **outputs**. `PUBKEY_BIND` is the odd one out: it
+also exposes a hash **input**, read from keccak-air's preimage columns
+(`input_limb(8..16)` is `PK.root`, bytes 16..32 of the registered key).
+Without it a slot could pair a legitimately-registered public-key hash with a
+`PK.root` of its own choosing — output-only matching cannot see that.
+
+Keeping 16- and 32-byte values in separate interactions, rather than padding
+them into one tuple with a kind tag, avoids a degree-2 masking expression on
+the producer side and makes confusing the two value spaces impossible.
+
 ## Scope — what this does *not* yet do
 
 Deliberately, so the numbers above are not read as more than they are:
@@ -136,10 +241,16 @@ Deliberately, so the numbers above are not read as more than they are:
    argument proves a value *was produced*, not *where it belongs*; the
    surrounding AIR's address (`ADRS`) columns are what pin position in the
    real circuit.
-3. **Single signature.** N-of-M aggregation, threshold counting, signer
-   deduplication, and binding the `ProverRegistry` active-set commitment
-   (FR-THRESH-5, gap analysis §6) all fit this same framework — each signature
-   as its own table — but are not implemented yet.
+3. **The Merkle root is not yet bound to a public commitment.** The chain
+   `pubkey_hash -> leaf -> nodes -> root` is linked, but the final equality
+   `keccak(SET_DOMAIN ‖ root ‖ count) == commitment` is still checked outside
+   the circuit; it needs to become a public input.
+4. **The aggregation slot is not yet tied to a specific signature's witness.**
+   The verdict chain proves *a* root and *a* registered key; associating slot
+   `i` with signature `i`'s own trace is the next step.
+5. **Multiple signatures share one Keccak table today.** Giving each signature
+   its own table (which `p3-batch-stark` supports directly) is what keeps the
+   §9.4-2 memory ceiling manageable at N signatures.
 
 ```bash
 cargo run --release --example bound_full   # full-scale bound measurement

@@ -1,0 +1,17 @@
+[package]
+name = "slh-dsa-sha2"
+version = "0.1.0"
+edition = "2021"
+description = "Reference verifier for FIPS 205 SLH-DSA-SHA2-128s, decomposed so each hash construction can be differentially tested against the Solidity verifier. Cross-validated against the independent RustCrypto slh-dsa implementation."
+
+[dependencies]
+sha2 = "0.10"
+
+[dev-dependencies]
+# Independent FIPS 205 implementation, used only as an oracle.
+slh-dsa = "0.2.0-rc.5"
+signature = "3.0.0-rc.4"
+rand_core = "0.10"
+hex = "0.4"
+
+[workspace]

@@ -7,6 +7,8 @@
 //! implementation are the same code path, and correctness is pinned against
 //! the independent RustCrypto `slh-dsa` implementation in the crate tests.
 
+use alloc::vec::Vec;
+
 use crate::adrs::{self, Adrs};
 use crate::hash::{f, h, h_msg, t_l, PermTrace};
 use crate::params::*;
